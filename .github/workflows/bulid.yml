@@ -8,20 +8,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Locate project
+        id: loc
         run: |
-          Z=$(find . -iname "*o2dialer*.zip" -not -path "./.git/*" | head -1)
-          if [ -z "$Z" ]; then Z=$(find . -iname "*.zip" -not -path "./.git/*" | head -1); fi
-          if [ -n "$Z" ]; then
-            echo "Using zip: $Z"
-            unzip -q -o "$Z" -d proj
-            D=$(dirname "$(find proj -name settings.gradle.kts | head -1)")
-          elif [ -f settings.gradle.kts ]; then
-            D=.
-          else
-            echo "No zip or project found in the repo."
-            exit 1
+          if [ -z "$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)" ]; then
+            for z in *.zip; do [ -f "$z" ] && unzip -oq "$z"; done
           fi
-          echo "DIR=$D" >> $GITHUB_ENV
+          f=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1)
+          if [ -z "$f" ]; then echo "No settings.gradle.kts found in repo"; exit 1; fi
+          echo "dir=$(dirname "$f")" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -33,14 +27,32 @@ jobs:
         with:
           gradle-version: 8.5
       - name: Build
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ steps.loc.outputs.dir }}
+        env:
+          LICENSE_URL: ${{ secrets.LICENSE_URL }}
         run: |
-          if ! gradle assembleDebug --no-daemon --console=plain > build.log 2>&1; then
-            echo "=== ERRORS ==="
+          set +e
+          echo "Licensing: $([ -n "$LICENSE_URL" ] && echo ON || echo OFF)"
+          gradle assembleDebug --no-daemon --console=plain --stacktrace > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            echo "=== KOTLIN ERRORS ==="
             grep "^e:" build.log | head -40
-            exit 1
+            echo "=== GRADLE / RESOURCE ERRORS ==="
+            grep -nE "What went wrong|Execution failed|error:|ERROR:|FAILED|Could not" -A6 build.log | head -80
           fi
+          exit $code
+      - name: Show signing certificate
+        run: |
+          APK="${{ steps.loc.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk"
+          TOOL="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          "$TOOL" verify --print-certs "$APK" | grep -i "SHA-256" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: ${{ steps.loc.outputs.dir }}/build.log
       - uses: actions/upload-artifact@v4
         with:
           name: O2Dialer-APK
-          path: ${{ env.DIR }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.loc.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
