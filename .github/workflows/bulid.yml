@@ -33,26 +33,44 @@ jobs:
         run: |
           set +e
           echo "Licensing: $([ -n "$LICENSE_URL" ] && echo ON || echo OFF)"
-          gradle assembleDebug --no-daemon --console=plain --stacktrace > build.log 2>&1
+          gradle assembleRelease --no-daemon --console=plain --stacktrace > build.log 2>&1
           code=$?
           if [ $code -ne 0 ]; then
-            echo "=== KOTLIN ERRORS ==="
+            echo "=== RELEASE BUILD FAILED. KOTLIN ERRORS ==="
             grep "^e:" build.log | head -40
-            echo "=== GRADLE / RESOURCE ERRORS ==="
-            grep -nE "What went wrong|Execution failed|error:|ERROR:|FAILED|Could not" -A6 build.log | head -80
+            echo "=== GRADLE / R8 ERRORS ==="
+            grep -nE "What went wrong|Execution failed|error:|ERROR:|FAILED|Could not|R8" -A6 build.log | head -80
+            echo "=== Falling back to the debug build ==="
+            gradle assembleDebug --no-daemon --console=plain --stacktrace > build-debug.log 2>&1
+            code=$?
+            if [ $code -ne 0 ]; then
+              grep "^e:" build-debug.log | head -40
+              exit $code
+            fi
           fi
-          exit $code
+          mkdir -p out
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk out/O2Dialer.apk
+            echo "APK type: RELEASE (fast)"
+          else
+            cp app/build/outputs/apk/debug/app-debug.apk out/O2Dialer.apk
+            echo "APK type: DEBUG (slower)"
+          fi
+          exit 0
       - name: Show signing certificate
         run: |
-          APK="${{ steps.loc.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk"
+          APK="${{ steps.loc.outputs.dir }}/out/O2Dialer.apk"
           TOOL="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
           "$TOOL" verify --print-certs "$APK" | grep -i "SHA-256" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: build-log
-          path: ${{ steps.loc.outputs.dir }}/build.log
+          path: |
+            ${{ steps.loc.outputs.dir }}/build.log
+            ${{ steps.loc.outputs.dir }}/build-debug.log
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: O2Dialer-APK
-          path: ${{ steps.loc.outputs.dir }}/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.loc.outputs.dir }}/out/O2Dialer.apk
