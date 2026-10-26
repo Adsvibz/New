@@ -104,8 +104,14 @@ fun V7CampaignWorkspace(
                         Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.onTertiaryContainer)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(T("Session in progress", "حملة قيد التشغيل"),
-                                color = cs.onTertiaryContainer, fontWeight = FontWeight.Bold)
+                            Text(
+                                if (Store.camp.status == CS.PAUSED)
+                                    T("Session paused", "الحملة متوقفة مؤقتًا")
+                                else if (Store.camp.status == CS.WAITING)
+                                    T("Waiting for next call", "بانتظار المكالمة التالية")
+                                else T("Session in progress", "حملة قيد التشغيل"),
+                                color = cs.onTertiaryContainer, fontWeight = FontWeight.Bold
+                            )
                             Text(Store.camp.listName, style = MaterialTheme.typography.bodySmall,
                                 color = cs.onTertiaryContainer, maxLines = 1)
                         }
