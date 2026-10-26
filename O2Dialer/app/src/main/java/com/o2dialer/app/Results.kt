@@ -412,7 +412,13 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
         topStart = if (isFirst) Rd.l else 0.dp, topEnd = if (isFirst) Rd.l else 0.dp,
         bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
     )
-    Column(Modifier.fillMaxWidth().clip(shape).background(cs.surface)) {
+    Column(
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(Rd.m))
+            .background(cs.surface)
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
+    ) {
         Row(
             Modifier.padding(start = Sp.l, end = Sp.l, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -484,11 +490,13 @@ fun LogScreen() {
         containerColor = Color.Transparent
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
-            V7HistoryHeader(
-                total = Store.log.size,
-                answered = Store.log.count { St.isAnswered(it.status) },
-                missed = Store.log.count { it.status == St.NO_ANSWER }
-            )
+            Box(Modifier.padding(horizontal = Sp.xl)) {
+                V7HistoryHeader(
+                    total = Store.log.size,
+                    answered = Store.log.count { St.isAnswered(it.status) },
+                    missed = Store.log.count { it.status == St.NO_ANSWER }
+                )
+            }
             Spacer(Modifier.height(Sp.m))
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
