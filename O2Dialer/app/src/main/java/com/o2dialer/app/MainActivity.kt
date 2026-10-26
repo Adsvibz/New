@@ -294,12 +294,11 @@ fun Root(act: MainActivity) {
                     transitionSpec = {
                         val forward = targetState >= initialState
                         val dir = if (forward) 1 else -1
-                        (fadeIn(tween(260)) +
-                            slideInHorizontally(tween(360, easing = Motion.easeOut)) { it / 10 * dir } +
-                            scaleIn(tween(360, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
-                            (fadeOut(tween(140)) +
-                                slideOutHorizontally(tween(220)) { -it / 16 * dir } +
-                                scaleOut(tween(220), targetScale = 0.992f))
+                        (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) +
+                            slideInHorizontally(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) { it / 7 * dir } +
+                            scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.975f)) togetherWith
+                            (fadeOut(tween(Motion.NAV_EXIT_MS)) +
+                                slideOutHorizontally(tween(Motion.NAV_EXIT_MS)) { -it / 12 * dir })
                     },
                     label = "screen"
                 ) { k ->
