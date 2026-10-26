@@ -26,7 +26,8 @@ fun V7ResultsHeader(progress: Prog, campaign: String) {
             Column(Modifier.weight(1f)) {
                 Text(T("PERFORMANCE OVERVIEW", "ملخص الأداء"),
                     color = cs.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(campaign, color = cs.onSurface, style = MaterialTheme.typography.titleLarge)
+                Text(campaign, color = cs.onSurface, style = MaterialTheme.typography.titleLarge,
+                    maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             }
             Icon(Icons.Rounded.Insights, null, tint = cs.primary)
         }
