@@ -718,7 +718,7 @@ fun LiveScreen(act: MainActivity) {
                 Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
                     if (hero && heroList != null) {
                         val p = Store.prog(heroList)
-                        Enter(0) { CallHero(c, heroList, p, now, compact) }
+                        Enter(0) { V7LiveHero(c, heroList, p, now) }
                         if (c.status == CS.FINISHED) {
                             Enter(1) { Banner(if (c.error) Tk.ERROR else Tk.SUCCESS, c.message) }
                             Enter(2) { OutcomesPanel(p, p.remaining) }
