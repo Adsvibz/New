@@ -221,6 +221,7 @@ fun ResultsScreen() {
                 contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = Sp.l),
                 verticalArrangement = Arrangement.spacedBy(Sp.m)
             ) {
+                item { V7ResultsHeader(p, list.name) }
                 if (Store.lists.size > 1) item {
                     Row(
                         Modifier.horizontalScroll(rememberScrollState()),
