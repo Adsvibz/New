@@ -408,10 +408,6 @@ private fun logIcon(s: Int): ImageVector = when (s) {
 private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
     val cs = MaterialTheme.colorScheme
     val color = statusColor(l.status)
-    val shape = RoundedCornerShape(
-        topStart = if (isFirst) Rd.l else 0.dp, topEnd = if (isFirst) Rd.l else 0.dp,
-        bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
-    )
     Column(
         Modifier.fillMaxWidth()
             .padding(vertical = 4.dp)
@@ -457,7 +453,6 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
                 )
             }
         }
-        if (!isLast) Hairline(startIndent = 66.dp)
     }
 }
 
