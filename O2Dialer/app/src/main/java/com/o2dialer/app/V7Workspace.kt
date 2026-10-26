@@ -37,6 +37,8 @@ fun V7CampaignWorkspace(
     val answered = lists.sumOf { Store.prog(it).answered }
     var search by remember { mutableStateOf("") }
     val shown = lists.filter { it.name.contains(search.trim(), ignoreCase = true) }
+    val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
+    val responseRate = if (called > 0) (answered.toLong() * 100 / called).coerceIn(0L, 100L) else 0L
     val cs = MaterialTheme.colorScheme
 
     LazyColumn(
@@ -74,12 +76,12 @@ fun V7CampaignWorkspace(
                         fontWeight = FontWeight.Bold, color = Color.White)
                     Text(T("calls processed across $total contacts", "مكالمة تمت معالجتها من أصل $total جهة اتصال"),
                         color = Color(0xFFD3DEF2), style = MaterialTheme.typography.bodySmall)
-                    LinearProgressIndicator(progress = { if (total > 0) called.toFloat()/total else 0f },
+                    LinearProgressIndicator(progress = { completion },
                         modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
                         color = Color(0xFF8DB6FF), trackColor = Color(0xFF354D79))
                     Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                         V7HeroMetric("$answered", T("Answered", "تم الرد"))
-                        V7HeroMetric("${(if (called > 0) answered * 100 / called else 0)}%",
+                        V7HeroMetric("$responseRate%",
                             T("Answer rate", "نسبة الرد"))
                         V7HeroMetric("${lists.size}", T("Campaigns", "الحملات"))
                     }
@@ -208,7 +210,7 @@ private fun V7CampaignRow(
                     }
                 }
             }
-            LinearProgressIndicator(progress = { p.pct / 100f },
+            LinearProgressIndicator(progress = { (p.pct / 100f).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
                 color = cs.primary, trackColor = cs.surfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
