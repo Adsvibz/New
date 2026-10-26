@@ -32,11 +32,11 @@ fun V7CampaignWorkspace(
     onDelete: (CallList) -> Unit
 ) {
     val lists = Store.lists.toList()
-    val total = lists.sumOf { it.entries.size }
-    val called = lists.sumOf { it.entries.count { e -> e.status != St.PENDING } }
-    val answered = lists.sumOf { it.entries.count { e -> St.isAnswered(e.status) } }
+    val total = lists.sumOf { Store.prog(it).total }
+    val called = lists.sumOf { Store.prog(it).called }
+    val answered = lists.sumOf { Store.prog(it).answered }
     var search by remember { mutableStateOf("") }
-    val shown = lists.filter { it.name.contains(search, ignoreCase = true) }
+    val shown = lists.filter { it.name.contains(search.trim(), ignoreCase = true) }
     val cs = MaterialTheme.colorScheme
 
     LazyColumn(
