@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun V7ResultsHeader(progress: Prog, campaign: String) {
     val cs = MaterialTheme.colorScheme
-    val rate = if (progress.called > 0) progress.answered * 100 / progress.called else 0
+    val rate = if (progress.called > 0)
+        (progress.answered.toLong() * 100 / progress.called).coerceIn(0L, 100L)
+    else 0L
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -37,7 +39,7 @@ fun V7ResultsHeader(progress: Prog, campaign: String) {
                     V7ResultMetric("${progress.answered}", T("Answered", "تم الرد"), Modifier.weight(1f))
                     V7ResultMetric("$rate%", T("Answer rate", "نسبة الرد"), Modifier.weight(1f))
                 }
-                LinearProgressIndicator(progress = { progress.pct / 100f },
+                LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().height(7.dp),
                     color = cs.primary, trackColor = cs.surfaceVariant)
                 Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
