@@ -88,7 +88,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                         style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                     Text("${progress.pct}%", fontWeight = FontWeight.Bold, color = cs.primary)
                 }
-                LinearProgressIndicator(progress = { progress.pct / 100f },
+                LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
                     color = cs.primary, trackColor = cs.surfaceVariant)
                 Row(verticalAlignment = Alignment.CenterVertically) {
