@@ -1,0 +1,10 @@
+name = "o2dialer-server"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Create the database once (Cloudflare dashboard > Storage & Databases > D1 > Create, name: o2dialer),
+# then paste its ID here. Only needed for the wrangler / GitHub deploy method.
+[[d1_databases]]
+binding = "DB"
+database_name = "o2dialer"
+database_id = "PUT-YOUR-D1-DATABASE-ID-HERE"

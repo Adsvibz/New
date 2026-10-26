@@ -1,0 +1,26 @@
+name: Deploy license server (optional)
+# Only needed if you prefer GitHub over pasting worker.js into the Cloudflare dashboard.
+# Secrets required: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, ADMIN_TOKEN.
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate server
+        id: loc
+        run: |
+          f=$(find . -name wrangler.toml -not -path './.git/*' -not -path '*/node_modules/*' | head -1)
+          if [ -z "$f" ]; then echo "wrangler.toml not found"; exit 1; fi
+          echo "dir=$(dirname "$f")" >> "$GITHUB_OUTPUT"
+      - uses: cloudflare/wrangler-action@v3
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ steps.loc.outputs.dir }}
+          secrets: |
+            ADMIN_TOKEN
+          command: deploy
