@@ -224,7 +224,9 @@ private fun AppNavBar() {
         ) {
             slots.forEach { (label, icon, destination) ->
                 val active = Store.tab == destination
-                val tint = if (active) cs.primary else cs.onSurfaceVariant
+                val tint by animateColorAsState(if (active) cs.primary else cs.onSurfaceVariant, animationSpec = tween(220, easing = Motion.easeOut), label = "navTint")
+                val indicator by animateColorAsState(if (active) cs.primaryContainer else Color.Transparent, animationSpec = tween(250, easing = Motion.easeOut), label = "navIndicator")
+                val iconScale by animateFloatAsState(if (active) 1.12f else 1f, animationSpec = Motion.gentle(), label = "navIconScale")
                 Column(
                     Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(12.dp))
@@ -242,10 +244,10 @@ private fun AppNavBar() {
                     Box(
                         Modifier.size(width = 46.dp, height = 30.dp)
                             .clip(RoundedCornerShape(11.dp))
-                            .background(if (active) cs.primaryContainer else Color.Transparent),
+                            .background(indicator),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(icon, label, tint = tint, modifier = Modifier.size(19.dp))
+                        Icon(icon, label, tint = tint, modifier = Modifier.size(19.dp).graphicsLayer { scaleX = iconScale; scaleY = iconScale })
                     }
                     Spacer(Modifier.height(3.dp))
                     Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
