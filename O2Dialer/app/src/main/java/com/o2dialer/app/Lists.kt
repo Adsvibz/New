@@ -178,57 +178,7 @@ fun ListsScreen() {
     var editing by remember { mutableStateOf<CallList?>(null) }
     var deleting by remember { mutableStateOf<CallList?>(null) }
 
-    Scaffold(
-        topBar = {
-            BlendBar(
-                T("Campaigns", "الحملات"),
-                subtitle = if (Store.lists.isEmpty()) T("Your calling workspace", "مساحة الاتصال الخاصة بك")
-                else T("${Store.lists.size} campaigns · ${Store.lists.sumOf { it.entries.size }} contacts",
-                    "${Store.lists.size} حملة · ${Store.lists.sumOf { it.entries.size }} جهة اتصال")
-            )
-        },
-        floatingActionButton = {
-            if (Store.lists.isNotEmpty()) BrandFab(T("New campaign", "حملة جديدة"), Icons.Rounded.Add, { creating = true })
-        },
-        containerColor = Color.Transparent
-    ) { pad ->
-        if (Store.lists.isEmpty()) {
-            EmptyState(
-                Icons.Rounded.Campaign, T("No campaigns yet", "لا توجد حملات بعد"),
-                T("Create a campaign, add your contacts and start calling.", "أنشئ حملة وأضف جهات الاتصال وابدأ الاتصال."),
-                Modifier.padding(pad), actionText = T("Create campaign", "إنشاء حملة"), onAction = { creating = true }
-            )
-        } else {
-            LazyColumn(
-                Modifier.padding(pad), contentPadding = PaddingValues(Sp.xl, Sp.s, Sp.xl, 118.dp),
-                verticalArrangement = Arrangement.spacedBy(Sp.m)
-            ) {
-                item(key = "overview") { Enter(0) { OverviewCard() } }
-                item(key = "label") {
-                    Enter(1) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(top = Sp.l, bottom = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            SectionLabel(T("Your campaigns", "حملاتك"))
-                            Spacer(Modifier.weight(1f))
-                            Text(
-                                "${Store.lists.size}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                itemsIndexed(Store.lists, key = { _, l -> l.id }) { i, l ->
-                    val card: @Composable () -> Unit = {
-                        CampaignCard(l, onOpen = { Store.selectedListId = l.id }, onEdit = { editing = l }, onDelete = { deleting = l })
-                    }
-                    if (i < 5) Enter(i + 2) { card() } else card()
-                }
-            }
-        }
-    }
+    V7CampaignWorkspace(onCreate = { creating = true }, onEdit = { editing = it }, onDelete = { deleting = it })
 
     if (creating) CampaignDialog(null, { creating = false }) { n, sim ->
         Store.selectedListId = Store.addList(n, sim); creating = false
