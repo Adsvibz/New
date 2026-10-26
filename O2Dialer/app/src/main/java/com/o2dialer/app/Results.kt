@@ -116,12 +116,12 @@ private fun StageLegendRow(
 private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolean) {
     val cs = MaterialTheme.colorScheme
     val canStage = St.isAnswered(e.status)
-    val shape = RoundedCornerShape(
-        topStart = if (isFirst) Rd.l else 0.dp, topEnd = if (isFirst) Rd.l else 0.dp,
-        bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
-    )
     Column(
-        Modifier.fillMaxWidth().clip(shape).background(cs.surface)
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(Rd.m))
+            .background(cs.surface)
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
             .then(if (canStage) Modifier.clickable { Store.stageTarget = listId to e.id } else Modifier)
     ) {
         Row(
@@ -164,7 +164,6 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
                 Icons.Rounded.ChevronRight, null, tint = cs.outline, modifier = Modifier.size(18.dp)
             )
         }
-        if (!isLast) Hairline(startIndent = 68.dp)
     }
 }
 
