@@ -204,56 +204,52 @@ private fun LiveNavItem(selected: Boolean, active: Boolean, modifier: Modifier, 
 @Composable
 private fun AppNavBar() {
     val cs = MaterialTheme.colorScheme
-    val dark = isDarkTheme()
-    val shape = RoundedCornerShape(30.dp)
-    val slot = when (Store.tab) { 0 -> 0; 2 -> 1; 1 -> 2; 3 -> 3; else -> 4 }
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val pos by animateFloatAsState(slot.toFloat(), Motion.gentle(), label = "dock")
-
-    Box(
-        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Sp.l).padding(bottom = Sp.s),
-        contentAlignment = Alignment.BottomCenter
+    val slots = listOf(
+        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
+        Triple(T("Live", "مباشر"), Icons.Rounded.Call, 1),
+        Triple(T("Results", "النتائج"), Icons.Rounded.BarChart, 2),
+        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
+        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
+    )
+    Surface(
+        color = cs.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding()
     ) {
-        BoxWithConstraints(
-            Modifier.widthIn(max = 560.dp).fillMaxWidth().height(76.dp)
-                .shadow(
-                    22.dp, shape,
-                    ambientColor = Color.Black.copy(alpha = if (dark) 0.5f else 0.16f),
-                    spotColor = Color.Black.copy(alpha = 0.12f)
-                )
-                .clip(shape)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            cs.surface.copy(alpha = if (dark) 0.98f else 1f),
-                            cs.surfaceVariant.copy(alpha = if (dark) 0.55f else 0.45f)
-                        )
-                    )
-                )
-                .border(1.dp, cs.onSurface.copy(alpha = 0.07f), shape)
-                .padding(6.dp)
+        Row(
+            Modifier.fillMaxWidth().height(70.dp).padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val w = maxWidth / 5
-            val x = if (rtl) maxWidth - w * (pos + 1f) else w * pos
-            Box(
-                Modifier.offset(x = x).width(w).fillMaxHeight()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(cs.primary.copy(alpha = 0.09f))
-                    .border(1.dp, cs.primary.copy(alpha = 0.10f), RoundedCornerShape(24.dp))
-            )
-            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                NavItem(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, Icons.Outlined.Campaign, Store.tab == 0, Modifier.weight(1f)) {
-                    Store.selectedListId = null; Store.tab = 0
-                }
-                NavItem(T("Results", "النتائج"), Icons.Rounded.BarChart, Icons.Outlined.BarChart, Store.tab == 2, Modifier.weight(1f)) {
-                    Store.tab = 2
-                }
-                LiveNavItem(Store.tab == 1, Store.campActive(), Modifier.weight(1f)) { Store.tab = 1 }
-                NavItem(T("Log", "السجل"), Icons.Rounded.History, Icons.Outlined.History, Store.tab == 3, Modifier.weight(1f)) {
-                    Store.tab = 3
-                }
-                NavItem(T("Settings", "الإعدادات"), Icons.Rounded.Settings, Icons.Outlined.Settings, Store.tab == 4, Modifier.weight(1f)) {
-                    Store.openSettings()
+            slots.forEach { (label, icon, destination) ->
+                val active = Store.tab == destination
+                val tint = if (active) cs.primary else cs.onSurfaceVariant
+                Column(
+                    Modifier.weight(1f).fillMaxHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            if (destination == 4) Store.openSettings()
+                            else {
+                                if (destination == 0) Store.selectedListId = null
+                                Store.tab = destination
+                            }
+                        }
+                        .padding(vertical = 7.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        Modifier.size(width = 46.dp, height = 30.dp)
+                            .clip(RoundedCornerShape(11.dp))
+                            .background(if (active) cs.primaryContainer else Color.Transparent),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(icon, label, tint = tint, modifier = Modifier.size(19.dp))
+                    }
+                    Spacer(Modifier.height(3.dp))
+                    Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = tint, maxLines = 1)
                 }
             }
         }
