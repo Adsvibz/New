@@ -74,7 +74,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
-                Text(name.ifBlank { T("No contact selected", "لم يتم اختيار جهة اتصال") },
+                Text(name.ifBlank { if (finished) T("All calls processed", "تمت معالجة جميع المكالمات") else T("No contact selected", "لم يتم اختيار جهة اتصال") },
                     style = MaterialTheme.typography.headlineMedium, color = cs.onSurface,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (number.isNotBlank()) {
