@@ -160,10 +160,8 @@ fun BButton(
     val height = if (compact) 46.dp else 54.dp
     val shape = RoundedCornerShape(if (compact) 15.dp else 18.dp)
     val brush = when (kind) {
-        BtnKind.Primary -> Brush.linearGradient(
-            listOf(cs.primary, lerp(cs.primary, cs.secondary, if (dark) 0.28f else 0.22f))
-        )
-        BtnKind.Danger -> Brush.linearGradient(listOf(cs.error, lerp(cs.error, Brass, 0.25f)))
+        BtnKind.Primary -> Brush.linearGradient(listOf(cs.primary, cs.primary))
+        BtnKind.Danger -> Brush.linearGradient(listOf(cs.error, cs.error))
         BtnKind.Tonal -> Brush.linearGradient(
             listOf(cs.primary.copy(alpha = 0.16f), cs.primary.copy(alpha = 0.07f))
         )
@@ -180,7 +178,7 @@ fun BButton(
         BtnKind.Tonal -> Modifier.border(1.dp, cs.primary.copy(alpha = 0.18f), shape)
         else -> Modifier
     }
-    val elevation = if (kind == BtnKind.Primary || kind == BtnKind.Danger)
+    val elevation = if (false)
         Modifier.shadow(
             14.dp, shape, ambientColor = cs.primary.copy(alpha = 0.28f), spotColor = cs.primary.copy(alpha = 0.22f)
         )
@@ -373,29 +371,13 @@ fun Panel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val dark = isDarkTheme()
-    val shape = RoundedCornerShape(Rd.l)
-    val fill = Brush.verticalGradient(
-        listOf(cs.surface, cs.surfaceVariant.copy(alpha = if (dark) 0.28f else 0.36f))
-    )
-    val edge = Brush.verticalGradient(
-        listOf(cs.onSurface.copy(alpha = if (dark) 0.13f else 0.10f), cs.onSurface.copy(alpha = 0.025f))
-    )
+    val shape = RoundedCornerShape(Rd.m)
     val base = modifier
-        .then(
-            if (dark) Modifier
-            else Modifier.shadow(
-                12.dp, shape, ambientColor = cs.onSurface.copy(alpha = 0.05f), spotColor = cs.onSurface.copy(alpha = 0.04f)
-            )
-        )
         .clip(shape)
-        .background(fill)
-        .border(1.dp, edge, shape)
-        .then(if (accent != null) Modifier.border(1.5.dp, accent.copy(alpha = 0.55f), shape) else Modifier)
+        .background(cs.surface)
+        .border(1.dp, accent?.copy(alpha = 0.5f) ?: cs.outlineVariant, shape)
         .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-    Box(base) {
-        Column(Modifier.fillMaxWidth(), content = content)
-    }
+    Column(base.fillMaxWidth(), content = content)
 }
 
 /** One-pixel separator, optionally indented to line up with text after a leading avatar. */
@@ -880,9 +862,9 @@ fun BrandFab(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Mod
     val src = remember { MutableInteractionSource() }
     Row(
         modifier.pressScale(src, 0.94f)
-            .shadow(18.dp, shape, ambientColor = cs.primary.copy(alpha = 0.35f), spotColor = cs.primary.copy(alpha = 0.28f))
+            .shadow(3.dp, shape, ambientColor = cs.primary.copy(alpha = 0.12f), spotColor = cs.primary.copy(alpha = 0.10f))
             .clip(shape)
-            .background(Brush.horizontalGradient(listOf(cs.primary, lerp(cs.primary, cs.secondary, 0.3f))))
+            .background(Brush.horizontalGradient(listOf(cs.primary, cs.primary)))
             .border(1.dp, Color.White.copy(alpha = 0.16f), shape)
             .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick)
             .heightIn(min = 54.dp).padding(horizontal = 19.dp),
