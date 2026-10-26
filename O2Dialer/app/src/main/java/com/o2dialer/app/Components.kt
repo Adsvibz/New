@@ -45,7 +45,7 @@ import kotlin.math.roundToInt
 @Composable
 fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
     val ctx = LocalContext.current
-    val labels = remember { simLabels(ctx) }
+    val labels = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
     val names = listOf(T("Default SIM", "الشريحة الافتراضية")) + labels
     Column(verticalArrangement = Arrangement.spacedBy(Sp.s)) {
         names.forEachIndexed { i, label ->
@@ -75,8 +75,8 @@ fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
 // ============================================================ forms (bottom sheets)
 @Composable
 fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
-    var name by remember { mutableStateOf(initial?.name ?: "") }
-    var sim by remember { mutableIntStateOf(initial?.simSlot ?: -1) }
+    var name by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
+    var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
     BSheet(
         title = if (initial == null) T("New campaign", "حملة جديدة") else T("Campaign settings", "إعدادات الحملة"),
         subtitle = T("Give it a name and choose which SIM places the calls.", "اختر اسمًا وشريحة الاتصال."),
@@ -95,8 +95,8 @@ fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, I
 
 @Composable
 fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
-    var n by remember { mutableStateOf(initial?.name ?: "") }
-    var p by remember { mutableStateOf(initial?.number ?: "") }
+    var n by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
+    var p by rememberSaveable(initial?.id) { mutableStateOf(initial?.number ?: "") }
     BSheet(
         title = if (initial == null) T("Add number", "إضافة رقم") else T("Edit contact", "تعديل جهة الاتصال"),
         subtitle = T("Country code is added automatically.", "كود الدولة يضاف تلقائيًا."),
@@ -113,7 +113,7 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
 
 @Composable
 fun BulkDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
-    var t by remember { mutableStateOf("") }
+    var t by rememberSaveable { mutableStateOf("") }
     BSheet(title = T("Paste numbers", "لصق أرقام"), onDismiss = onDismiss,
         subtitle = T("Paste numbers line by line. Names are optional.", "الصق الأرقام سطرًا بسطر، والأسماء اختيارية.")) {
         BTextField(
@@ -137,7 +137,7 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
     val loaded by produceState<List<Pair<String, String>>?>(initialValue = null) {
         value = withContext(Dispatchers.IO) { loadContacts(ctx) }
     }
-    var q by remember { mutableStateOf("") }
+    var q by rememberSaveable { mutableStateOf("") }
     val sel = remember { mutableStateListOf<String>() }
     val all = loaded
     val shown = all?.filter { q.isBlank() || it.first.contains(q, true) || it.second.contains(q) } ?: emptyList()
@@ -239,8 +239,8 @@ fun StageSheet(listId: String, entryId: String) {
     val ctx = LocalContext.current
     val entry = Store.lists.find { it.id == listId }?.entries?.find { it.id == entryId }
     if (entry == null) { LaunchedEffect(Unit) { Store.stageTarget = null }; return }
-    var selected by remember(entryId) { mutableIntStateOf(entry.stage) }
-    var fb by remember(entryId) { mutableStateOf(entry.feedback) }
+    var selected by rememberSaveable(listId, entryId) { mutableIntStateOf(entry.stage) }
+    var fb by rememberSaveable(listId, entryId) { mutableStateOf(entry.feedback) }
     val release: () -> Unit = { if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_DONE) }
     // Dismissing the sheet keeps whatever comment was typed, then lets the campaign continue.
     val close: () -> Unit = {
@@ -256,7 +256,7 @@ fun StageSheet(listId: String, entryId: String) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Avatar(entry.name.ifBlank { entry.number })
             Spacer(Modifier.width(Sp.m))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     entry.name.ifBlank { entry.number }, style = MaterialTheme.typography.titleMedium,
                     maxLines = 1, overflow = TextOverflow.Ellipsis

@@ -48,6 +48,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.platform.LocalAccessibilityManager
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -78,6 +84,7 @@ fun isCompact(): Boolean = LocalConfiguration.current.screenWidthDp < 360
 // ====================================================================== motion + atoms
 @Composable
 fun PulseDot(color: Color, size: Dp = 10.dp) {
+    if (LocalReducedMotion.current || Store.campActive()) { Dot(color, size); return }
     val t = rememberInfiniteTransition(label = "pulse")
     val a = t.animateFloat(1f, 0.3f, infiniteRepeatable(tween(1100)), label = "pulseAlpha")
     val s = t.animateFloat(0.9f, 1.5f, infiniteRepeatable(tween(1100)), label = "pulseScale")
@@ -93,6 +100,9 @@ fun Dot(color: Color, size: Dp = 7.dp) {
 /** Loading placeholder with a soft travelling highlight. */
 @Composable
 fun Skeleton(modifier: Modifier = Modifier, radius: Dp = 12.dp) {
+    if (LocalReducedMotion.current || Store.campActive()) {
+        Box(modifier.clip(RoundedCornerShape(radius)).background(MaterialTheme.colorScheme.surfaceVariant)); return
+    }
     val t = rememberInfiniteTransition(label = "skeleton")
     val a = t.animateFloat(0.4f, 0.85f, infiniteRepeatable(tween(1000)), label = "skeletonAlpha")
     Box(
@@ -111,11 +121,11 @@ fun BProgress(
         progress.coerceIn(0f, 1f),
         animationSpec = Motion.settle(), label = "bar"
     )
-    val end = lerp(color, MaterialTheme.colorScheme.secondary, 0.45f)
+
     Box(modifier.fillMaxWidth().height(height).clip(CircleShape).background(track.copy(alpha = 0.55f))) {
         Box(
             Modifier.fillMaxWidth(p).fillMaxHeight().clip(CircleShape)
-                .background(Brush.horizontalGradient(listOf(color, end)))
+                .background(color)
         )
     }
 }
@@ -157,7 +167,7 @@ fun BButton(
     val src = remember { MutableInteractionSource() }
     val cs = MaterialTheme.colorScheme
     val dark = isDarkTheme()
-    val height = if (compact) 46.dp else 54.dp
+    val height = if (compact) 48.dp else 54.dp
     val shape = RoundedCornerShape(if (compact) 15.dp else 18.dp)
     val brush = when (kind) {
         BtnKind.Primary -> Brush.linearGradient(listOf(cs.primary, cs.primary))
@@ -196,7 +206,7 @@ fun BButton(
             )
             .clickable(interactionSource = src, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
-            .padding(horizontal = if (iconOnly) 0.dp else 20.dp),
+            .padding(horizontal = if (iconOnly) 0.dp else 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (iconOnly && icon != null) {
@@ -206,7 +216,7 @@ fun BButton(
                 if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(19.dp))
                 Text(
                     text, color = fg, style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center
                 )
             }
         }
@@ -224,7 +234,7 @@ fun SoftIconButton(
     val src = remember { MutableInteractionSource() }
     val shape = CircleShape
     Box(
-        modifier.size(42.dp).pressScale(src, 0.9f).shadow(6.dp, shape, ambientColor = Color.Black.copy(alpha = 0.08f))
+        modifier.size(48.dp).pressScale(src, 0.9f).shadow(6.dp, shape, ambientColor = Color.Black.copy(alpha = 0.08f))
             .clip(shape).background(container)
             .border(1.dp, cs.outline.copy(alpha = 0.7f), shape)
             .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick),
@@ -240,13 +250,15 @@ fun CircleAction(
     icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
     container: Color = MaterialTheme.colorScheme.surface,
     content: Color = MaterialTheme.colorScheme.onSurface,
-    outlined: Boolean = true
+    outlined: Boolean = true, enabled: Boolean = true
 ) {
     val src = remember { MutableInteractionSource() }
     val cs = MaterialTheme.colorScheme
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
-            Modifier.size(62.dp).pressScale(src, 0.9f)
+            Modifier.size(62.dp).pressScale(src, 0.94f)
+                .semantics { contentDescription = label }
+                .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
                 .shadow(if (outlined) 6.dp else 14.dp, CircleShape, ambientColor = container.copy(alpha = 0.4f))
                 .clip(CircleShape)
                 .then(
@@ -254,12 +266,12 @@ fun CircleAction(
                     else Modifier.background(Brush.linearGradient(listOf(container, lerp(container, Brass, 0.25f))))
                 )
                 .then(if (outlined) Modifier.border(1.dp, cs.outline, CircleShape) else Modifier)
-                .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick),
+                .clickable(interactionSource = src, indication = null, role = Role.Button, enabled = enabled, onClick = onClick),
             Alignment.Center
         ) { Icon(icon, null, tint = content, modifier = Modifier.size(25.dp)) }
         Text(
             label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = cs.onSurfaceVariant, maxLines = 1
+            color = cs.onSurfaceVariant, maxLines = 2, textAlign = TextAlign.Center
         )
     }
 }
@@ -287,7 +299,7 @@ fun BTextField(
         modifier.fillMaxWidth().border(1.dp, line, shape),
         singleLine = singleLine, minLines = minLines,
         maxLines = if (singleLine) 1 else maxOf(5, minLines), isError = isError, shape = shape,
-        textStyle = MaterialTheme.typography.bodyLarge,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(textDirection = if (keyboardType == KeyboardType.Phone || keyboardType == KeyboardType.Number) TextDirection.Ltr else TextDirection.Content),
         label = if (label != null) { { Text(label, style = MaterialTheme.typography.labelMedium) } } else null,
         placeholder = if (placeholder != null) {
             { Text(placeholder, color = cs.onSurfaceVariant.copy(alpha = 0.65f), style = MaterialTheme.typography.bodyMedium) }
@@ -327,7 +339,7 @@ fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
         val n = options.size.coerceAtLeast(1)
         val slot = maxWidth / n
         val pos by animateFloatAsState(selected.toFloat(), Motion.gentle(), label = "segment")
-        val x = if (rtl) maxWidth - slot * (pos + 1f) else slot * pos
+        val x = slot * pos // offset is already layout-direction aware
         Box(
             Modifier.offset(x = x).width(slot).fillMaxHeight()
                 .shadow(5.dp, RoundedCornerShape(11.dp), ambientColor = Color.Black.copy(alpha = 0.10f))
@@ -340,7 +352,7 @@ fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
                 val fg by animateColorAsState(if (on) cs.onSurface else cs.onSurfaceVariant, tween(200), label = "segFg")
                 Box(
                     Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp))
-                        .clickable(role = Role.Tab) { onSelect(i) },
+                        .selectable(selected = on, role = Role.Tab) { onSelect(i) },
                     Alignment.Center
                 ) {
                     Text(
@@ -461,11 +473,12 @@ fun Banner(
 @Composable
 fun ToastHost(modifier: Modifier = Modifier) {
     val t = Store.toast
+    val accessibility = LocalAccessibilityManager.current
     var last by remember { mutableStateOf<UiToast?>(null) }
     LaunchedEffect(t?.id) {
         if (t != null) {
             last = t
-            delay(2600)
+            delay(accessibility?.calculateRecommendedTimeoutMillis(4000L, containsIcons = true, containsText = true, containsControls = false) ?: 4000L)
             if (Store.toast?.id == t.id) Store.toast = null
         }
     }
@@ -484,7 +497,7 @@ fun ToastHost(modifier: Modifier = Modifier) {
                 else -> Icons.Rounded.Info
             }
             Row(
-                Modifier.shadow(18.dp, RoundedCornerShape(50), ambientColor = Color.Black.copy(alpha = 0.25f))
+                Modifier.semantics { liveRegion = LiveRegionMode.Polite }.shadow(18.dp, RoundedCornerShape(50), ambientColor = Color.Black.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.inverseSurface)
                     .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(50))
                     .padding(horizontal = Sp.l, vertical = Sp.m),
@@ -555,7 +568,7 @@ fun CountUp(
     value: Int, modifier: Modifier = Modifier, style: TextStyle = MaterialTheme.typography.displaySmall,
     color: Color = Color.Unspecified
 ) {
-    val a = remember { Animatable(0f) }
+    val a = remember { Animatable(value.toFloat()) }
     LaunchedEffect(value) { a.animateTo(value.toFloat(), tween(950, easing = Motion.easeOut)) }
     Text(
         a.value.roundToInt().toString(), modifier = modifier,
@@ -583,7 +596,7 @@ fun Pill(text: String, color: Color, icon: ImageVector? = null, onClick: (() -> 
     var m = Modifier.clip(shape).background(color.copy(alpha = 0.11f)).border(1.dp, color.copy(alpha = 0.16f), shape)
     if (onClick != null) m = m.clickable(role = Role.Button, onClick = onClick)
     Row(
-        m.heightIn(min = 24.dp).padding(horizontal = 9.dp, vertical = 3.dp),
+        m.heightIn(min = if (onClick != null) 48.dp else 24.dp).padding(horizontal = 9.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
@@ -634,7 +647,7 @@ fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
             .border(1.dp, cs.outline.copy(alpha = 0.8f), shape)
             .pressScale(src, 0.94f)
             .clickable(interactionSource = src, indication = null, role = Role.Button) { onClick() }
-            .heightIn(min = 42.dp).padding(horizontal = 15.dp),
+            .heightIn(min = 48.dp).padding(horizontal = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = cs.primary, modifier = Modifier.size(16.dp))
@@ -648,7 +661,7 @@ fun WhatsAppButton(number: String, size: Dp = 40.dp) {
     val ctx = LocalContext.current
     val green = Color(0xFF1F8A70)
     Box(
-        Modifier.size(size).clip(CircleShape).background(green.copy(alpha = 0.14f))
+        Modifier.size(maxOf(size, 48.dp)).clip(CircleShape).background(green.copy(alpha = 0.14f))
             .border(1.dp, green.copy(alpha = 0.25f), CircleShape)
             .clickable { openWhatsApp(ctx, number) },
         Alignment.Center
@@ -752,9 +765,9 @@ fun BDialog(
             targetValue = if (visible) 1f else 0f,
             animationSpec = tween(220, easing = Motion.easeOut), label = "dialogAlpha"
         )
-        Box(Modifier.fillMaxSize().padding(Sp.xxl), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().imePadding().padding(Sp.xxl), contentAlignment = Alignment.Center) {
             Column(
-                Modifier.fillMaxWidth().widthIn(max = 430.dp)
+                Modifier.widthIn(max = 430.dp).fillMaxWidth()
                     .graphicsLayer { scaleX = dialogScale; scaleY = dialogScale; alpha = dialogAlpha }
                     .shadow(30.dp, RoundedCornerShape(Rd.xl), ambientColor = Color.Black.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(Rd.xl))
@@ -767,7 +780,7 @@ fun BDialog(
                         )
                     )
                     .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.8f), RoundedCornerShape(Rd.xl))
-                    .padding(Sp.xxl)
+                    .verticalScroll(rememberScrollState()).padding(Sp.xxl)
             ) {
                 if (title != null) {
                     Text(title, style = MaterialTheme.typography.headlineMedium)
@@ -782,10 +795,9 @@ fun BDialog(
                     Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Spacer(Modifier.weight(1f))
-                    BButton(dismissText, onDismiss, kind = BtnKind.Ghost, compact = true)
+                    BButton(dismissText, onDismiss, modifier = Modifier.weight(1f), kind = BtnKind.Ghost, compact = true)
                     if (confirmText != null && onConfirm != null) BButton(
-                        confirmText, onConfirm,
+                        confirmText, onConfirm, modifier = Modifier.weight(1f),
                         kind = if (destructive) BtnKind.Danger else BtnKind.Primary,
                         compact = true, enabled = confirmEnabled
                     )
@@ -847,6 +859,7 @@ fun BSheet(
 /** Staggered fade-and-rise entrance (560 ms). Use `index` to delay each block. */
 @Composable
 fun Enter(index: Int, content: @Composable () -> Unit) {
+    if (LocalReducedMotion.current || Store.campActive()) { content(); return }
     var go by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(Motion.STAGGER_MS.toLong() * index.coerceAtMost(6)); go = true }
     val a by animateFloatAsState(

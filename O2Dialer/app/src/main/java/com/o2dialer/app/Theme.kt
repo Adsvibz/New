@@ -51,7 +51,7 @@ object Rd {
     val xl = 30.dp
 }
 
-/** Semantic colours: muted jewel tones that sit inside the warm palette. */
+/** Semantic status colours. */
 object Sem {
     val success = Color(0xFF0D966A)
     val warning = Color(0xFFD48B1E)
@@ -65,14 +65,14 @@ val Cream = Color(0xFFF7F9FC)
 val Sage = Color(0xFF7CA7E8)
 
 /** The dark "focus" surfaces: hero cards, live dialer, daily brief. */
-val InkCard = Color(0xFF111D35)
+val InkCard = Color(0xFF101828)
 val InkCardDark = Color(0xFF14213B)
 
 @Composable
 fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
-/** Primary brand colour: deep forest green. */
+/** Primary brand colour: professional blue. */
 val Brand = Color(0xFF2457E7)
 
 /** Kept as an alias so older references stay valid. */
@@ -98,10 +98,6 @@ private val PlexArabic = FontFamily(
     Font(R.font.plex_arabic_bold, FontWeight.Bold)
 )
 
-/** High-contrast editorial serif, used for display numbers and page titles. */
-private val InstrumentSerif = FontFamily(
-    Font(R.font.instrument_serif, FontWeight.Normal)
-)
 
 private val LightC = lightColorScheme(
     primary = Brand, onPrimary = Color.White,

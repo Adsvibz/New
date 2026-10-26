@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,15 +36,15 @@ fun V7CampaignWorkspace(
     val total = lists.sumOf { Store.prog(it).total }
     val called = lists.sumOf { Store.prog(it).called }
     val answered = lists.sumOf { Store.prog(it).answered }
-    var search by remember { mutableStateOf("") }
+    var search by rememberSaveable { mutableStateOf("") }
     val shown = lists.filter { it.name.contains(search.trim(), ignoreCase = true) }
     val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
     val responseRate = if (called > 0) (answered.toLong() * 100 / called).coerceIn(0L, 100L) else 0L
     val cs = MaterialTheme.colorScheme
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 110.dp),
+        modifier = Modifier.fillMaxSize().statusBarsPadding(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
@@ -72,8 +73,7 @@ fun V7CampaignWorkspace(
                             modifier = Modifier.weight(1f))
                         Icon(Icons.Rounded.Insights, null, tint = Color(0xFFACC5F8))
                     }
-                    Text("$called", fontSize = 46.sp, lineHeight = 50.sp,
-                        fontWeight = FontWeight.Bold, color = Color.White)
+                    CountUp(called, style = MaterialTheme.typography.displayMedium, color = Color.White)
                     Text(T("calls processed across $total contacts", "مكالمة تمت معالجتها من أصل $total جهة اتصال"),
                         color = Color(0xFFD3DEF2), style = MaterialTheme.typography.bodySmall)
                     LinearProgressIndicator(progress = { completion },
@@ -89,12 +89,7 @@ fun V7CampaignWorkspace(
             }
         }
         item {
-            Button(onClick = onCreate, modifier = Modifier.fillMaxWidth().height(54.dp),
-                shape = RoundedCornerShape(16.dp)) {
-                Icon(Icons.Rounded.Add, null)
-                Spacer(Modifier.width(9.dp))
-                Text(T("Create a campaign", "إنشاء حملة جديدة"), fontWeight = FontWeight.Bold)
-            }
+            BButton(T("Create a campaign", "إنشاء حملة جديدة"), onCreate, Modifier.fillMaxWidth(), icon = Icons.Rounded.Add)
         }
         if (Store.campActive()) {
             item {
@@ -163,8 +158,8 @@ fun V7CampaignWorkspace(
 }
 
 @Composable
-private fun V7HeroMetric(value: String, caption: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun RowScope.V7HeroMetric(value: String, caption: String) {
+    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         Text(caption, color = Color(0xFFB9CBEA), fontSize = 11.sp)
     }
@@ -179,9 +174,12 @@ private fun V7CampaignRow(
 ) {
     val cs = MaterialTheme.colorScheme
     val p = Store.prog(list)
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val active = Store.isRunningList(list.id)
+    var reset by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        modifier = Modifier.fillMaxWidth(), onClick = onOpen,
         shape = RoundedCornerShape(18.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
@@ -203,16 +201,26 @@ private fun V7CampaignRow(
                         Icon(Icons.Rounded.MoreVert, T("Actions", "الخيارات"))
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text(T("Edit", "تعديل")) },
+                        DropdownMenuItem(enabled = !active, text = { Text(T("Edit", "تعديل")) },
                             onClick = { menu = false; onEdit() })
-                        DropdownMenuItem(text = { Text(T("Delete", "حذف"), color = cs.error) },
+                        DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },
+                            onClick = { menu = false; Store.resultsListId = list.id; Store.tab = 2 })
+                        DropdownMenuItem(text = { Text(T("Share report", "مشاركة التقرير")) },
+                            onClick = { menu = false; shareText(ctx, Store.listReport(list)) })
+                        DropdownMenuItem(enabled = !active, text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
+                            onClick = { menu = false; reset = true })
+                        DropdownMenuItem(enabled = !active, text = { Text(T("Remove duplicates", "حذف المكرر")) },
+                            onClick = { menu = false; val count = Store.dedupe(list.id)
+                                Store.notify(Tk.SUCCESS, T("Removed $count duplicates", "تم حذف $count رقم مكرر")) })
+                        DropdownMenuItem(enabled = !active, text = { Text(T("Delete", "حذف"), color = cs.error) },
                             onClick = { menu = false; onDelete() })
                     }
                 }
             }
-            LinearProgressIndicator(progress = { (p.pct / 100f).coerceIn(0f, 1f) },
+            if (active) Pill(sessionLabel(Store.camp), cs.primary)
+            BProgress(progress = p.pct / 100f,
                 modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
-                color = cs.primary, trackColor = cs.surfaceVariant)
+                color = cs.primary, track = cs.surfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
                     style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant,
@@ -223,4 +231,9 @@ private fun V7CampaignRow(
             }
         }
     }
+    if (reset) ConfirmDialog(T("Reset call progress? Contacts, stages and notes will be kept.", "إعادة ضبط تقدم الاتصال؟ جهات الاتصال والتصنيفات والملاحظات هتفضل محفوظة."), { reset = false }) {
+        if (!Store.isRunningList(list.id)) Store.resetForRestart(list.id, false)
+        reset = false
+    }
+
 }

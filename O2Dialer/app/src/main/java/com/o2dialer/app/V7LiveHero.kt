@@ -24,7 +24,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
     val calling = state.status == CS.RUNNING && state.currentNumber.isNotBlank()
     val paused = state.status == CS.PAUSED
     val finished = state.status == CS.FINISHED
-    val next = list.entries.firstOrNull { it.status == St.PENDING }
+    val next = queuedEntries(state, list).firstOrNull()
     val showCurrent = state.currentNumber.isNotBlank() &&
         (calling || state.awaitingStage || paused)
     val name = if (showCurrent) state.currentName else if (finished) "" else next?.name.orEmpty()
@@ -34,14 +34,10 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
         showCurrent -> T("CURRENT CONTACT", "جهة الاتصال الحالية")
         else -> T("UP NEXT", "التالي في قائمة الاتصال")
     }
-    val label = when {
-        finished -> T("Session complete", "انتهت الجلسة")
-        paused -> T("Paused", "متوقفة مؤقتًا")
-        state.awaitingStage -> T("Awaiting outcome", "بانتظار التقييم")
-        calling -> T("Calling now", "جارٍ الاتصال")
-        else -> T("Preparing next call", "تحضير المكالمة التالية")
-    }
+    val label = sessionLabel(state)
     val emphasis = when {
+        finished && state.error -> cs.error
+        finished && !state.completed -> cs.secondary
         finished -> cs.tertiary
         paused -> cs.secondary
         calling -> cs.tertiary
@@ -64,21 +60,19 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                     Text(list.name, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 }
-                Surface(color = emphasis.copy(alpha = 0.10f), shape = RoundedCornerShape(10.dp)) {
-                    Text(label, color = emphasis, fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp))
-                }
+
             }
+            Pill(label, emphasis)
+            if (state.message.isNotBlank()) Text(state.message, color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             HorizontalDivider(color = cs.outlineVariant)
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
-                Text(name.ifBlank { if (finished) T("All calls processed", "تمت معالجة جميع المكالمات") else T("No contact selected", "لم يتم اختيار جهة اتصال") },
+                Text(name.ifBlank { number.ifBlank { if (finished) T("${progress.called} contacts processed", "تمت معالجة ${progress.called} جهة اتصال") else if (state.evaluating || state.awaitingStage) T("Finishing this step", "إتمام الخطوة الحالية") else T("Waiting for the queue", "بانتظار قائمة الاتصال") } },
                     style = MaterialTheme.typography.headlineMedium, color = cs.onSurface,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (number.isNotBlank()) {
-                    Text(number, color = cs.onSurfaceVariant,
+                    NumText(number, color = cs.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge)
                 }
             }
@@ -88,9 +82,9 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                         style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                     Text("${progress.pct}%", fontWeight = FontWeight.Bold, color = cs.primary)
                 }
-                LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
+                BProgress(progress = progress.pct / 100f,
                     modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
-                    color = cs.primary, trackColor = cs.surfaceVariant)
+                    color = cs.primary, track = cs.surfaceVariant)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(T("${progress.called} of ${progress.total} called",
                         "${progress.called} من ${progress.total} تم الاتصال"),
