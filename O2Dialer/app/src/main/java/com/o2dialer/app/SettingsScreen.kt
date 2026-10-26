@@ -60,30 +60,23 @@ private fun SettingsFooter() {
 private fun SettingsHero() {
     val c = Store.cfg
     val cs = MaterialTheme.colorScheme
-    val theme = when (c.themeMode) {
-        1 -> T("Light", "فاتح")
-        2 -> T("Dark", "داكن")
-        else -> T("Auto", "تلقائي")
-    }
-    Panel(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(Sp.xl), verticalAlignment = Alignment.CenterVertically) {
+    Surface(
+        shape = RoundedCornerShape(20.dp), color = cs.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
+    ) {
+        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(62.dp).clip(RoundedCornerShape(20.dp))
-                    .background(Brush.linearGradient(listOf(cs.primary, lerpAccent(cs.primary, cs.secondary)))),
+                Modifier.size(52.dp).clip(RoundedCornerShape(15.dp)).background(cs.primaryContainer),
                 Alignment.Center
-            ) { LogoMark(38.dp, color = cs.onPrimary) }
-            Spacer(Modifier.width(Sp.l))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(APP_NAME, style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
-                    style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
-                )
-                Spacer(Modifier.height(3.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Pill(c.lang.let { if (it == 1) "AR" else "EN" }, cs.primary, Icons.Rounded.Language)
-                    Pill(theme, cs.secondary, Icons.Rounded.Palette)
-                }
+            ) { LogoMark(31.dp, color = cs.primary) }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(APP_NAME, style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold)
+                Text(T("Version $APP_VERSION", "الإصدار $APP_VERSION"),
+                    style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+                Text(if (c.lang == 1) "العربية" else "English",
+                    style = MaterialTheme.typography.labelMedium, color = cs.primary)
             }
         }
     }
