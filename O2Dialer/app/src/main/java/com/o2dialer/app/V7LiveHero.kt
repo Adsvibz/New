@@ -26,9 +26,14 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
     val finished = state.status == CS.FINISHED
     val next = list.entries.firstOrNull { it.status == St.PENDING }
     val showCurrent = state.currentNumber.isNotBlank() &&
-        (calling || state.awaitingStage)
+        (calling || state.awaitingStage || paused)
     val name = if (showCurrent) state.currentName else if (finished) "" else next?.name.orEmpty()
     val number = if (showCurrent) state.currentNumber else if (finished) "" else next?.number.orEmpty()
+    val contactLabel = when {
+        finished -> T("SESSION SUMMARY", "ملخص الجلسة")
+        showCurrent -> T("CURRENT CONTACT", "جهة الاتصال الحالية")
+        else -> T("UP NEXT", "التالي في قائمة الاتصال")
+    }
     val label = when {
         finished -> T("Session complete", "انتهت الجلسة")
         paused -> T("Paused", "متوقفة مؤقتًا")
@@ -67,7 +72,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
             }
             HorizontalDivider(color = cs.outlineVariant)
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(T("CURRENT CONTACT", "جهة الاتصال الحالية"), color = cs.onSurfaceVariant,
+                Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
                 Text(name.ifBlank { T("No contact selected", "لم يتم اختيار جهة اتصال") },
                     style = MaterialTheme.typography.headlineMedium, color = cs.onSurface,
