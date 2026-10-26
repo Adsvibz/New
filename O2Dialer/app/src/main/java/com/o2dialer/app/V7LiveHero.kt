@@ -25,13 +25,15 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
     val paused = state.status == CS.PAUSED
     val finished = state.status == CS.FINISHED
     val next = list.entries.firstOrNull { it.status == St.PENDING }
-    val name = if (calling) state.currentName else next?.name.orEmpty()
-    val number = if (calling) state.currentNumber else next?.number.orEmpty()
+    val showCurrent = state.currentNumber.isNotBlank() &&
+        (calling || state.awaitingStage)
+    val name = if (showCurrent) state.currentName else if (finished) "" else next?.name.orEmpty()
+    val number = if (showCurrent) state.currentNumber else if (finished) "" else next?.number.orEmpty()
     val label = when {
         finished -> T("Session complete", "انتهت الجلسة")
         paused -> T("Paused", "متوقفة مؤقتًا")
-        calling -> T("Calling now", "جارٍ الاتصال")
         state.awaitingStage -> T("Awaiting outcome", "بانتظار التقييم")
+        calling -> T("Calling now", "جارٍ الاتصال")
         else -> T("Preparing next call", "تحضير المكالمة التالية")
     }
     val emphasis = when {
