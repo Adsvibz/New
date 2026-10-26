@@ -343,19 +343,19 @@ private fun Waveform(color: Color, height: androidx.compose.ui.unit.Dp) {
 fun WelcomeScreen() {
     val pages = listOf(
         WelcomePage(
-            T("01 — MOMENTUM", "٠١ — انطلاقة"),
+            T("01 — CONNECT", "٠١ — تواصل"),
             T("Your call list,\nin one smooth flow.", "قائمة مكالماتك،\nفي تدفّق واحد."),
             T("$APP_NAME works through every contact automatically, so you can stay in the conversation instead of the queue.",
                 "$APP_NAME ينتقل بين جهات الاتصال تلقائيًا، لتبقى في المحادثة بدلًا من الطابور.")
         ),
         WelcomePage(
-            T("02 — RHYTHM", "٠٢ — إيقاع"),
+            T("02 — CONTROL", "٠٢ — تحكّم"),
             T("Set the pace.\nWe keep the queue.", "اضبط الإيقاع،\nونحن ندير الطابور."),
             T("Choose the pause between calls, add retry rules and pick the right SIM for each campaign.",
                 "اختر الفاصل بين المكالمات، وأضف قواعد إعادة المحاولة، واختر الشريحة لكل حملة.")
         ),
         WelcomePage(
-            T("03 — CLARITY", "٠٣ — وضوح"),
+            T("03 — INSIGHTS", "٠٣ — نتائج"),
             T("Every call,\na clear next step.", "كل مكالمة،\nخطوة واضحة تالية."),
             T("Tag the outcome, leave a note, follow up on WhatsApp and read each campaign at a glance.",
                 "صنّف النتيجة، وأضف ملاحظة، وتابع على واتساب، واقرأ أداء الحملة بنظرة.")
@@ -430,11 +430,11 @@ fun WelcomeScreen() {
                             targetState = page,
                             transitionSpec = {
                                 val up = targetState > initialState
-                                (fadeIn(tween(430, easing = Motion.easeOut)) +
-                                    slideInVertically(tween(560, easing = Motion.easeOut)) { if (up) it / 9 else -it / 9 } +
-                                    scaleIn(tween(560, easing = Motion.easeOut), initialScale = 0.982f)) togetherWith
-                                    (fadeOut(tween(150)) +
-                                        slideOutVertically(tween(260)) { if (up) -it / 14 else it / 14 })
+                                (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) +
+                                    slideInVertically(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) { if (up) it / 9 else -it / 9 } +
+                                    scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
+                                    (fadeOut(tween(Motion.NAV_EXIT_MS)) +
+                                        slideOutVertically(tween(Motion.NAV_EXIT_MS)) { if (up) -it / 14 else it / 14 })
                             },
                             label = "welcomePage"
                         ) { i ->
