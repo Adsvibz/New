@@ -742,9 +742,20 @@ fun BDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        var visible by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { visible = true }
+        val dialogScale by animateFloatAsState(
+            targetValue = if (visible) 1f else 0.94f,
+            animationSpec = tween(280, easing = Motion.easeOut), label = "dialogScale"
+        )
+        val dialogAlpha by animateFloatAsState(
+            targetValue = if (visible) 1f else 0f,
+            animationSpec = tween(220, easing = Motion.easeOut), label = "dialogAlpha"
+        )
         Box(Modifier.fillMaxSize().padding(Sp.xxl), contentAlignment = Alignment.Center) {
             Column(
                 Modifier.fillMaxWidth().widthIn(max = 430.dp)
+                    .graphicsLayer { scaleX = dialogScale; scaleY = dialogScale; alpha = dialogAlpha }
                     .shadow(30.dp, RoundedCornerShape(Rd.xl), ambientColor = Color.Black.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(Rd.xl))
                     .background(
