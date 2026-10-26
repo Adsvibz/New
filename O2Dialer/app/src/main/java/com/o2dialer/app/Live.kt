@@ -385,25 +385,46 @@ private fun OutcomesPanel(p: Prog, remaining: Int) {
 private fun CallControls(paused: Boolean) {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = Sp.s),
-        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
+    Surface(
+        shape = RoundedCornerShape(Rd.l),
+        color = cs.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        CircleAction(
-            if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-            if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
-            { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-            container = cs.primary, content = cs.onPrimary, outlined = false
-        )
-        CircleAction(
-            Icons.Rounded.CallEnd, T("End call", "إنهاء"),
-            { DialerService.send(ctx, DialerService.ACT_SKIP) }
-        )
-        CircleAction(
-            Icons.Rounded.Stop, T("Stop", "إيقاف"),
-            { DialerService.send(ctx, DialerService.ACT_STOP) },
-            container = cs.error.copy(alpha = 0.10f), content = readable(cs.error), outlined = false
-        )
+        Column(Modifier.fillMaxWidth().padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
+            Text(
+                T("SESSION CONTROLS", "التحكم في الجلسة"),
+                style = MaterialTheme.typography.labelSmall,
+                color = cs.onSurfaceVariant,
+                fontWeight = FontWeight.Bold
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircleAction(
+                    if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                    if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
+                    { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.primary, content = cs.onPrimary, outlined = false
+                )
+                CircleAction(
+                    Icons.Rounded.SkipNext,
+                    T("Skip call", "تخطي المكالمة"),
+                    { DialerService.send(ctx, DialerService.ACT_SKIP) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.surfaceVariant, content = cs.onSurface, outlined = true
+                )
+                CircleAction(
+                    Icons.Rounded.Stop,
+                    T("Stop session", "إنهاء الجلسة"),
+                    { DialerService.send(ctx, DialerService.ACT_STOP) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.errorContainer, content = cs.onErrorContainer, outlined = false
+                )
+            }
+        }
     }
 }
 
