@@ -484,6 +484,12 @@ fun LogScreen() {
         containerColor = Color.Transparent
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            V7HistoryHeader(
+                total = Store.log.size,
+                answered = Store.log.count { St.isAnswered(it.status) },
+                missed = Store.log.count { it.status == St.NO_ANSWER }
+            )
+            Spacer(Modifier.height(Sp.m))
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
                 horizontalArrangement = Arrangement.spacedBy(Sp.s)
