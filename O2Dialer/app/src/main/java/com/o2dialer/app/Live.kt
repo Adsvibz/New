@@ -683,7 +683,6 @@ private fun Launcher(act: MainActivity) {
 fun LiveScreen(act: MainActivity) {
     val c = Store.camp
     val active = Store.campActive()
-    val compact = isCompact()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(active) { while (active) { now = System.currentTimeMillis(); delay(500) } }
     val heroList = Store.lists.find { it.id == c.listId }
@@ -710,8 +709,8 @@ fun LiveScreen(act: MainActivity) {
             AnimatedContent(
                 targetState = showHero,
                 transitionSpec = {
-                    (fadeIn(tween(360)) + scaleIn(tween(420, easing = Motion.easeOut), initialScale = 0.98f)) togetherWith
-                        (fadeOut(tween(160)) + scaleOut(tween(220), targetScale = 0.99f))
+                    (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) + scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
+                        (fadeOut(tween(Motion.NAV_EXIT_MS)) + scaleOut(tween(Motion.NAV_EXIT_MS), targetScale = 0.995f))
                 },
                 label = "liveState"
             ) { hero ->
