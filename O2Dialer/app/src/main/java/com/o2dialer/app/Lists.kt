@@ -407,6 +407,7 @@ fun ListDetail(listId: String, act: MainActivity) {
             ) {
                 LicenseBanner()
                 PermissionBanner(act)
+                V7CampaignDetailHero(list, p)
                 chips()
                 if (importing) LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
                 EmptyState(
@@ -427,7 +428,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                     LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
                     Spacer(Modifier.height(Sp.m))
                 }
-                item { SummaryPanel(list, p); Spacer(Modifier.height(Sp.m)) }
+                item { V7CampaignDetailHero(list, p); Spacer(Modifier.height(Sp.m)) }
                 item { chips(); Spacer(Modifier.height(Sp.m)) }
                 item {
                     BTextField(
