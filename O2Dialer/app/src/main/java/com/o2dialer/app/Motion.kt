@@ -23,11 +23,14 @@ import androidx.compose.material3.MaterialTheme
 
 /** One motion vocabulary for the whole app. */
 object Motion {
-    const val ENTER_MS = 560
-    val easeOut = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
+    const val ENTER_MS = 380
+    const val NAV_ENTER_MS = 330
+    const val NAV_EXIT_MS = 185
+    const val STAGGER_MS = 42
+    val easeOut = CubicBezierEasing(0.2f, 0f, 0f, 1f)
     val easeInOut = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
 
-    fun <T> press() = spring<T>(dampingRatio = 0.62f, stiffness = 620f)
+    fun <T> press() = spring<T>(dampingRatio = 0.82f, stiffness = 680f)
     fun <T> gentle() = spring<T>(dampingRatio = 0.9f, stiffness = 260f)
     fun <T> settle() = spring<T>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)
 }
@@ -36,7 +39,7 @@ object Motion {
 @Composable
 fun Modifier.pressScale(
     src: MutableInteractionSource,
-    pressedScale: Float = 0.965f
+    pressedScale: Float = 0.975f
 ): Modifier {
     val pressed by src.collectIsPressedAsState()
     val s by androidx.compose.animation.core.animateFloatAsState(
