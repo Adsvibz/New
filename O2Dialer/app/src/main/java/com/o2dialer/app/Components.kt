@@ -83,7 +83,7 @@ fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, I
         onDismiss = onDismiss
     ) {
         BTextField(name, { name = it }, label = T("Campaign name", "اسم الحملة"),
-            placeholder = T("e.g. Summer leads", "مثال: عملاء الصيف"))
+            placeholder = T("e.g. New property enquiries", "مثال: استفسارات العملاء الجديدة"))
         Spacer(Modifier.height(2.dp))
         SectionLabel(T("SIM card", "الشريحة"))
         SimPicker(sim) { sim = it }
@@ -115,7 +115,7 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
 fun BulkDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     var t by remember { mutableStateOf("") }
     BSheet(title = T("Paste numbers", "لصق أرقام"), onDismiss = onDismiss,
-        subtitle = T("One per line, or Name,Number", "رقم في كل سطر، أو الاسم,الرقم")) {
+        subtitle = T("Paste numbers line by line. Names are optional.", "الصق الأرقام سطرًا بسطر، والأسماء اختيارية.")) {
         BTextField(
             t, { t = it }, singleLine = false, minLines = 5,
             placeholder = T("Maya Nelson, +201001234567\n+201119876543", "مي نبيل, +201001234567\n+201119876543")
