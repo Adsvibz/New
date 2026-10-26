@@ -839,7 +839,7 @@ fun BSheet(
 @Composable
 fun Enter(index: Int, content: @Composable () -> Unit) {
     var go by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { delay(55L * index); go = true }
+    LaunchedEffect(Unit) { delay(Motion.STAGGER_MS.toLong() * index.coerceAtMost(6)); go = true }
     val a by animateFloatAsState(
         if (go) 1f else 0f,
         animationSpec = tween(Motion.ENTER_MS, easing = Motion.easeOut), label = "enter"
@@ -847,9 +847,9 @@ fun Enter(index: Int, content: @Composable () -> Unit) {
     Box(
         Modifier.graphicsLayer {
             alpha = a
-            translationY = (1f - a) * 18.dp.toPx()
-            scaleX = 0.985f + 0.015f * a
-            scaleY = 0.985f + 0.015f * a
+            translationY = (1f - a) * 12.dp.toPx()
+            scaleX = 0.99f + 0.01f * a
+            scaleY = 0.99f + 0.01f * a
         }
     ) { content() }
 }
