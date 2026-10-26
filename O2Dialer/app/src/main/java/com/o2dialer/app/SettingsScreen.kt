@@ -106,6 +106,7 @@ fun SettingsScreen() {
                 .padding(horizontal = Sp.xl, vertical = Sp.s),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
+            V7SettingsHeader()
             Enter(0) { SettingsHero() }
 
             SettingsSection(Icons.Rounded.Language, T("General", "عام"), startOpen = true) {
@@ -121,7 +122,7 @@ fun SettingsScreen() {
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
                 Hint(
-                    T("Off keeps the O2 forest and ivory palette everywhere.", "إيقافه يحافظ على ألوان O2 الزمردية والعاجية في كل الشاشات.")
+                    T("Off keeps the signature O2 blue and neutral palette everywhere.", "إيقافه يحافظ على هوية O2 الزرقاء والهادئة في كل الشاشات.")
                 )
             }
 
