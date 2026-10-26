@@ -4,6 +4,12 @@ package com.o2dialer.app
 
 import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +26,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -199,17 +207,28 @@ fun PermissionBanner(act: MainActivity) {
 @Composable
 fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val c = Stg.color(s)
+    val shape = RoundedCornerShape(Rd.m)
     Row(
-        modifier.clip(RoundedCornerShape(Rd.m))
-            .background(c.copy(alpha = if (selected) 0.14f else 0.05f))
-            .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.9f else 0.18f), RoundedCornerShape(Rd.m))
-            .clickable { onClick() }.heightIn(min = 62.dp).padding(horizontal = Sp.m),
+        modifier.clip(shape)
+            .background(
+                if (selected) Brush.linearGradient(listOf(c.copy(alpha = 0.20f), c.copy(alpha = 0.10f)))
+                else Brush.linearGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)
+                    )
+                )
+            )
+            .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.75f else 0.14f), shape)
+            .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(stageIcon(s), null, tint = readable(c), modifier = Modifier.size(20.dp))
+        Box(Modifier.size(26.dp).clip(CircleShape).background(c.copy(alpha = if (selected) 0.20f else 0.10f)), Alignment.Center) {
+            Icon(stageIcon(s), null, tint = readable(c), modifier = Modifier.size(15.dp))
+        }
         Spacer(Modifier.width(Sp.s))
         Text(
-            Stg.label(s), color = readable(c),
+            Stg.label(s), color = if (selected) readable(c) else MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp), maxLines = 2
         )
     }
@@ -295,27 +314,33 @@ fun SettingsSection(
 ) {
     var open by rememberSaveable(title) { mutableStateOf(startOpen) }
     val cs = MaterialTheme.colorScheme
+    val turn by animateFloatAsState(if (open) 180f else 0f, spring(dampingRatio = 0.8f, stiffness = 380f), label = "chevron")
     Panel(Modifier.fillMaxWidth()) {
         Column {
             Row(
-                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 58.dp).padding(horizontal = Sp.l),
+                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 66.dp)
+                    .padding(horizontal = Sp.l),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(icon, null, tint = cs.primary, modifier = Modifier.size(19.dp))
+                IconTile(icon, cs.primary, 36.dp)
                 Spacer(Modifier.width(Sp.m))
                 Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 Icon(
-                    if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                    Icons.Rounded.KeyboardArrowDown,
                     if (open) T("Collapse", "طيّ") else T("Expand", "توسيع"),
-                    tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp)
+                    tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(turn)
                 )
             }
-            AnimatedVisibility(visible = open) {
+            AnimatedVisibility(
+                visible = open,
+                enter = expandVertically(spring(dampingRatio = 0.9f, stiffness = 320f)) + fadeIn(),
+                exit = shrinkVertically(spring(dampingRatio = 0.9f, stiffness = 380f)) + fadeOut()
+            ) {
                 Column {
                     Hairline(Modifier.padding(horizontal = Sp.l))
                     Column(
-                        Modifier.padding(start = Sp.l, end = Sp.l, top = Sp.m, bottom = Sp.l),
-                        verticalArrangement = Arrangement.spacedBy(Sp.m)
+                        Modifier.padding(start = Sp.l, end = Sp.l, top = Sp.l, bottom = Sp.xl),
+                        verticalArrangement = Arrangement.spacedBy(Sp.l)
                     ) { content() }
                 }
             }
@@ -331,25 +356,38 @@ fun SliderRow(
     val cs = MaterialTheme.colorScheme
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
             Pill(if (value == 0 && zeroText != null) zeroText else "$value $suffix".trim(), cs.primary)
         }
         Slider(
             value = value.toFloat(), onValueChange = { onChange(it.roundToInt()) },
             valueRange = min.toFloat()..max.toFloat(),
-            colors = SliderDefaults.colors(thumbColor = cs.primary, activeTrackColor = cs.primary, inactiveTrackColor = cs.outline)
+            colors = SliderDefaults.colors(
+                thumbColor = cs.primary, activeTrackColor = cs.primary,
+                inactiveTrackColor = cs.outline.copy(alpha = 0.55f),
+                activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent
+            )
         )
     }
 }
 
 @Composable
 fun SwitchRow(title: String, sub: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium)
-            if (sub != null) Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (sub != null) Text(sub, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
         }
         Spacer(Modifier.width(Sp.m))
-        Switch(checked = checked, onCheckedChange = onChange)
+        Switch(
+            checked = checked, onCheckedChange = onChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = cs.onPrimary, checkedTrackColor = cs.primary,
+                checkedBorderColor = Color.Transparent,
+                uncheckedThumbColor = cs.onSurfaceVariant, uncheckedTrackColor = cs.surfaceVariant,
+                uncheckedBorderColor = cs.outline
+            )
+        )
     }
 }

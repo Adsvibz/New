@@ -14,14 +14,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
@@ -35,7 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -137,42 +148,54 @@ private fun NavItem(
     modifier: Modifier, onClick: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val bg by animateColorAsState(if (selected) cs.primary.copy(alpha = 0.09f) else Color.Transparent, tween(160), label = "navBg")
-    val fg by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant, tween(160), label = "navFg")
+    val fg by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant, tween(220), label = "navFg")
+    val scale by animateFloatAsState(if (selected) 1.06f else 1f, Motion.press(), label = "navScale")
     Column(
-        modifier.heightIn(min = 52.dp).clip(RoundedCornerShape(14.dp))
+        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
             .selectable(selected = selected, role = Role.Tab, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(bg),
-            Alignment.Center
-        ) { Icon(if (selected) filled else outline, null, tint = fg, modifier = Modifier.size(21.dp)) }
-        Spacer(Modifier.height(3.dp))
+        Icon(
+            if (selected) filled else outline, null, tint = fg,
+            modifier = Modifier.size(22.dp).then(Modifier.graphicsLayer { scaleX = scale; scaleY = scale })
+        )
+        Spacer(Modifier.height(4.dp))
         Text(
-            label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal),
-            color = if (selected) cs.onSurface else cs.onSurfaceVariant, maxLines = 1
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.5.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                letterSpacing = 0.1.sp
+            ),
+            color = fg, maxLines = 1
         )
     }
 }
 
-/** The live dialer gets a filled accent tile so it reads as the app's primary action. */
+/** The live dialer sits at the centre of the dock as the app's primary action. */
 @Composable
 private fun LiveNavItem(selected: Boolean, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val tint = if (active) Sem.success else cs.primary
+    val tint by animateColorAsState(if (active) Sem.success else cs.primary, tween(300), label = "liveTint")
+    val scale by animateFloatAsState(if (selected) 1f else 0.96f, Motion.gentle(), label = "liveScale")
     Column(
-        modifier.heightIn(min = 52.dp).clip(RoundedCornerShape(14.dp))
+        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
             .selectable(selected = selected, role = Role.Tab, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
     ) {
-        Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(tint), Alignment.Center) {
-            Icon(Icons.Rounded.Call, null, tint = Color.White, modifier = Modifier.size(20.dp))
-        }
+        Box(
+            Modifier.size(36.dp).graphicsLayer { scaleX = scale; scaleY = scale }
+                .shadow(10.dp, CircleShape, ambientColor = tint.copy(alpha = 0.45f), spotColor = tint.copy(alpha = 0.35f))
+                .clip(CircleShape)
+                .background(Brush.linearGradient(listOf(tint, lerp(tint, Brass, 0.30f))))
+                .border(1.dp, Color.White.copy(alpha = 0.20f), CircleShape),
+            Alignment.Center
+        ) { Icon(Icons.Rounded.Call, null, tint = if (active) Color.White else cs.onPrimary, modifier = Modifier.size(19.dp)) }
         Spacer(Modifier.height(3.dp))
         Text(
             T("Live", "مباشر"),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.1.sp
+            ),
             color = if (selected || active) readable(tint) else cs.onSurfaceVariant, maxLines = 1
         )
     }
@@ -181,30 +204,57 @@ private fun LiveNavItem(selected: Boolean, active: Boolean, modifier: Modifier, 
 @Composable
 private fun AppNavBar() {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(26.dp)
+    val dark = isDarkTheme()
+    val shape = RoundedCornerShape(30.dp)
+    val slot = when (Store.tab) { 0 -> 0; 2 -> 1; 1 -> 2; 3 -> 3; else -> 4 }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val pos by animateFloatAsState(slot.toFloat(), Motion.gentle(), label = "dock")
+
     Box(
         Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Sp.l).padding(bottom = Sp.s),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
-            Modifier.widthIn(max = 520.dp).fillMaxWidth().height(68.dp)
-                .shadow(16.dp, shape, ambientColor = Color.Black.copy(alpha = 0.22f), spotColor = Color.Black.copy(alpha = 0.16f))
-                .clip(shape).background(cs.surface).border(1.dp, cs.outline, shape)
-                .padding(horizontal = 6.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        BoxWithConstraints(
+            Modifier.widthIn(max = 560.dp).fillMaxWidth().height(76.dp)
+                .shadow(
+                    22.dp, shape,
+                    ambientColor = Color.Black.copy(alpha = if (dark) 0.5f else 0.16f),
+                    spotColor = Color.Black.copy(alpha = 0.12f)
+                )
+                .clip(shape)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            cs.surface.copy(alpha = if (dark) 0.98f else 1f),
+                            cs.surfaceVariant.copy(alpha = if (dark) 0.55f else 0.45f)
+                        )
+                    )
+                )
+                .border(1.dp, cs.onSurface.copy(alpha = 0.07f), shape)
+                .padding(6.dp)
         ) {
-            NavItem(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, Icons.Outlined.Campaign, Store.tab == 0, Modifier.weight(1f)) {
-                Store.selectedListId = null; Store.tab = 0
-            }
-            NavItem(T("Results", "النتائج"), Icons.Rounded.BarChart, Icons.Outlined.BarChart, Store.tab == 2, Modifier.weight(1f)) {
-                Store.tab = 2
-            }
-            LiveNavItem(Store.tab == 1, Store.campActive(), Modifier.weight(1.1f)) { Store.tab = 1 }
-            NavItem(T("Log", "السجل"), Icons.Rounded.History, Icons.Outlined.History, Store.tab == 3, Modifier.weight(1f)) {
-                Store.tab = 3
-            }
-            NavItem(T("Settings", "الإعدادات"), Icons.Rounded.Settings, Icons.Outlined.Settings, Store.tab == 4, Modifier.weight(1f)) {
-                Store.openSettings()
+            val w = maxWidth / 5
+            val x = if (rtl) maxWidth - w * (pos + 1f) else w * pos
+            Box(
+                Modifier.offset(x = x).width(w).fillMaxHeight()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(cs.primary.copy(alpha = 0.09f))
+                    .border(1.dp, cs.primary.copy(alpha = 0.10f), RoundedCornerShape(24.dp))
+            )
+            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                NavItem(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, Icons.Outlined.Campaign, Store.tab == 0, Modifier.weight(1f)) {
+                    Store.selectedListId = null; Store.tab = 0
+                }
+                NavItem(T("Results", "النتائج"), Icons.Rounded.BarChart, Icons.Outlined.BarChart, Store.tab == 2, Modifier.weight(1f)) {
+                    Store.tab = 2
+                }
+                LiveNavItem(Store.tab == 1, Store.campActive(), Modifier.weight(1f)) { Store.tab = 1 }
+                NavItem(T("Log", "السجل"), Icons.Rounded.History, Icons.Outlined.History, Store.tab == 3, Modifier.weight(1f)) {
+                    Store.tab = 3
+                }
+                NavItem(T("Settings", "الإعدادات"), Icons.Rounded.Settings, Icons.Outlined.Settings, Store.tab == 4, Modifier.weight(1f)) {
+                    Store.openSettings()
+                }
             }
         }
     }
@@ -245,7 +295,16 @@ fun Root(act: MainActivity) {
             Responsive {
                 AnimatedContent(
                     targetState = screenKey,
-                    transitionSpec = { fadeIn(tween(140)) togetherWith fadeOut(tween(90)) },
+                    transitionSpec = {
+                        val forward = targetState >= initialState
+                        val dir = if (forward) 1 else -1
+                        (fadeIn(tween(260)) +
+                            slideInHorizontally(tween(360, easing = Motion.easeOut)) { it / 10 * dir } +
+                            scaleIn(tween(360, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
+                            (fadeOut(tween(140)) +
+                                slideOutHorizontally(tween(220)) { -it / 16 * dir } +
+                                scaleOut(tween(220), targetScale = 0.992f))
+                    },
                     label = "screen"
                 ) { k ->
                     when (k) {

@@ -28,7 +28,7 @@ import androidx.core.view.WindowCompat
 
 /** Visible product name. Change it here to rebrand every screen. */
 const val APP_NAME = "O2Dialer"
-const val APP_VERSION = "5.0"
+const val APP_VERSION = "6.0"
 
 // ------------------------------------------------------------------ design tokens
 /** Spacing scale (4-pt grid). */
@@ -42,33 +42,41 @@ object Sp {
     val xxxl = 32.dp
 }
 
-/** Corner radii. */
+/** Corner radii. Softer than stock Material, still disciplined. */
 object Rd {
-    val xs = 8.dp
-    val s = 12.dp
-    val m = 16.dp
-    val l = 20.dp
-    val xl = 28.dp
+    val xs = 10.dp
+    val s = 14.dp
+    val m = 18.dp
+    val l = 24.dp
+    val xl = 30.dp
 }
 
-/** Semantic colours: always use these for meaning, never ad-hoc colours. */
+/** Semantic colours: muted jewel tones that sit inside the warm palette. */
 object Sem {
-    val success = Color(0xFF0F7A55)
-    val warning = Color(0xFFB45309)
-    val danger = Color(0xFFC03B32)
-    val info = Color(0xFF2563EB)
+    val success = Color(0xFF2F8A6A)
+    val warning = Color(0xFFB27B32)
+    val danger = Color(0xFFBE5540)
+    val info = Color(0xFF4C7E8E)
 }
 
-/** The single dark "focus" surface used by the live hero and the today card. */
-val InkCard = Color(0xFF161619)
-val InkCardDark = Color(0xFF1E1E22)
+/** Warm brass, used only for highlights and editorial detail. */
+val Brass = Color(0xFFB9854C)
+val Cream = Color(0xFFF5F0E4)
+val Sage = Color(0xFF8FAF9D)
+
+/** The dark "focus" surfaces: hero cards, live dialer, daily brief. */
+val InkCard = Color(0xFF0C1712)
+val InkCardDark = Color(0xFF111C16)
 
 @Composable
 fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
-/** Brand accent. Kept as a single solid colour, not a gradient. */
-val BrandIndigo = Color(0xFF4F46E5)
+/** Primary brand colour: deep forest green. */
+val Brand = Color(0xFF15503E)
+
+/** Kept as an alias so older references stay valid. */
+val BrandIndigo = Brand
 
 /**
  * Text / icon colour that stays readable (>= 4.5:1) on a 10-20 % tint of [c],
@@ -77,7 +85,7 @@ val BrandIndigo = Color(0xFF4F46E5)
 @Composable
 fun readable(c: Color): Color {
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    return if (dark) lerp(c, Color.White, 0.35f) else lerp(c, Color.Black, 0.38f)
+    return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
 private val Outfit = FontFamily(
@@ -90,29 +98,43 @@ private val PlexArabic = FontFamily(
     Font(R.font.plex_arabic_bold, FontWeight.Bold)
 )
 
+/** High-contrast editorial serif, used for display numbers and page titles. */
+private val InstrumentSerif = FontFamily(
+    Font(R.font.instrument_serif, FontWeight.Normal)
+)
+
 private val LightC = lightColorScheme(
-    primary = BrandIndigo, onPrimary = Color.White,
-    primaryContainer = Color(0xFFECEAFF), onPrimaryContainer = Color(0xFF1A1147),
-    secondary = Color(0xFF0F766E), onSecondary = Color.White,
-    background = Color(0xFFF6F6F3), onBackground = Color(0xFF121214),
-    surface = Color(0xFFFFFFFF), onSurface = Color(0xFF121214),
-    surfaceVariant = Color(0xFFF1F1ED), onSurfaceVariant = Color(0xFF6D6D74),
-    outline = Color(0xFFE3E3DD), outlineVariant = Color(0xFFEEEEE9),
-    error = Sem.danger, onError = Color.White,
-    inverseSurface = Color(0xFF1B1B1E), inverseOnSurface = Color(0xFFF4F4F2),
+    primary = Brand, onPrimary = Color(0xFFF7F3E7),
+    primaryContainer = Color(0xFFDCEBE0), onPrimaryContainer = Color(0xFF0A2B21),
+    secondary = Color(0xFFA9763D), onSecondary = Color(0xFFFFF8ED),
+    secondaryContainer = Color(0xFFF4E3CB), onSecondaryContainer = Color(0xFF4A2F12),
+    tertiary = Color(0xFF557A6C), onTertiary = Color(0xFFF4FBF6),
+    tertiaryContainer = Color(0xFFDCEAE1), onTertiaryContainer = Color(0xFF163027),
+    background = Color(0xFFF4F1E9), onBackground = Color(0xFF101713),
+    surface = Color(0xFFFBF9F3), onSurface = Color(0xFF101713),
+    surfaceVariant = Color(0xFFE9E4D7), onSurfaceVariant = Color(0xFF656A61),
+    outline = Color(0xFFD8D2C2), outlineVariant = Color(0xFFE7E2D5),
+    error = Color(0xFFB44734), onError = Color(0xFFFFF8F4),
+    errorContainer = Color(0xFFF6DDD6), onErrorContainer = Color(0xFF4A1207),
+    inverseSurface = Color(0xFF142019), inverseOnSurface = Color(0xFFF1EDE2),
     surfaceTint = Color.Transparent
 )
 
-private val DarkC = darkColorScheme(
-    primary = Color(0xFFB9B0FF), onPrimary = Color(0xFF1B1245),
-    primaryContainer = Color(0xFF332A78), onPrimaryContainer = Color(0xFFE7E4FF),
-    secondary = Color(0xFF7DD3C8), onSecondary = Color(0xFF00382F),
-    background = Color(0xFF0A0A0B), onBackground = Color(0xFFF3F3F5),
-    surface = Color(0xFF131315), onSurface = Color(0xFFF3F3F5),
-    surfaceVariant = Color(0xFF1D1D21), onSurfaceVariant = Color(0xFF9C9CA6),
-    outline = Color(0xFF2A2A2F), outlineVariant = Color(0xFF232327),
-    error = Color(0xFFFFB4AB), onError = Color(0xFF690005),
-    inverseSurface = Color(0xFFEDEDF0), inverseOnSurface = Color(0xFF1B1B1E),
+/** The cinematic scheme used for the first-run experience, also the dark theme. */
+val NocturneDark = darkColorScheme(
+    primary = Color(0xFFA5DDC2), onPrimary = Color(0xFF06271D),
+    primaryContainer = Color(0xFF1B3A2E), onPrimaryContainer = Color(0xFFD7F3E3),
+    secondary = Color(0xFFE0B27E), onSecondary = Color(0xFF33230F),
+    secondaryContainer = Color(0xFF3E2F1B), onSecondaryContainer = Color(0xFFF6DFBF),
+    tertiary = Color(0xFF9DBFB0), onTertiary = Color(0xFF102A22),
+    tertiaryContainer = Color(0xFF233C32), onTertiaryContainer = Color(0xFFD5EEE2),
+    background = Color(0xFF080C0A), onBackground = Color(0xFFF1EDE2),
+    surface = Color(0xFF101713), onSurface = Color(0xFFF1EDE2),
+    surfaceVariant = Color(0xFF1A231D), onSurfaceVariant = Color(0xFF9BA79E),
+    outline = Color(0xFF2A352D), outlineVariant = Color(0xFF1F2A23),
+    error = Color(0xFFF1A08C), onError = Color(0xFF3D0B02),
+    errorContainer = Color(0xFF5A2117), onErrorContainer = Color(0xFFFFDBD3),
+    inverseSurface = Color(0xFFEDE9DE), inverseOnSurface = Color(0xFF141A16),
     surfaceTint = Color.Transparent
 )
 
@@ -121,36 +143,46 @@ fun statusColor(s: Int): Color = when (s) {
     St.NO_ANSWER -> Sem.warning
     St.FAILED -> Sem.danger
     St.CALLING -> Sem.info
-    St.DONE -> Color(0xFF0D9488)
-    else -> Color(0xFF8A8A94)
+    St.DONE -> Color(0xFF327A68)
+    else -> Color(0xFF8A948C)
 }
 
 private fun typo(ff: FontFamily, arabic: Boolean): Typography {
-    // Arabic script needs more vertical room and no negative tracking.
-    val k = if (arabic) 1.14f else 1f
+    // Arabic script needs more vertical room, no negative tracking and no serif display.
+    val k = if (arabic) 1.16f else 1f
     fun tr(v: Float): TextUnit = if (arabic) 0.sp else v.sp
-    fun st(w: FontWeight, size: Int, lh: Int, track: Float = 0f) =
-        TextStyle(fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track))
+    fun display(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
+        fontFamily = if (arabic) ff else InstrumentSerif,
+        fontWeight = if (arabic) FontWeight.Bold else w,
+        fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track),
+        fontFeatureSettings = "lnum"
+    )
+    fun text(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
+        fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
+    )
     val b = FontWeight.Bold
     val n = FontWeight.Normal
     return Typography(
-        displayLarge = st(b, 40, 46, -1.2f),
-        displayMedium = st(b, 34, 40, -1f),
-        displaySmall = st(b, 30, 36, -0.8f),
-        headlineLarge = st(b, 28, 34, -0.8f),
-        headlineMedium = st(b, 24, 30, -0.6f),
-        headlineSmall = st(b, 21, 28, -0.4f),
-        titleLarge = st(b, 19, 25, -0.3f),
-        titleMedium = st(b, 16, 22, -0.2f),
-        titleSmall = st(b, 14, 20),
-        bodyLarge = st(n, 16, 24),
-        bodyMedium = st(n, 14, 21),
-        bodySmall = st(n, 12, 17),
-        labelLarge = st(b, 14, 20),
-        labelMedium = st(n, 12, 16, 0.1f),
-        labelSmall = st(n, 11, 14, 0.2f)
+        displayLarge = display(n, 58, 60, -1.4f),
+        displayMedium = display(n, 46, 48, -1.1f),
+        displaySmall = display(n, 36, 40, -0.8f),
+        headlineLarge = display(n, 33, 37, -0.6f),
+        headlineMedium = display(n, 27, 31, -0.4f),
+        headlineSmall = text(b, 22, 28, -0.4f),
+        titleLarge = text(b, 19, 25, -0.3f),
+        titleMedium = text(b, 16, 22, -0.2f),
+        titleSmall = text(b, 14, 20),
+        bodyLarge = text(n, 16, 24),
+        bodyMedium = text(n, 14, 21),
+        bodySmall = text(n, 12, 17),
+        labelLarge = text(b, 14, 20),
+        labelMedium = text(n, 12, 16, 0.1f),
+        labelSmall = text(n, 11, 14, 0.2f)
     )
 }
+
+@Composable
+fun isDarkTheme(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
@@ -159,7 +191,7 @@ fun AppTheme(content: @Composable () -> Unit) {
     val ctx = LocalContext.current
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-    } else if (dark) DarkC else LightC
+    } else if (dark) NocturneDark else LightC
     // IBM Plex Sans Arabic for Arabic mode, Outfit for English: one consistent voice per language.
     val arabic = c.lang == 1
     val ty = remember(c.lang) { typo(if (arabic) PlexArabic else Outfit, arabic) }
@@ -183,14 +215,16 @@ fun AppTheme(content: @Composable () -> Unit) {
         )
     ) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            // A single, very soft tonal wash at the top. No decorative glows.
-            val wash = scheme.primary.copy(alpha = if (dark) 0.07f else 0.045f)
+            // A quiet wash: warm paper at the top, a breath of green at the bottom.
+            val top = scheme.primary.copy(alpha = if (dark) 0.05f else 0.035f)
+            val bottom = scheme.secondary.copy(alpha = if (dark) 0.045f else 0.05f)
             Box(
                 Modifier.fillMaxSize().drawBehind {
                     drawRect(
-                        Brush.verticalGradient(
-                            listOf(wash, Color.Transparent),
-                            startY = -24.dp.toPx(), endY = size.height * 0.26f
+                        Brush.linearGradient(
+                            listOf(top, Color.Transparent, bottom),
+                            start = Offset(size.width * 0.1f, -size.height * 0.05f),
+                            end = Offset(size.width * 0.9f, size.height * 1.05f)
                         )
                     )
                 }

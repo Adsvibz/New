@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -32,26 +33,63 @@ private fun Hint(text: String) {
 
 @Composable
 private fun SettingsFooter() {
+    val cs = MaterialTheme.colorScheme
     Column(
-        Modifier.fillMaxWidth().padding(top = Sp.s),
+        Modifier.fillMaxWidth().padding(top = Sp.l),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Sp.s)
     ) {
         Box(
-            Modifier.size(34.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary),
+            Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
+                .background(Brush.linearGradient(listOf(cs.primary, cs.secondary))),
             Alignment.Center
-        ) { LogoMark(22.dp) }
+        ) { LogoMark(25.dp, color = cs.onPrimary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
             T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
-            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
         )
         Text(
             T("All rights reserved · 2026", "جميع الحقوق محفوظة · 2026"),
-            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
 }
+
+@Composable
+private fun SettingsHero() {
+    val c = Store.cfg
+    val cs = MaterialTheme.colorScheme
+    val theme = when (c.themeMode) {
+        1 -> T("Light", "فاتح")
+        2 -> T("Dark", "داكن")
+        else -> T("Auto", "تلقائي")
+    }
+    Panel(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(Sp.xl), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(62.dp).clip(RoundedCornerShape(20.dp))
+                    .background(Brush.linearGradient(listOf(cs.primary, lerpAccent(cs.primary, cs.secondary)))),
+                Alignment.Center
+            ) { LogoMark(38.dp, color = cs.onPrimary) }
+            Spacer(Modifier.width(Sp.l))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(APP_NAME, style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
+                    style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
+                )
+                Spacer(Modifier.height(3.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Pill(c.lang.let { if (it == 1) "AR" else "EN" }, cs.primary, Icons.Rounded.Language)
+                    Pill(theme, cs.secondary, Icons.Rounded.Palette)
+                }
+            }
+        }
+    }
+}
+
+private fun lerpAccent(a: Color, b: Color) = androidx.compose.ui.graphics.lerp(a, b, 0.32f)
 
 @Composable
 fun SettingsScreen() {
@@ -68,6 +106,8 @@ fun SettingsScreen() {
                 .padding(horizontal = Sp.xl, vertical = Sp.s),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
+            Enter(0) { SettingsHero() }
+
             SettingsSection(Icons.Rounded.Language, T("General", "عام"), startOpen = true) {
                 SectionLabel(T("Language", "اللغة"))
                 Segmented(listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
@@ -80,6 +120,9 @@ fun SettingsScreen() {
                     T("Material You · Android 12 and above", "Material You · أندرويد 12 فما فوق"),
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
+                Hint(
+                    T("Off keeps the O2 forest and ivory palette everywhere.", "إيقافه يحافظ على ألوان O2 الزمردية والعاجية في كل الشاشات.")
+                )
             }
 
             SettingsSection(Icons.Rounded.Timer, T("Timing", "التوقيت")) {
@@ -151,8 +194,8 @@ fun SettingsScreen() {
                 )
                 perms.forEach { (n, p) ->
                     val ok = remember(Store.permTick) { ctx.has(p) }
-                    Row(Modifier.fillMaxWidth().heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(n, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    Row(Modifier.fillMaxWidth().heightIn(min = 30.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(n, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Dot(if (ok) Sem.success else Sem.danger, 6.dp)
                             Spacer(Modifier.width(6.dp))

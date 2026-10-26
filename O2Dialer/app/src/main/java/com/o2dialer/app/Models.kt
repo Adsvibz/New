@@ -72,12 +72,12 @@ object Stg {
         else -> "—"
     }
     fun color(s: Int): Color = when (s) {
-        POTENTIAL -> Color(0xFF3B82F6)
-        NOT_INTERESTED -> Color(0xFFEF4444)
-        CALL_BACK -> Color(0xFFF59E0B)
-        WHATSAPP -> Color(0xFF22C55E)
-        VOICEMAIL -> Color(0xFF8B5CF6)
-        else -> Color(0xFF94A3B8)
+        POTENTIAL -> Color(0xFF3E7C8C)
+        NOT_INTERESTED -> Color(0xFFB0574A)
+        CALL_BACK -> Color(0xFFC2913C)
+        WHATSAPP -> Color(0xFF2F8F6B)
+        VOICEMAIL -> Color(0xFF7C6A9E)
+        else -> Color(0xFF8A948C)
     }
 }
 

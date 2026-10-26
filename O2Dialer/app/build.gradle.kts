@@ -11,7 +11,7 @@ android {
         targetSdk = 34
         // Always rises with every GitHub run, so each build installs as an update over the previous one.
         versionCode = 100 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
-        versionName = "5.0"
+        versionName = "6.0"
         // Address of your license server (https://...). Empty = licensing is OFF and the app works exactly as before.
         // Set it with the LICENSE_URL GitHub secret (the workflow passes it in) or -PLICENSE_URL=... locally.
         val licenseUrl = (System.getenv("LICENSE_URL") ?: (project.findProperty("LICENSE_URL") as String?) ?: "").trim()
