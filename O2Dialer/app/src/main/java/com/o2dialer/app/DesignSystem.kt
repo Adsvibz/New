@@ -178,11 +178,7 @@ fun BButton(
         BtnKind.Tonal -> Modifier.border(1.dp, cs.primary.copy(alpha = 0.18f), shape)
         else -> Modifier
     }
-    val elevation = if (false)
-        Modifier.shadow(
-            14.dp, shape, ambientColor = cs.primary.copy(alpha = 0.28f), spotColor = cs.primary.copy(alpha = 0.22f)
-        )
-    else Modifier
+    val elevation = Modifier
     Box(
         modifier
             .heightIn(min = height)
@@ -372,11 +368,13 @@ fun Panel(
 ) {
     val cs = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(Rd.m)
+    val interaction = remember { MutableInteractionSource() }
     val base = modifier
+        .then(if (onClick != null) Modifier.pressScale(interaction, 0.99f) else Modifier)
         .clip(shape)
         .background(cs.surface)
         .border(1.dp, accent?.copy(alpha = 0.5f) ?: cs.outlineVariant, shape)
-        .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+        .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick) else Modifier)
     Column(base.fillMaxWidth(), content = content)
 }
 
