@@ -65,6 +65,8 @@ jobs:
           cat out/apk-metadata.txt
           cat out/signing-verification.txt
           cat out/SHA256SUMS
+      - name: Prepare verified update feed
+        run: python3 release/prepare_update.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -79,3 +81,44 @@ jobs:
           name: O2Dialer-7.0-release
           path: O2Dialer/out/
           if-no-files-found: error
+  publish_update:
+    needs: build
+    if: github.ref == 'refs/heads/design/o2dialer-v7-rebuild'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: O2Dialer-7.0-release
+          path: release
+      - name: Publish complete update after verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum --check SHA256SUMS
+          VERSION_CODE=$(python3 -c 'import json; print(json.load(open("update.json"))["versionCode"])')
+          TAG="o2dialer-build-$VERSION_CODE"
+          # A rerun of an older build must never become the latest update.
+          LATEST=$(gh release view --json tagName --jq '.tagName' 2>/dev/null || true)
+          if [[ "$LATEST" =~ ^o2dialer-build-([0-9]+)$ ]] && (( BASH_REMATCH[1] >= VERSION_CODE )); then
+            echo "This version or a newer update is already published."
+            exit 0
+          fi
+          printf 'O2Dialer 7.0 (%s)\n\nVerified release build. Install over your existing app to retain campaigns and settings.\nCommit: %s\n' "$VERSION_CODE" "$GITHUB_SHA" > release-notes.txt
+          # Keep the feed invisible until all assets are uploaded. Resume a failed draft safely.
+          if gh release view "$TAG" --json isDraft --jq '.isDraft' > draft-state.txt 2>/dev/null; then
+            if [[ "$(cat draft-state.txt)" != "true" ]]; then
+              echo "Release already published; leaving its assets unchanged."
+              exit 0
+            fi
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --draft --title "O2Dialer 7.0 ($VERSION_CODE)" --notes-file release-notes.txt
+          fi
+          gh release upload "$TAG" O2Dialer-7.0-release.apk update.json SHA256SUMS signing-verification.txt apk-metadata.txt build-provenance.txt --clobber
+          gh release edit "$TAG" --draft=false --latest

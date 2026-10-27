@@ -147,6 +147,8 @@ fun SettingsScreen() {
 
             LicenseSettingsSection()
 
+            UpdateSettingsSection()
+
             SettingsSection(Icons.Rounded.Security, T("Permissions & background", "الصلاحيات والتشغيل في الخلفية"), startOpen = true) {
                 val perms = listOf(
                     T("Calling", "الاتصال") to Manifest.permission.CALL_PHONE,

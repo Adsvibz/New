@@ -131,6 +131,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Store.permTick = Store.permTick + 1
+        if (Store.welcomed) AppUpdates.check(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -206,6 +207,7 @@ private fun AppNavBar() {
 @Composable
 fun Root(act: MainActivity) {
     val activity = LocalContext.current as Activity
+    LaunchedEffect(Unit) { AppUpdates.check(act) }
 
     val keep = Store.cfg.keepScreenOn && (Store.camp.status == CS.RUNNING || Store.camp.status == CS.WAITING)
     LaunchedEffect(keep) {
@@ -265,6 +267,7 @@ fun Root(act: MainActivity) {
             )
             Store.stageTarget?.let { (lid, eid) -> StageSheet(lid, eid) }
             if (License.showActivation) ActivationDialog(act)
+            UpdateHost(act)
         }
     }
 }
