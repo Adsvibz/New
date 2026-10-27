@@ -65,20 +65,24 @@ fun V7CampaignWorkspace(
             }
         }
         item {
-            Surface(shape = RoundedCornerShape(24.dp), color = inkSurface()) {
-                Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Surface(shape = RoundedCornerShape(20.dp), color = cs.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(T("CALLING OVERVIEW", "نظرة عامة"), color = Color(0xFFACC5F8),
-                            style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                        Text(T("Calling overview", "ملخص المكالمات"), color = cs.onSurfaceVariant,
+                            style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.weight(1f))
-                        Icon(Icons.Rounded.Insights, null, tint = Color(0xFFACC5F8))
+                        Icon(Icons.Rounded.Insights, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
                     }
-                    CountUp(called, style = MaterialTheme.typography.displayMedium, color = Color.White)
-                    Text(T("calls processed across $total contacts", "مكالمة تمت معالجتها من أصل $total جهة اتصال"),
-                        color = Color(0xFFD3DEF2), style = MaterialTheme.typography.bodySmall)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        CountUp(called, style = MaterialTheme.typography.displaySmall, color = cs.onSurface)
+                        Text(T("of $total contacts called", "من أصل $total جهة اتصال"),
+                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                    }
                     LinearProgressIndicator(progress = { completion },
-                        modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
-                        color = Color(0xFF8DB6FF), trackColor = Color(0xFF354D79))
+                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                        color = cs.primary, trackColor = cs.surfaceVariant)
+                    HorizontalDivider(color = cs.outlineVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                         V7HeroMetric("$answered", T("Answered", "تم الرد"))
                         V7HeroMetric("$responseRate%",
@@ -160,8 +164,10 @@ fun V7CampaignWorkspace(
 @Composable
 private fun RowScope.V7HeroMetric(value: String, caption: String) {
     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(caption, color = Color(0xFFB9CBEA), fontSize = 11.sp, maxLines = 2)
+        NumText(value, color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleLarge)
+        Text(caption, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelMedium, maxLines = 2)
     }
 }
 

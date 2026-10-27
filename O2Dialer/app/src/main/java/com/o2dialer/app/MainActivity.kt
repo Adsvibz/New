@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.*
@@ -154,50 +155,49 @@ private fun AppNavBar() {
         Triple(T("History", "السجل"), Icons.Rounded.History, 3),
         Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
     )
+    val inactiveIcons = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call,
+        Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
     Surface(
         color = cs.surface,
         tonalElevation = 0.dp,
-        shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding()
+        shadowElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Row(
-                Modifier.fillMaxWidth().widthIn(max = 620.dp).heightIn(min = 76.dp).padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+        Column {
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
+            Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
+            NavigationBar(
+                modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
+                containerColor = cs.surface,
+                tonalElevation = 0.dp,
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             ) {
                 slots.forEach { (label, icon, destination) ->
                     val active = Store.tab == destination
-                    val tint by animateColorAsState(if (active) cs.primary else cs.onSurfaceVariant, animationSpec = tween(220, easing = Motion.easeOut), label = "navTint")
-                    val indicator by animateColorAsState(if (active) cs.primaryContainer else Color.Transparent, animationSpec = tween(250, easing = Motion.easeOut), label = "navIndicator")
-                    val iconScale by animateFloatAsState(if (active) 1.10f else 1f, animationSpec = Motion.gentle(), label = "navIconScale")
-                    Column(
-                        Modifier.weight(1f).heightIn(min = 64.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .selectable(selected = active, role = Role.Tab, onClick = {
+                    NavigationBarItem(
+                        selected = active,
+                        onClick = {
                                 if (destination == 4) Store.openSettings()
                                 else {
                                     if (destination == 0) Store.selectedListId = null
                                     Store.tab = destination
                                 }
-                            })
-                            .padding(vertical = 7.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            Modifier.size(width = 44.dp, height = 29.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(indicator),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(icon, label, tint = tint, modifier = Modifier.size(19.dp).graphicsLayer { scaleX = iconScale; scaleY = iconScale })
-                        }
-                        Spacer(Modifier.height(3.dp))
-                        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
-                            color = tint, maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    }
+                        },
+                        icon = { Icon(if (active) icon else inactiveIcons[destination], null,
+                            modifier = Modifier.size(23.dp)) },
+                        label = { Text(label, style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = cs.primary,
+                            selectedTextColor = cs.primary,
+                            unselectedIconColor = cs.onSurfaceVariant,
+                            unselectedTextColor = cs.onSurfaceVariant,
+                            indicatorColor = cs.primary.copy(alpha = 0.08f)
+                        )
+                    )
                 }
+            }
             }
         }
     }

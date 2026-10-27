@@ -1,1 +1,1 @@
-V7 premium visual polish and API 36 release verification, candidate 4.
+V7 neutral campaign overview and native bottom navigation, candidate 5.
