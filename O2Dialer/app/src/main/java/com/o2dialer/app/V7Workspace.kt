@@ -85,30 +85,29 @@ fun V7CampaignWorkspace(
             }
         }
         if (!selecting) item {
-            Surface(shape = RoundedCornerShape(12.dp), color = cs.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(T("Calling overview", "ملخص المكالمات"), color = cs.onSurfaceVariant,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.weight(1f))
-                        Icon(Icons.Rounded.Insights, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(T("Calls made", "المكالمات المنفذة"), color = cs.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelMedium)
+                        Row(verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            CountUp(called, style = MaterialTheme.typography.headlineLarge, color = cs.onSurface)
+                            Text(T("/ $total contacts", "/ $total جهة اتصال"),
+                                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 4.dp))
+                        }
                     }
-                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        CountUp(called, style = MaterialTheme.typography.headlineLarge, color = cs.onSurface)
-                        Text(T("of $total contacts called", "من أصل $total جهة اتصال"),
-                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Start)
-                    }
-                    LinearProgressIndicator(progress = { completion },
-                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-                        color = cs.primary, trackColor = cs.surfaceVariant)
-                    HorizontalDivider(color = cs.outlineVariant)
-                    MetricGrid(listOf(UiMetric("$answered", T("Answered", "تم الرد")),
-                        UiMetric("$responseRate%", T("Answer rate", "نسبة الرد")),
-                        UiMetric("${lists.size}", T("Campaigns", "الحملات"))))
+                    Text("${(completion * 100).toInt()}%", color = cs.primary,
+                        style = MaterialTheme.typography.titleMedium)
                 }
+                LinearProgressIndicator(progress = { completion },
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                    color = cs.primary, trackColor = cs.surfaceVariant)
+                MetricGrid(listOf(UiMetric("$answered", T("Answered", "تم الرد")),
+                    UiMetric("$responseRate%", T("Answer rate", "نسبة الرد")),
+                    UiMetric("${lists.size}", T("Campaigns", "الحملات"))))
+                HorizontalDivider(color = cs.outlineVariant)
             }
         }
         if (!selecting) item {
