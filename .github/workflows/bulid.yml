@@ -141,9 +141,9 @@ jobs:
         id: gate
         shell: bash
         env:
-          GH_TOKEN: \${{ github.token }}
-          APPETIZE_API_TOKEN: \${{ secrets.APPETIZE_API_TOKEN }}
-          APPETIZE_PUBLIC_KEY: \${{ secrets.APPETIZE_PUBLIC_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          APPETIZE_API_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+          APPETIZE_PUBLIC_KEY: ${{ secrets.APPETIZE_PUBLIC_KEY }}
         run: |
           set -euo pipefail
           if [[ -z "$APPETIZE_API_TOKEN" || -z "$APPETIZE_PUBLIC_KEY" ]]; then
@@ -163,9 +163,9 @@ jobs:
         if: steps.gate.outputs.enabled == 'true'
         uses: appetizeio/github-action-appetize@v1.1.0
         with:
-          apiToken: \${{ secrets.APPETIZE_API_TOKEN }}
-          publicKey: \${{ secrets.APPETIZE_PUBLIC_KEY }}
+          apiToken: ${{ secrets.APPETIZE_API_TOKEN }}
+          publicKey: ${{ secrets.APPETIZE_PUBLIC_KEY }}
           platform: android
           appFile: preview-release/O2Dialer-7.0-release.apk
           fileType: apk
-          note: O2Dialer native preview • \${{ github.sha }}
+          note: O2Dialer native preview • ${{ github.sha }}
