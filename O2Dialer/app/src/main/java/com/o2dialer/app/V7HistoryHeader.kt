@@ -31,20 +31,9 @@ fun V7HistoryHeader(total: Int, answered: Int, missed: Int) {
                 }
                 Icon(Icons.Rounded.History, null, tint = cs.primary)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HistoryMetric("$total", T("All calls", "كل المكالمات"), Modifier.weight(1f))
-                HistoryMetric("$answered", T("Answered", "تم الرد"), Modifier.weight(1f))
-                HistoryMetric("$missed", T("No answer", "لم يرد"), Modifier.weight(1f))
-            }
+            MetricGrid(listOf(UiMetric("$total", T("All calls", "كل المكالمات")),
+                UiMetric("$answered", T("Answered", "تم الرد")),
+                UiMetric("$missed", T("No answer", "لم يرد"))))
         }
-    }
-}
-
-@Composable
-private fun HistoryMetric(value: String, label: String, modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text(label, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

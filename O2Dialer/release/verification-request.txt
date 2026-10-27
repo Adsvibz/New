@@ -1,1 +1,1 @@
-V7 minimal neutral forms, consistent dialogs and pinned sheet actions, candidate 10.
+V7 unified screenshot feedback: alignment, responsive layouts, floating navigation and campaign management, candidate 11.

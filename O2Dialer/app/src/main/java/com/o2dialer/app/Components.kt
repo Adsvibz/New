@@ -209,7 +209,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
         modifier.clip(shape)
             .background(if (selected) c.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
             .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.75f else 0.14f), shape)
-            .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m),
+            .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.size(26.dp).clip(CircleShape).background(c.copy(alpha = if (selected) 0.20f else 0.10f)), Alignment.Center) {
@@ -218,7 +218,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
         Spacer(Modifier.width(Sp.s))
         Text(
             Stg.label(s), color = if (selected) readable(c) else MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp), maxLines = 2
+            modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall
         )
     }
 }
@@ -267,7 +267,9 @@ fun StageSheet(listId: String, entryId: String) {
                 }
             }
         }
-        Stg.all.chunked(2).forEach { row ->
+        val stageColumns = if (androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f ||
+            androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360) 1 else 2
+        Stg.all.chunked(stageColumns).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
                 row.forEach { s ->
                     StageTile(s, selected == s, Modifier.weight(1f)) {
@@ -283,7 +285,7 @@ fun StageSheet(listId: String, entryId: String) {
                         }
                     }
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
+                if (row.size < stageColumns) Spacer(Modifier.weight(1f))
             }
         }
         if (Stg.needsFeedback(selected)) {

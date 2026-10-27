@@ -144,28 +144,13 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
                 if (e.name.isNotBlank()) NumText(
                     e.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
                 )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    StatusDot(e.status)
-                    if (e.duration > 0) Text(
-                        "· ${fmtDur(e.duration)}", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                    )
-                    if (e.calledAt > 0) Text(
-                        "· ${fmtTime(e.calledAt)}", style = MaterialTheme.typography.labelSmall,
-                        color = cs.onSurfaceVariant, maxLines = 1
-                    )
-                }
-                if (e.stage != Stg.NONE) StagePill(e.stage) { Store.stageTarget = listId to e.id }
-                else if (canStage) Pill(T("+ Stage", "+ نتيجة"), cs.primary) { Store.stageTarget = listId to e.id }
                 if (e.feedback.isNotBlank()) Text(
                     e.feedback, style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                     color = cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis
                 )
             }
-            if (e.stage != Stg.NONE) WhatsAppButton(e.number, 32.dp)
-            else if (canStage) Icon(
-                Icons.Rounded.ChevronRight, null, tint = cs.outline, modifier = Modifier.size(18.dp)
-            )
         }
+        Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) { ContactMetadata(e, listId, showTime = true) }
     }
 }
 

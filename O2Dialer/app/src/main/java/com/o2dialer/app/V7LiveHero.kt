@@ -48,7 +48,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
         shape = RoundedCornerShape(24.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(19.dp)) {
+        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = emphasis.copy(alpha = 0.1f), shape = CircleShape) {
                     Icon(Icons.Rounded.PhoneInTalk, null, tint = emphasis,
@@ -58,21 +58,25 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                 Column(Modifier.weight(1f)) {
                     Text(T("LIVE SESSION", "الجلسة المباشرة"), color = cs.onSurfaceVariant,
                         fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Text(list.name, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    Text(list.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 }
 
             }
             Pill(label, emphasis)
-            if (state.message.isNotBlank()) Text(state.message, color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            if (state.message.isNotBlank() && state.message !in setOf("Paused", "متوقفة مؤقتًا"))
+                Text(state.message, Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             HorizontalDivider(color = cs.outlineVariant)
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
                 Text(name.ifBlank { number.ifBlank { if (finished) T("${progress.called} contacts processed", "تمت معالجة ${progress.called} جهة اتصال") else if (state.evaluating || state.awaitingStage) T("Finishing this step", "إتمام الخطوة الحالية") else T("Waiting for the queue", "بانتظار قائمة الاتصال") } },
-                    style = MaterialTheme.typography.headlineMedium, color = cs.onSurface,
+                    modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineSmall.copy(
+                        textDirection = if (name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = cs.onSurface,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
-                if (number.isNotBlank()) {
+                if (number.isNotBlank() && name.isNotBlank() && name != number) {
                     NumText(number, color = cs.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge)
                 }

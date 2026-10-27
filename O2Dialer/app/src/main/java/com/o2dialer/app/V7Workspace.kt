@@ -1,6 +1,12 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.o2dialer.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,6 +48,25 @@ fun V7CampaignWorkspace(
     val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
     val responseRate = if (called > 0) (answered.toLong() * 100 / called).coerceIn(0L, 100L) else 0L
     val cs = MaterialTheme.colorScheme
+    var selected by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    val ids = selected.filter { id -> lists.any { it.id == id } && !Store.isRunningList(id) }.toSet()
+    val selecting = selected.isNotEmpty()
+    LaunchedEffect(ids) { if (ids.size != selected.size) selected = ArrayList(ids) }
+    fun toggle(list: CallList) {
+        if (Store.isRunningList(list.id)) {
+            Store.notify(Tk.INFO, T("Stop this campaign before selecting it", "أوقف الحملة قبل تحديدها"))
+        } else selected = ArrayList(if (list.id in selected) selected - list.id else selected + list.id)
+    }
+    BackHandler(enabled = selecting) { selected = arrayListOf(); confirmDelete = false }
+    if (confirmDelete) ConfirmDialog(
+        T("Delete ${ids.size} campaigns and their contacts? This cannot be undone.",
+            "حذف ${ids.size} حملة وجهات الاتصال الخاصة بها؟ لا يمكن التراجع."),
+        { confirmDelete = false }) {
+        val deleted = Store.deleteLists(ids)
+        selected = arrayListOf(); confirmDelete = false
+        Store.notify(Tk.INFO, T("Deleted $deleted campaigns", "تم حذف $deleted حملة"))
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -59,7 +84,7 @@ fun V7CampaignWorkspace(
                 }
             }
         }
-        item {
+        if (!selecting) item {
             Surface(shape = RoundedCornerShape(20.dp), color = cs.surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -78,16 +103,13 @@ fun V7CampaignWorkspace(
                         modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
                         color = cs.primary, trackColor = cs.surfaceVariant)
                     HorizontalDivider(color = cs.outlineVariant)
-                    Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                        V7HeroMetric("$answered", T("Answered", "تم الرد"))
-                        V7HeroMetric("$responseRate%",
-                            T("Answer rate", "نسبة الرد"))
-                        V7HeroMetric("${lists.size}", T("Campaigns", "الحملات"))
-                    }
+                    MetricGrid(listOf(UiMetric("$answered", T("Answered", "تم الرد")),
+                        UiMetric("$responseRate%", T("Answer rate", "نسبة الرد")),
+                        UiMetric("${lists.size}", T("Campaigns", "الحملات"))))
                 }
             }
         }
-        item {
+        if (!selecting) item {
             BButton(T("New campaign", "حملة جديدة"), onCreate, Modifier.fillMaxWidth(), icon = Icons.Rounded.Add)
         }
         if (Store.campActive()) {
@@ -118,10 +140,22 @@ fun V7CampaignWorkspace(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(T("Your campaigns", "حملاتك"), fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                    Text("${lists.size}", color = cs.onSurfaceVariant)
+                if (selecting) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { selected = arrayListOf() }) { Icon(Icons.Rounded.Close, T("Cancel selection", "إلغاء التحديد")) }
+                        Text(T("${ids.size} selected", "تم تحديد ${ids.size}"), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        IconButton(onClick = { confirmDelete = true }, enabled = ids.isNotEmpty()) {
+                            Icon(Icons.Rounded.Delete, T("Delete selected campaigns", "حذف الحملات المحددة"), tint = cs.error)
+                        }
+                    }
+                    TextButton(onClick = { selected = ArrayList((ids + shown.filterNot { Store.isRunningList(it.id) }.map { it.id }).toSet()) }) {
+                        Text(if (search.isBlank()) T("Select all", "تحديد الكل") else T("Select search results", "تحديد نتائج البحث"))
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(T("Your campaigns", "حملاتك"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        Text("${lists.size}", color = cs.onSurfaceVariant)
+                    }
                 }
                 BTextField(value = search, onChange = { search = it },
                     placeholder = T("Search campaigns", "بحث عن حملة"), leading = Icons.Rounded.Search)
@@ -146,20 +180,11 @@ fun V7CampaignWorkspace(
             }
         } else {
             items(shown, key = { it.id }) { item ->
-                V7CampaignRow(item, onOpen = { Store.selectedListId = item.id },
+                V7CampaignRow(item, onOpen = { if (selecting) toggle(item) else Store.selectedListId = item.id },
+                    onLongPress = { toggle(item) }, selected = item.id in ids, selecting = selecting,
                     onEdit = { onEdit(item) }, onDelete = { onDelete(item) })
             }
         }
-    }
-}
-
-@Composable
-private fun RowScope.V7HeroMetric(value: String, caption: String) {
-    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        NumText(value, color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleLarge)
-        Text(caption, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelMedium, maxLines = 2)
     }
 }
 
@@ -168,7 +193,8 @@ private fun V7CampaignRow(
     list: CallList,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onLongPress: () -> Unit, selected: Boolean, selecting: Boolean
 ) {
     val cs = MaterialTheme.colorScheme
     val p = Store.prog(list)
@@ -177,9 +203,12 @@ private fun V7CampaignRow(
     var reset by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.fillMaxWidth(), onClick = onOpen,
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+            .combinedClickable(onClick = onOpen, onLongClick = onLongPress,
+                onLongClickLabel = T("Select campaign", "تحديد الحملة"))
+            .semantics { this.selected = selected },
         shape = RoundedCornerShape(18.dp), color = cs.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
+        border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.primary else cs.outlineVariant)
     ) {
         Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -194,7 +223,8 @@ private fun V7CampaignRow(
                     Text(T("${p.total} contacts", "${p.total} جهة اتصال"),
                         color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
-                Box {
+                if (selecting) Checkbox(checked = selected, enabled = !active, onCheckedChange = { onOpen() })
+                else Box {
                     IconButton(onClick = { menu = true }) {
                         Icon(Icons.Rounded.MoreVert, T("Actions", "الخيارات"))
                     }

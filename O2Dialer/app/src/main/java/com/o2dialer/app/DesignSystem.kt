@@ -321,38 +321,23 @@ fun BTextField(
 @Composable
 fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(Rd.s)
-    BoxWithConstraints(
-        Modifier.fillMaxWidth().height(50.dp).clip(shape)
-            .background(cs.surfaceVariant.copy(alpha = 0.55f))
-            .border(1.dp, cs.outline.copy(alpha = 0.6f), shape).padding(4.dp)
-    ) {
-        val n = options.size.coerceAtLeast(1)
-        val slot = maxWidth / n
-        val pos by animateFloatAsState(selected.toFloat(), Motion.gentle(), label = "segment")
-        val x = slot * pos // offset is already layout-direction aware
-        Box(
-            Modifier.offset(x = x).width(slot).fillMaxHeight()
-                .shadow(5.dp, RoundedCornerShape(11.dp), ambientColor = Color.Black.copy(alpha = 0.10f))
-                .clip(RoundedCornerShape(11.dp)).background(cs.surface)
-                .border(1.dp, cs.onSurface.copy(alpha = 0.04f), RoundedCornerShape(11.dp))
-        )
-        Row(Modifier.fillMaxSize()) {
-            options.forEachIndexed { i, o ->
-                val on = i == selected
-                val fg by animateColorAsState(if (on) cs.onSurface else cs.onSurfaceVariant, tween(200), label = "segFg")
-                Box(
-                    Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp))
-                        .selectable(selected = on, role = Role.Tab) { onSelect(i) },
-                    Alignment.Center
-                ) {
-                    Text(
-                        o, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = if (options.size > 3) 12.sp else 13.5.sp
-                        )
-                    )
+    val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale.coerceAtLeast(1f)
+    BoxWithConstraints(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(cs.surfaceVariant).padding(4.dp)) {
+        val columns = (maxWidth.value / (80 * scale)).toInt().coerceIn(1, options.size.coerceAtLeast(1))
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            options.indices.toList().chunked(columns).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    row.forEach { index ->
+                        val on = selected == index
+                        val bg by animateColorAsState(if (on) cs.surface else Color.Transparent,
+                            tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "segment")
+                        Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(RoundedCornerShape(9.dp))
+                            .background(bg).selectable(selected = on, role = Role.Tab) { onSelect(index) }
+                            .padding(horizontal = 8.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                            Text(options[index], color = if (on) cs.primary else cs.onSurfaceVariant,
+                                textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                 }
             }
         }
@@ -569,22 +554,17 @@ fun Avatar(text: String, color: Color = MaterialTheme.colorScheme.primary, size:
 @Composable
 fun Pill(text: String, color: Color, icon: ImageVector? = null, onClick: (() -> Unit)? = null) {
     val fg = readable(color)
-    val shape = RoundedCornerShape(50)
-    var m = Modifier.clip(shape).background(color.copy(alpha = 0.11f)).border(1.dp, color.copy(alpha = 0.16f), shape)
-    if (onClick != null) m = m.clickable(role = Role.Button, onClick = onClick)
-    Row(
-        m.heightIn(min = if (onClick != null) 48.dp else 24.dp).padding(horizontal = 9.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (icon != null) {
-            Icon(icon, null, tint = fg, modifier = Modifier.size(12.dp))
-            Spacer(Modifier.width(4.dp))
+    Box(Modifier.heightIn(min = if (onClick != null) 48.dp else 0.dp)
+        .then(if (onClick != null) Modifier.clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button, onClick = onClick) else Modifier),
+        contentAlignment = Alignment.CenterStart) {
+        Row(Modifier.clip(RoundedCornerShape(8.dp)).background(color.copy(alpha = 0.08f))
+            .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(icon, null, tint = fg, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(6.dp))
+            }
+            Text(text, color = fg, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
         }
-        Text(
-            text, color = fg,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
-            maxLines = 1
-        )
     }
 }
 
@@ -629,21 +609,16 @@ fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
     ) {
         Icon(icon, null, tint = cs.primary, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(7.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
 
 @Composable
-fun WhatsAppButton(number: String, size: Dp = 40.dp) {
+fun WhatsAppButton(number: String, size: Dp = 24.dp) {
     val ctx = LocalContext.current
-    val green = Color(0xFF1F8A70)
-    Box(
-        Modifier.size(maxOf(size, 48.dp)).clip(CircleShape).background(green.copy(alpha = 0.14f))
-            .border(1.dp, green.copy(alpha = 0.25f), CircleShape)
-            .clickable { openWhatsApp(ctx, number) },
-        Alignment.Center
-    ) {
-        Icon(Icons.Rounded.Chat, contentDescription = "WhatsApp", tint = readable(green), modifier = Modifier.size(size * 0.46f))
+    IconButton(onClick = { openWhatsApp(ctx, number) }, modifier = Modifier.size(48.dp)) {
+        Icon(Icons.Rounded.Chat, T("Follow up on WhatsApp", "متابعة عبر واتساب"),
+            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(size.coerceAtMost(24.dp)))
     }
 }
 
@@ -660,24 +635,6 @@ fun LogoMark(dp: Dp, color: Color = Cream) {
 
 // ====================================================================== top bar
 @Composable
-private fun LivePill() {
-    val pct = Store.lists.find { it.id == Store.camp.listId }?.let { Store.prog(it).pct } ?: 0
-    Row(
-        Modifier.clip(RoundedCornerShape(50)).background(Sem.success.copy(alpha = 0.10f))
-            .border(1.dp, Sem.success.copy(alpha = 0.18f), RoundedCornerShape(50))
-            .clickable { Store.tab = 1 }.heightIn(min = 32.dp).padding(horizontal = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        PulseDot(Sem.success, 7.dp)
-        Spacer(Modifier.width(7.dp))
-        Text(
-            "${T("Live", "مباشر")} $pct%", color = readable(Sem.success),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
-        )
-    }
-}
-
-@Composable
 fun BlendBar(
     title: String, onBack: (() -> Unit)? = null, showSettings: Boolean = false,
     subtitle: String? = null, actions: @Composable RowScope.() -> Unit = {}
@@ -693,7 +650,7 @@ fun BlendBar(
             }
             Column(Modifier.weight(1f)) {
                 Text(
-                    title, style = MaterialTheme.typography.headlineLarge,
+                    title, style = MaterialTheme.typography.titleLarge,
                     maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
@@ -706,10 +663,6 @@ fun BlendBar(
                 }
             }
             Spacer(Modifier.width(Sp.s))
-            if (Store.campActive() && Store.tab != 1) {
-                LivePill()
-                Spacer(Modifier.width(Sp.s))
-            }
             actions()
             if (showSettings) {
                 SoftIconButton(Icons.Rounded.Settings, T("Settings", "الإعدادات"), { Store.openSettings() })

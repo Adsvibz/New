@@ -39,24 +39,14 @@ fun V7DetailHeader(list: CallList, progress: Prog) {
                         fontWeight = FontWeight.Bold, color = cs.onSurface)
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                V7MiniMetric("${progress.total}", T("Contacts", "جهة اتصال"), Modifier.weight(1f))
-                V7MiniMetric("${progress.called}", T("Called", "تم الاتصال"), Modifier.weight(1f))
-                V7MiniMetric("${progress.remaining}", T("Remaining", "متبقي"), Modifier.weight(1f))
-            }
+            MetricGrid(listOf(UiMetric("${progress.total}", T("Contacts", "جهة اتصال")),
+                UiMetric("${progress.called}", T("Called", "تم الاتصال")),
+                UiMetric("${progress.remaining}", T("Remaining", "متبقي"))))
             LinearProgressIndicator(
                 progress = { progress.pct / 100f },
                 modifier = Modifier.fillMaxWidth().height(7.dp),
                 color = cs.primary, trackColor = cs.surfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun V7MiniMetric(value: String, label: String, modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
     }
 }

@@ -88,12 +88,16 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
-private val AppFont = FontFamily(
-    Font(R.font.tajawal_regular, FontWeight.Normal),
-    Font(R.font.tajawal_medium, FontWeight.Medium),
-    Font(R.font.tajawal_bold, FontWeight.Bold)
+private val LatinFont = FontFamily(
+    Font(R.font.outfit_regular, FontWeight.Normal),
+    Font(R.font.outfit_medium, FontWeight.Medium),
+    Font(R.font.outfit_bold, FontWeight.Bold)
 )
-
+private val ArabicFont = FontFamily(
+    Font(R.font.plex_arabic_regular, FontWeight.Normal),
+    Font(R.font.plex_arabic_medium, FontWeight.Medium),
+    Font(R.font.plex_arabic_bold, FontWeight.Bold)
+)
 
 private val LightC = lightColorScheme(
     primary = Brand, onPrimary = Color.White,
@@ -144,22 +148,30 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
     val k = if (arabic) 1.16f else 1f
     fun tr(v: Float): TextUnit = if (arabic) 0.sp else v.sp
     fun display(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
+        platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+        lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
+            alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center,
+            trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.None),
         fontFamily = ff,
         fontWeight = w,
         fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track),
         fontFeatureSettings = "lnum"
     )
     fun text(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
+        platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+        lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
+            alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center,
+            trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.None),
         fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
     )
-    val b = FontWeight.Medium
-    val n = FontWeight.Normal
+    val b = FontWeight.Bold
+    val n = FontWeight.Medium
     return Typography(
-        displayLarge = display(n, 58, 60, -1.4f),
-        displayMedium = display(n, 46, 48, -1.1f),
-        displaySmall = display(n, 36, 40, -0.8f),
-        headlineLarge = display(n, 33, 37, -0.6f),
-        headlineMedium = display(n, 27, 31, -0.4f),
+        displayLarge = display(b, 58, 60, -1.4f),
+        displayMedium = display(b, 46, 48, -1.1f),
+        displaySmall = display(b, 36, 40, -0.8f),
+        headlineLarge = display(b, 33, 37, -0.6f),
+        headlineMedium = display(b, 27, 31, -0.4f),
         headlineSmall = text(FontWeight.Bold, 22, 28),
         titleLarge = text(FontWeight.Bold, 20, 28),
         titleMedium = text(b, 16, 24),
@@ -184,9 +196,9 @@ fun AppTheme(content: @Composable () -> Unit) {
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
     } else if (dark) NocturneDark else LightC
-    // Bundled Tajawal keeps Arabic, Latin and mixed-script content visually consistent offline.
+    // Balanced font metrics and real medium/bold weights keep text aligned with controls.
     val arabic = c.lang == 1
-    val ty = remember(c.lang) { typo(AppFont, arabic) }
+    val ty = remember(c.lang) { typo(if (arabic) ArabicFont else LatinFont, arabic) }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

@@ -32,11 +32,9 @@ fun V7ResultsHeader(progress: Prog) {
             border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
             Column(Modifier.fillMaxWidth().padding(18.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    V7ResultMetric("${progress.called}", T("Calls made", "مكالمات"), Modifier.weight(1f))
-                    V7ResultMetric("${progress.answered}", T("Answered", "تم الرد"), Modifier.weight(1f))
-                    V7ResultMetric("$rate%", T("Answer rate", "نسبة الرد"), Modifier.weight(1f))
-                }
+                MetricGrid(listOf(UiMetric("${progress.called}", T("Calls made", "مكالمات")),
+                    UiMetric("${progress.answered}", T("Answered", "تم الرد")),
+                    UiMetric("$rate%", T("Answer rate", "نسبة الرد"))))
                 LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().height(7.dp),
                     color = cs.primary, trackColor = cs.surfaceVariant)
@@ -44,14 +42,5 @@ fun V7ResultsHeader(progress: Prog) {
                     color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
         }
-    }
-}
-@Composable
-private fun V7ResultMetric(value: String, label: String, modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(value, style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-        Text(label, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
