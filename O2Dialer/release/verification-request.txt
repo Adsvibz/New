@@ -1,1 +1,1 @@
-V7 consolidated feedback with queue continuity verified, candidate 12.
+V8 major layout and navigation refresh: verify latest code, unit tests, lint, signed release, and publish in-app update for device feedback. Candidate 13.
