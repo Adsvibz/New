@@ -22,7 +22,7 @@ fun V7HistoryHeader(total: Int, answered: Int, missed: Int) {
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(T("Summary", "الملخص"),
