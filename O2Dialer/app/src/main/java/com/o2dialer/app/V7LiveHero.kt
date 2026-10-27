@@ -56,7 +56,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                 }
                 Spacer(Modifier.width(11.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(T("LIVE SESSION", "الجلسة المباشرة"), color = cs.onSurfaceVariant,
+                    Text(T("CAMPAIGN", "الحملة"), color = cs.onSurfaceVariant,
                         fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Text(list.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
@@ -64,8 +64,8 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
 
             }
             Pill(label, emphasis)
-            if (state.message.isNotBlank() && state.message !in setOf("Paused", "متوقفة مؤقتًا"))
-                Text(state.message, Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            if (state.message.isNotBlank() && state.message !in setOf("Paused", "متوقفة مؤقتًا") && state.message != label)
+                Text(state.message, Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Start,
                     color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
@@ -86,7 +86,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                         style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                     Text("${progress.pct}%", fontWeight = FontWeight.Bold, color = cs.primary)
                 }
-                BProgress(progress = progress.pct / 100f,
+                BProgress(progress = (progress.pct / 100f).coerceIn(0f, 1f),
                     modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
                     color = cs.primary, track = cs.surfaceVariant)
                 Row(verticalAlignment = Alignment.CenterVertically) {
