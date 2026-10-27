@@ -155,20 +155,20 @@ private fun AppNavBar() {
     val outlined = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call, Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 5.dp), contentAlignment = Alignment.Center) {
         Surface(modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
-            shape = RoundedCornerShape(17.dp), color = cs.surface, tonalElevation = 0.dp, shadowElevation = 0.dp,
+            shape = RoundedCornerShape(20.dp), color = cs.surface, tonalElevation = 0.dp, shadowElevation = 3.dp,
             border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
             Row(Modifier.padding(4.dp).height(IntrinsicSize.Min).selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 labels.forEachIndexed { index, label ->
                     val selected = Store.tab == index
                     val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    val background by animateColorAsState(if (selected) cs.primaryContainer else Color.Transparent,
+                    val background by animateColorAsState(if (selected) cs.onSurface else Color.Transparent,
                         tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "navigationSelection")
-                    val tint by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant,
+                    val tint by animateColorAsState(if (selected) cs.surface else cs.onSurfaceVariant,
                         tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "navigationTint")
                     Column(
-                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 54.dp).pressScale(source)
-                            .clip(RoundedCornerShape(12.dp)).background(background)
+                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 56.dp).pressScale(source)
+                            .clip(RoundedCornerShape(15.dp)).background(background)
                             .selectable(selected = selected, role = Role.Tab, interactionSource = source, indication = null) {
                                 if (index == 4) Store.openSettings() else {
                                     if (index == 0) Store.selectedListId = null
