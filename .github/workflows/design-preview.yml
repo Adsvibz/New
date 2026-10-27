@@ -1,0 +1,39 @@
+name: O2Dialer Design Preview
+on:
+  workflow_dispatch:
+  push:
+    branches: [design/o2dialer-v7-rebuild]
+    paths:
+      - 'preview/**'
+      - '.github/workflows/design-preview.yml'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: precision-design-preview
+  cancel-in-progress: true
+jobs:
+  deploy:
+    name: Publish interactive preview
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout current redesign branch
+        uses: actions/checkout@v4
+      - name: Prepare preview with revision indicator
+        run: |
+          mkdir -p _site
+          cp preview/index.html _site/index.html
+          printf '{"sha":"%s"}\n' "$GITHUB_SHA" > _site/revision.json
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload preview files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
