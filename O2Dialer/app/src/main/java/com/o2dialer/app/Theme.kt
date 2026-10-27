@@ -55,7 +55,7 @@ object Rd {
 object Sem {
     val success = Color(0xFF0D966A)
     val warning = Color(0xFFD48B1E)
-    val danger = Color(0xFFD94E54)
+    val danger = Color(0xFFB42318)
     val info = Color(0xFF2457E7)
 }
 
@@ -106,7 +106,7 @@ private val LightC = lightColorScheme(
     surface = Color.White, onSurface = Color(0xFF101828),
     surfaceVariant = Color(0xFFF1F4F9), onSurfaceVariant = Color(0xFF65728A),
     outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFEDF1F6),
-    error = Color(0xFFD94E54), onError = Color.White,
+    error = Color(0xFFB42318), onError = Color.White,
     errorContainer = Color(0xFFFFE8E8), onErrorContainer = Color(0xFF8F262D),
     inverseSurface = Color(0xFF15203A), inverseOnSurface = Color.White,
     surfaceTint = Color.Transparent
@@ -120,10 +120,10 @@ val NocturneDark = darkColorScheme(
     secondaryContainer = Color(0xFF283954), onSecondaryContainer = Color(0xFFDCE7FF),
     tertiary = Color(0xFF66D8B0), onTertiary = Color(0xFF073D2C),
     tertiaryContainer = Color(0xFF164C3D), onTertiaryContainer = Color(0xFFD7F8EA),
-    background = Color(0xFF0B1220), onBackground = Color(0xFFF6F8FE),
-    surface = Color(0xFF141E2F), onSurface = Color(0xFFF6F8FE),
-    surfaceVariant = Color(0xFF202C40), onSurfaceVariant = Color(0xFFABB9CD),
-    outline = Color(0xFF35455D), outlineVariant = Color(0xFF29374B),
+    background = Color(0xFF101216), onBackground = Color(0xFFF6F8FE),
+    surface = Color(0xFF191C22), onSurface = Color(0xFFF6F8FE),
+    surfaceVariant = Color(0xFF252930), onSurfaceVariant = Color(0xFFB3BAC6),
+    outline = Color(0xFF41464F), outlineVariant = Color(0xFF2D323A),
     error = Color(0xFFFF9FA6), onError = Color(0xFF5C1620),
     errorContainer = Color(0xFF6A2832), onErrorContainer = Color(0xFFFFDADD),
     inverseSurface = Color(0xFFE7EDFA), inverseOnSurface = Color(0xFF17213A),
@@ -207,20 +207,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         )
     ) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            // A nearly invisible brand wash gives large surfaces depth without decoration.
-            val top = scheme.primary.copy(alpha = if (dark) 0.025f else 0.012f)
-            val bottom = scheme.secondary.copy(alpha = if (dark) 0.025f else 0.012f)
-            Box(
-                Modifier.fillMaxSize().drawBehind {
-                    drawRect(
-                        Brush.linearGradient(
-                            listOf(top, Color.Transparent, bottom),
-                            start = Offset(size.width * 0.1f, -size.height * 0.05f),
-                            end = Offset(size.width * 0.9f, size.height * 1.05f)
-                        )
-                    )
-                }
-            ) { content() }
+            content()
         }
     }
 }

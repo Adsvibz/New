@@ -12,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,27 +49,23 @@ fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
     val ctx = LocalContext.current
     val labels = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
     val names = listOf(T("Default SIM", "الشريحة الافتراضية")) + labels
-    Column(verticalArrangement = Arrangement.spacedBy(Sp.s)) {
+    val cs = MaterialTheme.colorScheme
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        .background(cs.surfaceVariant.copy(alpha = 0.35f)).selectableGroup()) {
         names.forEachIndexed { i, label ->
             val on = selected == i - 1
-            val cs = MaterialTheme.colorScheme
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(Rd.m))
-                    .background(if (on) cs.primary.copy(alpha = 0.07f) else cs.surfaceVariant)
-                    .border(1.dp, if (on) cs.primary.copy(alpha = 0.45f) else cs.outline, RoundedCornerShape(Rd.m))
-                    .clickable { onSelect(i - 1) }.heightIn(min = 52.dp)
-                    .padding(horizontal = Sp.l),
+                Modifier.fillMaxWidth().selectable(selected = on,
+                    role = androidx.compose.ui.semantics.Role.RadioButton, onClick = { onSelect(i - 1) })
+                    .heightIn(min = 52.dp).padding(horizontal = 12.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Rounded.SimCard, null, tint = if (on) cs.primary else cs.onSurfaceVariant, modifier = Modifier.size(19.dp))
-                Spacer(Modifier.width(Sp.m))
-                Text(
-                    label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                if (on) Icon(Icons.Rounded.CheckCircle, null, tint = cs.primary, modifier = Modifier.size(19.dp))
+                RadioButton(selected = on, onClick = null)
+                Spacer(Modifier.width(12.dp))
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = cs.onSurface,
+                    fontWeight = if (on) FontWeight.Medium else FontWeight.Normal)
             }
+            if (i < names.lastIndex) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = cs.outlineVariant)
         }
     }
 }
@@ -79,17 +77,17 @@ fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, I
     var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
     BSheet(
         title = if (initial == null) T("New campaign", "حملة جديدة") else T("Campaign settings", "إعدادات الحملة"),
-        subtitle = T("Give it a name and choose which SIM places the calls.", "اختر اسمًا وشريحة الاتصال."),
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        actions = {
+            BButton(if (initial == null) T("Create campaign", "إنشاء الحملة") else T("Save changes", "حفظ التعديلات"),
+                { onSave(name.trim(), sim) }, Modifier.fillMaxWidth(), enabled = name.isNotBlank())
+        }
     ) {
         BTextField(name, { name = it }, label = T("Campaign name", "اسم الحملة"),
-            placeholder = T("e.g. New property enquiries", "مثال: استفسارات العملاء الجديدة"))
+            placeholder = T("e.g. New enquiries", "مثال: عملاء جدد"))
         Spacer(Modifier.height(2.dp))
         SectionLabel(T("SIM card", "الشريحة"))
         SimPicker(sim) { sim = it }
-        Spacer(Modifier.height(4.dp))
-        BButton(T("Save campaign", "حفظ الحملة"), { onSave(name.trim(), sim) }, Modifier.fillMaxWidth(),
-            enabled = name.isNotBlank())
     }
 }
 
@@ -100,14 +98,14 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
     BSheet(
         title = if (initial == null) T("Add number", "إضافة رقم") else T("Edit contact", "تعديل جهة الاتصال"),
         subtitle = T("Country code is added automatically.", "كود الدولة يضاف تلقائيًا."),
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        actions = {
+            BButton(T("Save", "حفظ"), { onSave(n, p) }, Modifier.fillMaxWidth(), enabled = cleanNumber(p).length >= 3)
+        }
     ) {
         BTextField(n, { n = it }, label = T("Name (optional)", "الاسم (اختياري)"), leading = Icons.Rounded.Person)
         BTextField(p, { p = it }, label = T("Phone number", "رقم الموبايل"), leading = Icons.Rounded.Phone,
             keyboardType = KeyboardType.Phone)
-        Spacer(Modifier.height(4.dp))
-        BButton(T("Save", "حفظ"), { onSave(n, p) }, Modifier.fillMaxWidth(),
-            enabled = cleanNumber(p).length >= 3)
     }
 }
 
@@ -115,18 +113,18 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
 fun BulkDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     var t by rememberSaveable { mutableStateOf("") }
     BSheet(title = T("Paste numbers", "لصق أرقام"), onDismiss = onDismiss,
-        subtitle = T("Paste numbers line by line. Names are optional.", "الصق الأرقام سطرًا بسطر، والأسماء اختيارية.")) {
+        subtitle = T("One number per line. Names are optional.", "رقم في كل سطر. الأسماء اختيارية."),
+        actions = { BButton(T("Add to campaign", "إضافة للحملة"), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank()) }) {
         BTextField(
             t, { t = it }, singleLine = false, minLines = 5,
             placeholder = T("Maya Nelson, +201001234567\n+201119876543", "مي نبيل, +201001234567\n+201119876543")
         )
-        BButton(T("Add to campaign", "إضافة للحملة"), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank())
     }
 }
 
 @Composable
 fun ConfirmDialog(text: String, onDismiss: () -> Unit, destructive: Boolean = true, onOk: () -> Unit) {
-    BDialog(title = null, onDismiss = onDismiss, confirmText = T("Confirm", "تأكيد"), onConfirm = onOk, destructive = destructive) {
+    BDialog(title = T("Confirm action", "تأكيد الإجراء"), onDismiss = onDismiss, confirmText = T("Confirm", "تأكيد"), onConfirm = onOk, destructive = destructive) {
         Text(text, style = MaterialTheme.typography.bodyLarge)
     }
 }
@@ -145,7 +143,11 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
         title = T("Contacts", "جهات الاتصال") + if (sel.isNotEmpty()) " · ${sel.size}" else "",
         onDismiss = onDismiss,
         subtitle = T("Pick the people to call.", "اختر الأشخاص المطلوب الاتصال بهم."),
-        scrollable = false
+        scrollable = false,
+        actions = {
+            BButton(if (sel.isEmpty()) T("Add contacts", "إضافة جهات الاتصال") else T("Add ${sel.size} contacts", "إضافة ${sel.size}"),
+                { onAdd((all ?: emptyList()).filter { it.second in sel }) }, Modifier.fillMaxWidth(), enabled = sel.isNotEmpty())
+        }
     ) {
         BTextField(q, { q = it }, placeholder = T("Search", "بحث"), leading = Icons.Rounded.Search)
         if (all == null) {
@@ -179,11 +181,6 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
                 }
             }
         }
-        BButton(
-            if (sel.isEmpty()) T("Add contacts", "إضافة جهات الاتصال") else T("Add ${sel.size} contacts", "إضافة ${sel.size}"),
-            { onAdd((all ?: emptyList()).filter { it.second in sel }) },
-            Modifier.fillMaxWidth(), enabled = sel.isNotEmpty()
-        )
     }
 }
 
@@ -210,15 +207,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
     val shape = RoundedCornerShape(Rd.m)
     Row(
         modifier.clip(shape)
-            .background(
-                if (selected) Brush.linearGradient(listOf(c.copy(alpha = 0.20f), c.copy(alpha = 0.10f)))
-                else Brush.linearGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)
-                    )
-                )
-            )
+            .background(if (selected) c.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
             .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.75f else 0.14f), shape)
             .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m),
         verticalAlignment = Alignment.CenterVertically
@@ -251,7 +240,15 @@ fun StageSheet(listId: String, entryId: String) {
     BSheet(
         title = T("How did the call go?", "إزاي كانت المكالمة؟"),
         onDismiss = close,
-        subtitle = T("Tag the outcome so follow-ups stay organised.", "صنّف النتيجة لتبقى المتابعات منظمة.")
+        actions = {
+            if (Stg.needsFeedback(selected)) BButton(T("Save feedback", "حفظ الملاحظات"), {
+                Store.setStage(listId, entryId, selected, fb.trim())
+                release()
+                Store.stageTarget = null
+                Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
+            }, Modifier.fillMaxWidth())
+            else BButton(T("Skip", "تخطي"), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
+        }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Avatar(entry.name.ifBlank { entry.number })
@@ -294,14 +291,6 @@ fun StageSheet(listId: String, entryId: String) {
                 fb, { fb = it }, singleLine = false, minLines = 3, label = T("Feedback", "ملاحظات"),
                 placeholder = T("What did they say?", "قال إيه العميل؟")
             )
-            BButton(T("Save feedback", "حفظ الملاحظات"), {
-                Store.setStage(listId, entryId, selected, fb.trim())
-                release()
-                Store.stageTarget = null
-                Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
-            }, Modifier.fillMaxWidth())
-        } else {
-            BButton(T("Skip", "تخطي"), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
         }
     }
 }

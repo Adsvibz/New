@@ -63,7 +63,8 @@ fun ActivationDialog(act: MainActivity) {
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        BTextField(code, { code = it.uppercase() }, label = T("Activation code", "كود التفعيل"), placeholder = "O2D-XXXX-XXXX-XXXX")
+        BTextField(code, { code = it.uppercase(); error = "" }, label = T("Activation code", "كود التفعيل"),
+            placeholder = "O2D-XXXX-XXXX-XXXX", isError = error.isNotEmpty())
         if (error.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.Error, null, tint = readable(Sem.danger), modifier = Modifier.size(15.dp))
             Spacer(Modifier.width(6.dp))

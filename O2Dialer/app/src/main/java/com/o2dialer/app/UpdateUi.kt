@@ -43,9 +43,12 @@ fun UpdateHost(activity: Activity) {
     val permissionTick = Store.permTick
     val mayInstall = androidx.compose.runtime.remember(permissionTick) { activity.packageManager.canRequestPackageInstalls() }
     AlertDialog(
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
         onDismissRequest = { AppUpdates.dismiss(activity) },
         icon = { Icon(Icons.Rounded.SystemUpdate, null) },
-        title = { Text(T("Update available", "تحديث جديد")) },
+        title = { Text(T("Update available", "تحديث جديد"), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("${update.versionName} (${update.versionCode})")

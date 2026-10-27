@@ -123,11 +123,8 @@ fun V7CampaignWorkspace(
                         style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                     Text("${lists.size}", color = cs.onSurfaceVariant)
                 }
-                OutlinedTextField(value = search, onValueChange = { search = it },
-                    modifier = Modifier.fillMaxWidth(), singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    placeholder = { Text(T("Search your campaigns", "ابحث في حملاتك")) },
-                    leadingIcon = { Icon(Icons.Rounded.Search, null) })
+                BTextField(value = search, onChange = { search = it },
+                    placeholder = T("Search campaigns", "بحث عن حملة"), leading = Icons.Rounded.Search)
             }
         }
         if (shown.isEmpty()) {

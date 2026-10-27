@@ -40,9 +40,9 @@ private fun SettingsFooter() {
     ) {
         Box(
             Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
-                .background(Brush.linearGradient(listOf(cs.primary, cs.secondary))),
+                .background(cs.surfaceVariant),
             Alignment.Center
-        ) { LogoMark(25.dp, color = cs.onPrimary) }
+        ) { LogoMark(25.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
             T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
