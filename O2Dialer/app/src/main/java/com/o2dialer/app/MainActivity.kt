@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-open class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     private var afterPerms: (() -> Unit)? = null
     private var afterContacts: (() -> Unit)? = null

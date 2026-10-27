@@ -1,1 +1,0 @@
-O2Dialer 7.0 final visual QA, pass 2.
