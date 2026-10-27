@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
 
     private var afterPerms: (() -> Unit)? = null
     private var afterContacts: (() -> Unit)? = null
@@ -157,44 +157,46 @@ private fun AppNavBar() {
     Surface(
         color = cs.surface,
         tonalElevation = 0.dp,
-        shadowElevation = 2.dp,
+        shadowElevation = 8.dp,
         modifier = Modifier.fillMaxWidth().navigationBarsPadding()
     ) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 76.dp).padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            slots.forEach { (label, icon, destination) ->
-                val active = Store.tab == destination
-                val tint by animateColorAsState(if (active) cs.primary else cs.onSurfaceVariant, animationSpec = tween(220, easing = Motion.easeOut), label = "navTint")
-                val indicator by animateColorAsState(if (active) cs.primaryContainer else Color.Transparent, animationSpec = tween(250, easing = Motion.easeOut), label = "navIndicator")
-                val iconScale by animateFloatAsState(if (active) 1.12f else 1f, animationSpec = Motion.gentle(), label = "navIconScale")
-                Column(
-                    Modifier.weight(1f).heightIn(min = 64.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .selectable(selected = active, role = Role.Tab, onClick = {
-                            if (destination == 4) Store.openSettings()
-                            else {
-                                if (destination == 0) Store.selectedListId = null
-                                Store.tab = destination
-                            }
-                        })
-                        .padding(vertical = 7.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        Modifier.size(width = 46.dp, height = 30.dp)
-                            .clip(RoundedCornerShape(11.dp))
-                            .background(indicator),
-                        contentAlignment = Alignment.Center
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Row(
+                Modifier.fillMaxWidth().widthIn(max = 620.dp).heightIn(min = 76.dp).padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                slots.forEach { (label, icon, destination) ->
+                    val active = Store.tab == destination
+                    val tint by animateColorAsState(if (active) cs.primary else cs.onSurfaceVariant, animationSpec = tween(220, easing = Motion.easeOut), label = "navTint")
+                    val indicator by animateColorAsState(if (active) cs.primaryContainer else Color.Transparent, animationSpec = tween(250, easing = Motion.easeOut), label = "navIndicator")
+                    val iconScale by animateFloatAsState(if (active) 1.10f else 1f, animationSpec = Motion.gentle(), label = "navIconScale")
+                    Column(
+                        Modifier.weight(1f).heightIn(min = 64.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .selectable(selected = active, role = Role.Tab, onClick = {
+                                if (destination == 4) Store.openSettings()
+                                else {
+                                    if (destination == 0) Store.selectedListId = null
+                                    Store.tab = destination
+                                }
+                            })
+                            .padding(vertical = 7.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(icon, null, tint = tint, modifier = Modifier.size(19.dp).graphicsLayer { scaleX = iconScale; scaleY = iconScale })
+                        Box(
+                            Modifier.size(width = 44.dp, height = 29.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(indicator),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(icon, label, tint = tint, modifier = Modifier.size(19.dp).graphicsLayer { scaleX = iconScale; scaleY = iconScale })
+                        }
+                        Spacer(Modifier.height(3.dp))
+                        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                            color = tint, maxLines = 1, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
-                    Spacer(Modifier.height(3.dp))
-                    Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = tint, maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         }

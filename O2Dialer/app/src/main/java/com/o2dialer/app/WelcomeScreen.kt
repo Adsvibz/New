@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 
 /** First-run guide uses real product capabilities, with no sample dashboard statistics. */
 @Composable
-fun WelcomeScreen() {
-    var page by rememberSaveable { mutableIntStateOf(0) }
+fun WelcomeScreen(initialPage: Int = 0) {
+    var page by rememberSaveable { mutableIntStateOf(initialPage.coerceIn(0, 2)) }
     val cs = MaterialTheme.colorScheme
     val titles = listOf(T("Your next conversation starts here", "مكالمتك الجاية تبدأ هنا"),
         T("A pace that works for you", "تحكّم في إيقاع مكالماتك"), T("Keep every follow-up in sight", "كل متابعة في مكانها"))

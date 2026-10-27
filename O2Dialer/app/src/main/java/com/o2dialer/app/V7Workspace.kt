@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,13 +60,12 @@ fun V7CampaignWorkspace(
                         color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 }
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(16.dp)) {
-                    Icon(Icons.Rounded.AutoAwesome, null, tint = cs.primary,
-                        modifier = Modifier.padding(14.dp).size(23.dp))
+                    Box(Modifier.padding(13.dp)) { LogoMark(25.dp, cs.primary) }
                 }
             }
         }
         item {
-            Surface(shape = RoundedCornerShape(24.dp), color = Color(0xFF182D5B)) {
+            Surface(shape = RoundedCornerShape(24.dp), color = inkSurface()) {
                 Column(Modifier.fillMaxWidth().padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(T("CALLING OVERVIEW", "نظرة عامة"), color = Color(0xFFACC5F8),
@@ -161,7 +161,7 @@ fun V7CampaignWorkspace(
 private fun RowScope.V7HeroMetric(value: String, caption: String) {
     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(caption, color = Color(0xFFB9CBEA), fontSize = 11.sp)
+        Text(caption, color = Color(0xFFB9CBEA), fontSize = 11.sp, maxLines = 2)
     }
 }
 
@@ -227,7 +227,7 @@ private fun V7CampaignRow(
                     modifier = Modifier.weight(1f))
                 Text("${p.pct}%", color = cs.primary, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(5.dp))
-                Icon(Icons.Rounded.ArrowForward, null, tint = cs.primary, modifier = Modifier.size(17.dp))
+                Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, tint = cs.primary, modifier = Modifier.size(17.dp))
             }
         }
     }

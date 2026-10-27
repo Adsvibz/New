@@ -59,7 +59,7 @@ object Sem {
     val info = Color(0xFF2457E7)
 }
 
-/** Warm brass, used only for highlights and editorial detail. */
+/** Supporting blue accent used sparingly for progress and emphasis. */
 val Brass = Color(0xFF5C7DFF)
 val Cream = Color(0xFFF7F9FC)
 val Sage = Color(0xFF7CA7E8)
@@ -211,7 +211,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         )
     ) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            // A quiet wash: warm paper at the top, a breath of green at the bottom.
+            // A nearly invisible brand wash gives large surfaces depth without decoration.
             val top = scheme.primary.copy(alpha = if (dark) 0.025f else 0.012f)
             val bottom = scheme.secondary.copy(alpha = if (dark) 0.025f else 0.012f)
             Box(
