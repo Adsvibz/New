@@ -45,19 +45,14 @@ fun V7CampaignWorkspace(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(T("YOUR WORKSPACE", "مساحة العمل"), style = MaterialTheme.typography.labelSmall,
-                        color = cs.primary, letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(5.dp))
-                    Text(T("Make every call count.", "كل مكالمة بتفرق."),
+                    Text(T("Campaigns", "الحملات"),
                         style = MaterialTheme.typography.headlineMedium, color = cs.onBackground)
-                    Text(T("A clearer way to manage outreach.", "إدارة حملات الاتصال بسهولة ووضوح."),
-                        color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 }
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(16.dp)) {
                     Box(Modifier.padding(13.dp)) { LogoMark(25.dp, cs.primary) }
@@ -93,7 +88,7 @@ fun V7CampaignWorkspace(
             }
         }
         item {
-            BButton(T("Create a campaign", "إنشاء حملة جديدة"), onCreate, Modifier.fillMaxWidth(), icon = Icons.Rounded.Add)
+            BButton(T("New campaign", "حملة جديدة"), onCreate, Modifier.fillMaxWidth(), icon = Icons.Rounded.Add)
         }
         if (Store.campActive()) {
             item {
@@ -146,8 +141,8 @@ fun V7CampaignWorkspace(
                             else T("No matching campaigns", "لا توجد حملات مطابقة"),
                             fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(5.dp))
-                        Text(T("Keep contacts and progress organized in one place.",
-                            "نظّم جهات الاتصال والتقدم في مكان واحد."),
+                        Text(if (lists.isEmpty()) T("Create a campaign to add contacts.", "أنشئ حملة لإضافة جهات اتصال.")
+                            else T("Try a different name.", "جرّب اسم تاني."),
                             color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }
                 }

@@ -268,9 +268,7 @@ private fun ReadyHero(selected: CallList?, p: Prog?) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
             IconTile(Icons.Rounded.Call, size = 48.dp)
-            Text(T("Ready for your next conversation", "جاهز لمكالمتك الجاية"), style = MaterialTheme.typography.headlineMedium)
-            Text(T("Choose a campaign, review your settings and start when ready.", "اختار الحملة، راجع الإعدادات وابدأ وقت ما تكون جاهز."),
-                color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            Text(T("Ready to call", "جاهز للاتصال"), style = MaterialTheme.typography.headlineMedium)
             if (selected != null && p != null) Text(
                 T("${p.total} contacts · ${p.remaining} remaining", "${p.total} جهة اتصال · ${p.remaining} متبقي"),
                 style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
@@ -399,15 +397,8 @@ fun LiveScreen(act: MainActivity) {
     val heroList = Store.lists.find { it.id == c.listId }
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
 
-    val subtitle = when {
-        c.status == CS.PAUSED -> T("Paused — your queue is waiting", "متوقفة مؤقتًا — الطابور في الانتظار")
-        active -> T("Running automatically, one call at a time", "تعمل تلقائيًا، مكالمة واحدة في كل مرة")
-        c.status == CS.FINISHED && heroList != null -> T("Campaign finished", "انتهت الحملة")
-        else -> T("Pick a campaign and let it run", "اختر حملة واتركها تعمل")
-    }
-
     Scaffold(
-        topBar = { BlendBar(T("Live dialer", "التشغيل المباشر"), subtitle = subtitle) },
+        topBar = { BlendBar(T("Dialer", "الاتصال")) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(

@@ -32,7 +32,7 @@ fun V7DetailHeader(list: CallList, progress: Prog) {
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(T("CONTACT WORKSPACE", "مساحة جهات الاتصال"),
+                    Text(T("Contacts", "جهات الاتصال"),
                         style = MaterialTheme.typography.labelSmall,
                         color = cs.primary, fontWeight = FontWeight.Bold)
                     Text(list.name, style = MaterialTheme.typography.titleLarge,

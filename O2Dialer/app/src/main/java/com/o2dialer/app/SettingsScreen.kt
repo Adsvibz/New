@@ -57,34 +57,6 @@ private fun SettingsFooter() {
 }
 
 @Composable
-private fun SettingsHero() {
-    val c = Store.cfg
-    val cs = MaterialTheme.colorScheme
-    Surface(
-        shape = RoundedCornerShape(20.dp), color = cs.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
-    ) {
-        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(52.dp).clip(RoundedCornerShape(15.dp)).background(cs.primaryContainer),
-                Alignment.Center
-            ) { LogoMark(31.dp, color = cs.primary) }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(APP_NAME, style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold)
-                Text(T("Version $APP_VERSION", "الإصدار $APP_VERSION"),
-                    style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
-                Text(if (c.lang == 1) "العربية" else "English",
-                    style = MaterialTheme.typography.labelMedium, color = cs.primary)
-            }
-        }
-    }
-}
-
-private fun lerpAccent(a: Color, b: Color) = androidx.compose.ui.graphics.lerp(a, b, 0.32f)
-
-@Composable
 fun SettingsScreen() {
     val c = Store.cfg
     val ctx = LocalContext.current
@@ -99,8 +71,6 @@ fun SettingsScreen() {
                 .padding(horizontal = Sp.xl, vertical = Sp.s),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
-            V7SettingsHeader()
-            Enter(0) { SettingsHero() }
 
             SettingsSection(Icons.Rounded.Language, T("General", "عام"), startOpen = true) {
                 SectionLabel(T("Language", "اللغة"))
@@ -114,9 +84,6 @@ fun SettingsScreen() {
                     T("Material You · Android 12 and above", "Material You · أندرويد 12 فما فوق"),
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
-                Hint(
-                    T("Off keeps the signature O2 blue and neutral palette everywhere.", "إيقافه يحافظ على هوية O2 الزرقاء والهادئة في كل الشاشات.")
-                )
             }
 
             SettingsSection(Icons.Rounded.Timer, T("Timing", "التوقيت")) {

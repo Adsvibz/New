@@ -222,7 +222,7 @@ fun ResultsScreen() {
                 contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = Sp.l),
                 verticalArrangement = Arrangement.spacedBy(Sp.m)
             ) {
-                item { V7ResultsHeader(p, list.name) }
+                item { V7ResultsHeader(p) }
                 if (p.unverified > 0) item {
                     Banner(Tk.INFO, T("${p.unverified} unverified calls", "${p.unverified} مكالمة غير مؤكدة"),
                         T("These calls ended without a matching call-log result. They are not counted as answered.",

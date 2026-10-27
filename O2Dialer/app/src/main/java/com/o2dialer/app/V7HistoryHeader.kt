@@ -25,11 +25,8 @@ fun V7HistoryHeader(total: Int, answered: Int, missed: Int) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(T("ACTIVITY SNAPSHOT", "ملخص النشاط"),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold, color = cs.primary)
-                    Text(T("Call history", "سجل المكالمات"),
-                        style = MaterialTheme.typography.titleLarge,
+                    Text(T("Summary", "الملخص"),
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold)
                 }
                 Icon(Icons.Rounded.History, null, tint = cs.primary)

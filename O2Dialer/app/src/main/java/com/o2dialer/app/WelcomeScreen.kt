@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.dp
 fun WelcomeScreen() {
     var page by rememberSaveable { mutableIntStateOf(0) }
     val cs = MaterialTheme.colorScheme
-    val titles = listOf(T("Your next conversation starts here", "مكالمتك الجاية تبدأ هنا"),
-        T("A pace that works for you", "تحكّم في إيقاع مكالماتك"), T("Keep every follow-up in sight", "كل متابعة في مكانها"))
+    val titles = listOf(T("Your campaigns", "حملاتك"),
+        T("Your pace", "وقتك بإيدك"), T("Your follow-ups", "متابعاتك"))
     val bodies = listOf(
-        T("Organize contacts into campaigns. Add a number, paste a list, or import a CSV or text file.", "نظّم جهات الاتصال في حملات. أضف رقم، الصق قائمة، أو استورد ملف CSV أو نصّي."),
-        T("Choose a SIM, set delays and retries, then pause or stop the queue whenever you need.", "اختار الشريحة والفاصل بين المكالمات وعدد المحاولات. تقدر توقف الحملة مؤقتًا أو تنهيها في أي وقت."),
+        T("Add contacts manually, paste numbers or import a file.", "أضف جهات اتصال، الصق أرقام أو استورد ملف."),
+        T("Set your SIM and call timing. Pause whenever you need.", "اختار الشريحة وتوقيت المكالمات. وقف مؤقتًا وقت ما تحتاج."),
         T("Record outcomes, save notes and follow up on WhatsApp. Campaigns and history stay on this device.", "صنّف النتائج، احفظ ملاحظاتك وتابع على واتساب. الحملات وسجل المكالمات بيتحفظوا على جهازك."))
     val icons = listOf(Icons.Rounded.Campaign, Icons.Rounded.Tune, Icons.Rounded.Insights)
     BackHandler(page > 0) { page-- }
