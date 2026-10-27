@@ -4,11 +4,11 @@ plugins {
 }
 android {
     namespace = "com.o2dialer.app"
-    compileSdk = 34
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.o2dialer.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         // Always rises with every GitHub run, so each build installs as an update over the previous one.
         versionCode = 100 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
         versionName = "7.0"

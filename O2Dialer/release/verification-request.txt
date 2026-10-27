@@ -1,1 +1,1 @@
-V7 cohesive implementation and release verification, candidate 2.
+V7 API 36 production release verification, candidate 3.

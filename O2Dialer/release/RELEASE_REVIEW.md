@@ -61,3 +61,5 @@ The existing signing keystore and its build configuration are committed in this 
 - APK signature verification passed with one RSA-2048 signer using APK Signature Scheme v2. Certificate SHA-256: `c484e4216d54bcf601fb00850c5673bd36b1c5451ad71158a94f5450f1cfae3b`.
 - The extracted APK archive passed an independent ZIP integrity check. Workflow metadata also verified that the APK is not debuggable.
 - Android runtime tooling was unavailable in the final execution environment. Consequently, no emulator result is claimed; all hardware-, telephony-, OEM-, upgrade- and accessibility-dependent checks above remain required on physical devices.
+
+The first successful candidate above targeted API 34 and is retained as reproducible evidence, but it does not meet the Google Play target requirement in force from 2026-08-31. The build toolchain and application target were subsequently raised to API 36; the final candidate must repeat all automated checks before Play submission readiness is claimed.
