@@ -153,11 +153,11 @@ private fun AppNavBar() {
     val labels = listOf(T("Campaigns", "الحملات"), T("Live", "الاتصال"), T("Results", "النتائج"), T("History", "السجل"), T("Settings", "الإعدادات"))
     val filled = listOf(Icons.Rounded.Campaign, Icons.Rounded.Call, Icons.Rounded.BarChart, Icons.Rounded.History, Icons.Rounded.Settings)
     val outlined = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call, Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
-    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 5.dp), contentAlignment = Alignment.Center) {
         Surface(modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp), color = cs.surface, tonalElevation = 0.dp, shadowElevation = 6.dp,
+            shape = RoundedCornerShape(17.dp), color = cs.surface, tonalElevation = 0.dp, shadowElevation = 0.dp,
             border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
-            Row(Modifier.padding(6.dp).height(IntrinsicSize.Min).selectableGroup(),
+            Row(Modifier.padding(4.dp).height(IntrinsicSize.Min).selectableGroup(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 labels.forEachIndexed { index, label ->
                     val selected = Store.tab == index
@@ -167,18 +167,18 @@ private fun AppNavBar() {
                     val tint by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant,
                         tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "navigationTint")
                     Column(
-                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 64.dp).pressScale(source)
-                            .clip(RoundedCornerShape(18.dp)).background(background)
+                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 54.dp).pressScale(source)
+                            .clip(RoundedCornerShape(12.dp)).background(background)
                             .selectable(selected = selected, role = Role.Tab, interactionSource = source, indication = null) {
                                 if (index == 4) Store.openSettings() else {
                                     if (index == 0) Store.selectedListId = null
                                     Store.tab = index
                                 }
-                            }.padding(horizontal = 2.dp, vertical = 10.dp),
+                            }.padding(horizontal = 2.dp, vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
                     ) {
                         Icon(if (selected) filled[index] else outlined[index], null, tint = tint, modifier = Modifier.size(22.dp))
-                        Spacer(Modifier.height(5.dp))
+                        Spacer(Modifier.height(3.dp))
                         Text(label, color = tint, style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
