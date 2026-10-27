@@ -1,1 +1,1 @@
-V7 in-app verified update downloads and automatic release publishing, candidate 8.
+V7 in-app updates with dedicated Android installer file provider, candidate 9.
