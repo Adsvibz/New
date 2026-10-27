@@ -93,7 +93,7 @@ private fun CallControls(paused: Boolean) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BButton(if (paused) T("Resume calling", "استئناف الاتصال") else T("Pause calling", "إيقاف مؤقت"),
             { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-            Modifier.fillMaxWidth(), icon = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause)
+            Modifier.fillMaxWidth(), icon = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause, compact = true)
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val stacked = maxWidth < 280.dp || androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.4f
             val skip: @Composable (Modifier) -> Unit = { m ->
