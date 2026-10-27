@@ -58,24 +58,45 @@ import kotlinx.coroutines.delay
 @Composable
 private fun OutcomesPanel(p: Prog, remaining: Int) {
     val cs = MaterialTheme.colorScheme
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(T("Call outcomes", "نتائج المكالمات"),
-                style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-            Text(T("${p.called} calls", "${p.called} مكالمة"),
-                style = MaterialTheme.typography.labelMedium,
-                color = cs.onSurfaceVariant)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = cs.surface,
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 15.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(T("Results so far", "النتائج حتى الآن"),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = cs.onSurface,
+                    modifier = Modifier.weight(1f))
+                Text(T("${p.called} calls", "${p.called} مكالمة"),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = cs.onSurfaceVariant)
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                @Composable
+                fun resultCell(value: Int, title: String, color: Color, modifier: Modifier) {
+                    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("$value", style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold, color = color)
+                        Text(title, style = MaterialTheme.typography.labelMedium,
+                            color = cs.onSurfaceVariant, maxLines = 2)
+                    }
+                }
+                resultCell(p.answered, T("Answered", "تم الرد"),
+                    readable(Sem.success), Modifier.weight(1f))
+                resultCell(p.noAnswer, T("No answer", "لم يرد"),
+                    cs.onSurface, Modifier.weight(1f))
+                resultCell(p.failed, T("Failed", "فشل"),
+                    readable(Sem.danger), Modifier.weight(1f))
+            }
+            if (p.unverified > 0) Text(
+                T("${p.unverified} calls are unverified", "${p.unverified} مكالمة غير مؤكدة"),
+                color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall
+            )
         }
-        MetricGrid(listOf(
-            UiMetric("${p.answered}", T("Answered", "تم الرد"), readable(Sem.success)),
-            UiMetric("${p.noAnswer}", T("No answer", "لم يرد"), readable(Sem.warning)),
-            UiMetric("${p.failed}", T("Failed", "فشل"), readable(Sem.danger))
-        ))
-        if (p.unverified > 0) Text(
-            T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
-            color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall
-        )
-        HorizontalDivider(color = cs.outlineVariant)
     }
 }
 
@@ -85,31 +106,72 @@ private fun CallControls(paused: Boolean) {
     var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        BButton(if (paused) T("Resume calling", "استئناف الاتصال") else T("Pause calling", "إيقاف مؤقت"),
-            { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-            Modifier.fillMaxWidth(), icon = if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause, compact = true)
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val stacked = maxWidth < 280.dp || androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.4f
-            val skip: @Composable (Modifier) -> Unit = { m ->
-                BButton(T("Skip", "تخطي"), { DialerService.send(ctx, DialerService.ACT_SKIP) }, m,
-                    kind = BtnKind.Outline, icon = Icons.Rounded.SkipNext, compact = true,
-                    enabled = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating)
+    val pauseLabel = if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت")
+    val pauseAction = {
+        DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE)
+    }
+    val canSkip = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating
+
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val stacked = maxWidth < 310.dp ||
+            androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.4f
+        val pauseButton: @Composable (Modifier) -> Unit = { m ->
+            Button(onClick = pauseAction, modifier = m.heightIn(min = 52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = cs.primary),
+                contentPadding = PaddingValues(horizontal = 10.dp)) {
+                Icon(if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                    contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(5.dp))
+                Text(pauseLabel, maxLines = 2,
+                    style = MaterialTheme.typography.labelLarge)
             }
-            val stop: @Composable (Modifier) -> Unit = { m ->
-                BButton(T("Stop", "إنهاء"), { confirmStop = true }, m,
-                    kind = BtnKind.Outline, icon = Icons.Rounded.Stop, compact = true)
+        }
+        val skipButton: @Composable (Modifier) -> Unit = { m ->
+            OutlinedButton(
+                onClick = { DialerService.send(ctx, DialerService.ACT_SKIP) },
+                enabled = canSkip, modifier = m.heightIn(min = 52.dp),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, cs.outline),
+                contentPadding = PaddingValues(horizontal = 7.dp)
+            ) { Text(T("Skip", "تخطي"), maxLines = 1,
+                style = MaterialTheme.typography.labelLarge) }
+        }
+        val stopButton: @Composable (Modifier) -> Unit = { m ->
+            OutlinedButton(
+                onClick = { confirmStop = true },
+                modifier = m.heightIn(min = 52.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.error),
+                border = androidx.compose.foundation.BorderStroke(1.dp, cs.error.copy(alpha = 0.5f)),
+                contentPadding = PaddingValues(horizontal = 7.dp)
+            ) { Text(T("Stop", "إنهاء"), maxLines = 1,
+                style = MaterialTheme.typography.labelLarge) }
+        }
+        if (stacked) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                pauseButton(Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    skipButton(Modifier.weight(1f))
+                    stopButton(Modifier.weight(1f))
+                }
             }
-            if (stacked) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                skip(Modifier.fillMaxWidth()); stop(Modifier.fillMaxWidth())
-            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                skip(Modifier.weight(1f)); stop(Modifier.weight(1f))
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                pauseButton(Modifier.weight(1.45f))
+                skipButton(Modifier.weight(1f))
+                stopButton(Modifier.weight(1f))
             }
         }
     }
-    if (confirmStop) ConfirmDialog(T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
-        "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."), { confirmStop = false }) {
-        DialerService.send(ctx, DialerService.ACT_STOP); confirmStop = false
+    if (confirmStop) ConfirmDialog(
+        T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
+          "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."),
+        { confirmStop = false }
+    ) {
+        DialerService.send(ctx, DialerService.ACT_STOP)
+        confirmStop = false
     }
 }
 
@@ -341,7 +403,7 @@ fun LiveScreen(act: MainActivity) {
                         1.dp, MaterialTheme.colorScheme.outlineVariant
                     )
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                         CallControls(c.status == CS.PAUSED)
                     }
                 }
@@ -351,8 +413,8 @@ fun LiveScreen(act: MainActivity) {
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = Sp.xl, vertical = Sp.s),
-            verticalArrangement = Arrangement.spacedBy(Sp.m)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             LicenseBanner()
             PermissionBanner(act)
@@ -364,7 +426,7 @@ fun LiveScreen(act: MainActivity) {
                 },
                 label = "liveState"
             ) { hero ->
-                Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     if (hero && heroList != null) {
                         val p = Store.prog(heroList)
                         Enter(0) { V7LiveHero(c, heroList, p, now) }
