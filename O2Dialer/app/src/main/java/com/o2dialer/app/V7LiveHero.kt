@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +25,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
     val calling = state.status == CS.RUNNING && state.currentNumber.isNotBlank()
     val paused = state.status == CS.PAUSED
     val finished = state.status == CS.FINISHED
-    val next = queuedEntries(state, list).firstOrNull()
+    val next = remember(state.queuedIds, list.entries) { queuedEntries(state, list).firstOrNull() }
     val showCurrent = state.currentNumber.isNotBlank() &&
         (calling || state.awaitingStage || paused)
     val name = if (showCurrent) state.currentName else if (finished) "" else next?.name.orEmpty()

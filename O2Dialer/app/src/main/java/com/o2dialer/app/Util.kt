@@ -1,6 +1,7 @@
 package com.o2dialer.app
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -150,16 +151,17 @@ fun loadContacts(ctx: Context): List<Pair<String, String>> {
 }
 
 /** "SIM 1 · Carrier" labels when the phone lets us read them. */
+@SuppressLint("MissingPermission")
 fun simLabels(ctx: Context): List<String> {
     val base = mutableListOf("SIM 1", "SIM 2")
     if (ctx.has(Manifest.permission.READ_PHONE_STATE)) {
-        runCatching {
+        try {
             val sm = ctx.getSystemService(SubscriptionManager::class.java)
             sm.activeSubscriptionInfoList?.forEach { i ->
                 val s = i.simSlotIndex
                 if (s in 0..1) base[s] = "SIM ${s + 1} · ${i.carrierName}"
             }
-        }
+        } catch (_: SecurityException) { /* Permission can be revoked between check and query. */ }
     }
     return base
 }

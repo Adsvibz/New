@@ -173,7 +173,7 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
 @Composable
 private fun RunSetupPanel() {
     val s = Store.cfg
-    val gap = if (s.randomDelay) "${s.delaySec}–${s.delayMaxSec}s" else "${s.delaySec}s"
+    val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + T("s", "ث") else "${s.delaySec}" + T("s", "ث")
     Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
@@ -198,7 +198,7 @@ private fun RunSetupPanel() {
 
 @Composable
 private fun UpNext(list: CallList, remaining: Int) {
-    val next = queuedEntries(Store.camp, list).take(3)
+    val next = remember(Store.camp.queuedIds, list.entries) { queuedEntries(Store.camp, list).take(3) }
     var removing by remember { mutableStateOf<Entry?>(null) }
     if (next.isEmpty()) return
     val cs = MaterialTheme.colorScheme

@@ -46,19 +46,20 @@ private fun reportAdded(n: Int) {
 // ============================================================ campaigns list
 @Composable
 fun ListsScreen() {
-    var creating by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<CallList?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    val editing = Store.lists.find { it.id == editingId }
     var deleting by remember { mutableStateOf<CallList?>(null) }
 
-    V7CampaignWorkspace(onCreate = { creating = true }, onEdit = { editing = it }, onDelete = { deleting = it })
+    V7CampaignWorkspace(onCreate = { creating = true }, onEdit = { editingId = it.id }, onDelete = { deleting = it })
 
     if (creating) CampaignDialog(null, { creating = false }) { n, sim ->
         Store.selectedListId = Store.addList(n, sim); creating = false
         Store.notify(Tk.SUCCESS, T("Campaign created", "تم إنشاء الحملة"))
     }
     editing?.let { l ->
-        CampaignDialog(l, { editing = null }) { n, sim ->
-            Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editing = null
+        CampaignDialog(l, { editingId = null }) { n, sim ->
+            Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editingId = null
             Store.notify(Tk.SUCCESS, T("Campaign updated", "تم تحديث الحملة"))
         }
     }
@@ -80,23 +81,26 @@ fun ListDetail(listId: String, act: MainActivity) {
     var query by rememberSaveable(listId) { mutableStateOf("") }
     var dlg by rememberSaveable(listId) { mutableStateOf("") }
     var importing by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<Entry?>(null) }
+    var editingEntryId by rememberSaveable(listId) { mutableStateOf<String?>(null) }
+    val editing = list.entries.find { it.id == editingEntryId }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             importing = true
             scope.launch {
                 try {
                     val parsed = withContext(Dispatchers.IO) {
-                        val text = ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { reader ->
-                            val buffer = CharArray(8192)
-                            val content = StringBuilder()
-                            while (true) {
-                                val count = reader.read(buffer)
-                                if (count < 0) break
-                                require(content.length + count <= 5_000_000) { "File too large" }
-                                content.append(buffer, 0, count)
+                        val text = ctx.contentResolver.openInputStream(uri)?.use { input ->
+                            input.bufferedReader().use { reader ->
+                                val buffer = CharArray(8192)
+                                val content = StringBuilder()
+                                while (true) {
+                                    val count = reader.read(buffer)
+                                    if (count < 0) break
+                                    require(content.length + count <= 5_000_000) { "File too large" }
+                                    content.append(buffer, 0, count)
+                                }
+                                content.toString()
                             }
-                            content.toString()
                         } ?: error("Cannot open file")
                         require(!text.contains('\u0000')) { "Not a text file" }
                         parseLines(text)
@@ -227,7 +231,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                     EntryRow(
                         e, listId,
                         isFirst = i == 0, isLast = i == shown.lastIndex
-                    ) { if (Store.canEditEntry(listId, e.id)) editing = e
+                    ) { if (Store.canEditEntry(listId, e.id)) editingEntryId = e.id
                         else Store.notify(Tk.INFO, T("Wait for the current call to finish", "انتظر انتهاء المكالمة الحالية")) }
                 }
             }
@@ -248,8 +252,8 @@ fun ListDetail(listId: String, act: MainActivity) {
         "contacts" -> ContactsDialog({ dlg = "" }) { sel -> reportAdded(Store.addEntries(listId, sel)); dlg = "" }
     }
     editing?.let { e ->
-        EntryDialog(e, { editing = null }) { n, num ->
-            Store.editEntry(listId, e.id, n, num); editing = null
+        EntryDialog(e, { editingEntryId = null }) { n, num ->
+            Store.editEntry(listId, e.id, n, num); editingEntryId = null
             Store.notify(Tk.SUCCESS, T("Contact updated", "تم تحديث الجهة"))
         }
     }

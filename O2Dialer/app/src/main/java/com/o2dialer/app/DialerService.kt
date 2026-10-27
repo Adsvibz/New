@@ -1,6 +1,7 @@
 package com.o2dialer.app
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -124,7 +125,7 @@ class DialerService : Service() {
         try { register() } catch (e: SecurityException) {
             finish(T("Phone-state permission is missing", "صلاحية حالة الهاتف غير ممنوحة"), false, true); return
         }
-        if (runCatching { telecom.isInCall }.getOrDefault(true)) {
+        if (phoneIsBusy()) {
             finish(T("End the current phone call before starting", "أنهِ المكالمة الحالية قبل البدء"), false, true); return
         }
         val n = buildQueue(list)
@@ -176,7 +177,7 @@ class DialerService : Service() {
             handler.postDelayed(nextRunnable, 30_000)
             return
         }
-        if (runCatching { telecom.isInCall }.getOrDefault(true)) {
+        if (phoneIsBusy()) {
             upd(Store.camp.copy(status = CS.WAITING, currentName = "", currentNumber = "", nextAt = 0,
                 message = T("Waiting for the phone to become available", "بانتظار انتهاء المكالمة على الهاتف")))
             handler.postDelayed(nextRunnable, 3000)
@@ -185,8 +186,10 @@ class DialerService : Service() {
         place(queue.removeFirst())
     }
 
-    private fun simHandle(slot: Int) =
-        if (slot < 0) null else telecom.callCapablePhoneAccounts.getOrNull(slot)
+    @SuppressLint("MissingPermission")
+    private fun simHandle(slot: Int) = if (
+        slot < 0 || !has(Manifest.permission.READ_PHONE_STATE)
+    ) null else runCatching { telecom.callCapablePhoneAccounts.getOrNull(slot) }.getOrNull()
 
     private fun place(id: String) {
         val list = Store.lists.find { it.id == listId }
@@ -245,7 +248,7 @@ class DialerService : Service() {
     private fun onNoCall() {
         val id = curId ?: return
         if (sawOffhook) return
-        if (runCatching { telecom.isInCall }.getOrDefault(true)) {
+        if (phoneIsBusy()) {
             // Never advance into a second call when a device has not delivered OFFHOOK.
             upd(Store.camp.copy(message = T("Waiting for phone call status", "بانتظار حالة المكالمة من الهاتف")))
             handler.postDelayed(noCallRunnable, 3000)
@@ -266,7 +269,7 @@ class DialerService : Service() {
             }
             if (d != null) { record(id, if (d > 0) St.ANSWERED else St.NO_ANSWER, d); return }
         }
-        record(id, St.DONE, 0) // OFFHOOK includes ringing; it is not connected talk time.
+        record(id, St.DONE, 0, offerUnverifiedStage = dur >= 8) // OFFHOOK includes ringing; it is not connected talk time.
     }
 
     private fun queryLog(since: Long, number: String): Int? = try {
@@ -286,7 +289,7 @@ class DialerService : Service() {
         }
     } catch (e: Exception) { null }
 
-    private fun record(id: String, status: Int, dur: Int) {
+    private fun record(id: String, status: Int, dur: Int, offerUnverifiedStage: Boolean = false) {
         busy = false
         upd(Store.camp.copy(currentName = "", currentNumber = "", evaluating = false))
         val list = Store.lists.find { it.id == listId }
@@ -297,7 +300,7 @@ class DialerService : Service() {
         if (e != null) Store.addLog(LogItem(System.currentTimeMillis(), list.name, e.name, e.number, status, dur, e.attempts))
 
         // Ask for the call result (stage) after answered calls only.
-        if (e != null && S.askStage && St.isAnswered(status) && !(status == St.DONE && dur < 8)) {
+        if (e != null && S.askStage && (St.isConfirmedAnswered(status) || (status == St.DONE && offerUnverifiedStage))) {
             Store.stageTarget = listId to id
             if (S.stageWaitSec > 0) awaiting = true
         }
@@ -367,6 +370,7 @@ class DialerService : Service() {
     }
 
     @Suppress("DEPRECATION")
+    @SuppressLint("MissingPermission")
     private fun hangup() {
         if (curId == null && !sawOffhook) return
         val ended = runCatching {
@@ -374,6 +378,12 @@ class DialerService : Service() {
         }.getOrDefault(false)
         if (!ended) Store.notify(Tk.WARN, T("End this call in your phone app; this device did not allow automatic hang-up",
             "أنهِ المكالمة من تطبيق الهاتف؛ الجهاز لم يسمح بإنهائها تلقائيًا"))
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun phoneIsBusy(): Boolean {
+        if (!has(Manifest.permission.READ_PHONE_STATE)) return true
+        return try { telecom.isInCall } catch (_: SecurityException) { true }
     }
 
     @Suppress("DEPRECATION")
