@@ -1,1 +1,1 @@
-Precision integrated UI pass 16: compact unboxed history rows, enhanced campaign hierarchy, lighter live controls and hero, confirm build tests lint signing and OTA publication.
+Precision screen-by-screen rebuild: Live hero and outcome architecture; verify Kotlin compile, Android lint, tests and signed in-app updater candidate 17.
