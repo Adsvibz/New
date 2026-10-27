@@ -1,6 +1,8 @@
 package com.o2dialer.app
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Timer
@@ -9,14 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
- * Precision Live: a single focused contact surface.
- * Campaign, runtime status, current contact and completion are one coherent hierarchy.
+ * Precision Contrast / Live.
+ * The contact and progress are one high-contrast focal surface.
+ * No changes to any persisted campaign state or telephony behavior.
  */
 @Composable
 fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
@@ -27,103 +33,123 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
     val next = remember(state.queuedIds, list.entries) {
         queuedEntries(state, list).firstOrNull()
     }
-    val current = state.currentNumber.isNotBlank() && (calling || paused || state.awaitingStage)
-    val name = if (current) state.currentName else if (finished) "" else next?.name.orEmpty()
-    val number = if (current) state.currentNumber else if (finished) "" else next?.number.orEmpty()
-    val statusColor = when {
-        finished && state.error -> cs.error
-        finished -> cs.tertiary
-        paused -> cs.secondary
-        calling -> cs.tertiary
-        else -> cs.primary
-    }
+    val showCurrent = state.currentNumber.isNotBlank() && (calling || paused || state.awaitingStage)
+    val name = if (showCurrent) state.currentName else if (finished) "" else next?.name.orEmpty()
+    val number = if (showCurrent) state.currentNumber else if (finished) "" else next?.number.orEmpty()
     val contactTitle = when {
-        finished -> T("Session complete", "انتهت الجلسة")
-        current -> T("Current contact", "جهة الاتصال الحالية")
-        else -> T("Next contact", "جهة الاتصال التالية")
+        finished -> T("SESSION SUMMARY", "ملخص الجلسة")
+        showCurrent -> T("CURRENT CONTACT", "العميل الحالي")
+        else -> T("NEXT CONTACT", "العميل التالي")
     }
-    val mainText = name.ifBlank {
+    val displayedContact = name.ifBlank {
         number.ifBlank {
-            if (finished) T("${progress.called} calls processed", "تمت معالجة ${progress.called} مكالمة")
-            else T("Waiting for next contact", "في انتظار جهة الاتصال التالية")
+            if (finished) T("${progress.called} contacts processed", "تمت معالجة ${progress.called} جهة اتصال")
+            else if (state.evaluating || state.awaitingStage) T("Finishing this call", "جاري إنهاء المكالمة")
+            else T("Waiting for the queue", "في انتظار قائمة الاتصال")
         }
     }
-    Column(
-        Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    val heroColor = if (isDarkTheme()) Color(0xFF21344B) else Color(0xFF112940)
+    val heroText = Color(0xFFF8FAFF)
+    val heroMuted = Color(0xFFBFD0E1)
+    val accent = when {
+        finished && state.error -> Color(0xFFFFA9AB)
+        paused -> Color(0xFFFFCC77)
+        finished -> Color(0xFF8FEBCE)
+        calling -> Color(0xFF8FEBCE)
+        else -> Color(0xFF8EB8FF)
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = heroColor,
+        shape = RoundedCornerShape(20.dp),
+        shadowElevation = 0.dp
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(T("ACTIVE CAMPAIGN", "الحملة الحالية"),
-                    color = cs.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall)
-                Text(list.name, color = cs.onSurface, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleLarge)
-            }
-            Surface(shape = RoundedCornerShape(8.dp),
-                color = statusColor.copy(alpha = 0.10f)) {
-                Text(sessionLabel(state), Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    color = statusColor, style = MaterialTheme.typography.labelMedium)
-            }
-        }
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            color = cs.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Column(Modifier.fillMaxWidth().padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(contactTitle, color = cs.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelMedium)
-                Text(mainText, color = cs.onSurface,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        textDirection = if (name.isBlank()) TextDirection.Ltr else TextDirection.Content),
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(T("LIVE CAMPAIGN", "الحملة المباشرة"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = heroMuted)
+                    Text(list.name, color = heroText,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Spacer(Modifier.width(12.dp))
+                Row(
+                    Modifier.clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.09f))
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(accent))
+                    Text(sessionLabel(state), color = heroText,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1)
+                }
+            }
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.18f))
+
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text(contactTitle, style = MaterialTheme.typography.labelMedium, color = heroMuted)
+                Text(displayedContact,
+                    color = heroText,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        textDirection = if (name.isBlank()) TextDirection.Ltr else TextDirection.Content
+                    ),
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (name.isNotBlank() && number.isNotBlank() && name != number) {
-                    NumText(number, color = cs.onSurfaceVariant,
+                    NumText(number, color = heroMuted,
                         style = MaterialTheme.typography.bodyLarge)
                 }
                 if (state.message.isNotBlank() &&
                     state.message != sessionLabel(state) &&
                     state.message !in setOf("Paused", "متوقفة مؤقتًا")) {
-                    Text(state.message, color = cs.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall)
+                    Text(state.message, color = heroMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                val seconds = if (state.nextAt > now) (state.nextAt - now + 999L) / 1000L else 0L
-                if (!finished && seconds > 0) {
+                val remainingSeconds =
+                    if (state.nextAt > now) (state.nextAt - now + 999L) / 1000L else 0L
+                if (!finished && remainingSeconds > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Rounded.Timer, null, modifier = Modifier.size(16.dp),
-                            tint = cs.primary)
-                        Text(T("Next call in ${seconds}s", "المكالمة التالية خلال ${seconds} ث"),
-                            color = cs.primary, style = MaterialTheme.typography.labelMedium)
+                        Icon(Icons.Rounded.Timer, contentDescription = null,
+                            tint = accent, modifier = Modifier.size(17.dp))
+                        Text(T("Next call in ${remainingSeconds}s",
+                            "المكالمة التالية خلال ${remainingSeconds} ث"),
+                            color = accent, style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(T("Campaign progress", "تقدم الحملة"),
-                    modifier = Modifier.weight(1f),
-                    color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
-                Text("${progress.pct}%", color = cs.primary,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.labelLarge)
-            }
-            LinearProgressIndicator(
-                progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth().height(5.dp),
-                color = cs.primary, trackColor = cs.surfaceVariant
-            )
-            Row {
-                Text(T("${progress.called} of ${progress.total} called",
-                    "${progress.called} من ${progress.total} تم الاتصال"),
-                    Modifier.weight(1f), color = cs.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall)
-                Text(T("${progress.remaining} remaining", "${progress.remaining} متبقي"),
-                    color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(T("PROGRESS", "التقدم"),
+                        Modifier.weight(1f),
+                        color = heroMuted, style = MaterialTheme.typography.labelSmall)
+                    Text("${progress.pct}%", color = heroText,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold)
+                }
+                LinearProgressIndicator(
+                    progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                    color = Color(0xFF78A8FF),
+                    trackColor = Color.White.copy(alpha = 0.19f)
+                )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(T("${progress.called} of ${progress.total} called",
+                        "${progress.called} من ${progress.total} تم الاتصال"),
+                        Modifier.weight(1f), color = heroMuted,
+                        style = MaterialTheme.typography.labelSmall)
+                    Text(T("${progress.remaining} remaining", "${progress.remaining} متبقي"),
+                        color = heroMuted, style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }
