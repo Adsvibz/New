@@ -20,27 +20,26 @@ fun V7ResultsHeader(progress: Prog) {
     val rate = if (progress.called > 0)
         (progress.answered.toLong() * 100 / progress.called).coerceIn(0L, 100L)
     else 0L
-    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(T("Summary", "الملخص"), color = cs.onSurface, style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-            }
-            Icon(Icons.Rounded.Insights, null, tint = cs.primary)
+            Text(T("Call performance", "أداء المكالمات"),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall)
+            Text("${progress.pct}%", color = cs.primary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge)
         }
-        Surface(shape = RoundedCornerShape(12.dp), color = cs.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
-            Column(Modifier.fillMaxWidth().padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                MetricGrid(listOf(UiMetric("${progress.called}", T("Calls made", "مكالمات")),
-                    UiMetric("${progress.answered}", T("Answered", "تم الرد")),
-                    UiMetric("$rate%", T("Answer rate", "نسبة الرد"))))
-                LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(4.dp),
-                    color = cs.primary, trackColor = cs.surfaceVariant)
-                Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
-                    color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-            }
-        }
+        MetricGrid(listOf(
+            UiMetric("${progress.called}", T("Calls made", "مكالمات")),
+            UiMetric("${progress.answered}", T("Answered", "تم الرد")),
+            UiMetric("$rate%", T("Answer rate", "نسبة الرد"))
+        ))
+        LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().height(4.dp),
+            color = cs.primary, trackColor = cs.surfaceVariant)
+        Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
+            style = MaterialTheme.typography.labelMedium,
+            color = cs.onSurfaceVariant)
+        HorizontalDivider(color = cs.outlineVariant)
     }
 }
