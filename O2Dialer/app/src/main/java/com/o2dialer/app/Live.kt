@@ -334,7 +334,24 @@ fun LiveScreen(act: MainActivity) {
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
 
     Scaffold(
-        topBar = { BlendBar(T("Dialer", "الاتصال")) },
+        topBar = {
+            if (!showHero) BlendBar(T("Dialer", "الاتصال"))
+            else BlendBar(T("Live calling", "المكالمات"))
+        },
+        bottomBar = {
+            if (active && showHero) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp, MaterialTheme.colorScheme.outlineVariant
+                    )
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp)) {
+                        CallControls(c.status == CS.PAUSED)
+                    }
+                }
+            }
+        },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -370,10 +387,9 @@ fun LiveScreen(act: MainActivity) {
                                 BButton(T("Choose a campaign", "اختيار حملة"), { Store.camp = CampState() }, Modifier.fillMaxWidth(), kind = BtnKind.Outline)
                             }
                         } else {
-                            if (active) Enter(1) { CallControls(c.status == CS.PAUSED) }
-                            Enter(2) { OutcomesPanel(p, p.remaining) }
+                            Enter(1) { OutcomesPanel(p, p.remaining) }
+                            if (active) Enter(2) { UpNext(heroList, p.remaining) }
                             if (active) Enter(3) { RunSetupPanel() }
-                            if (active) Enter(4) { UpNext(heroList, p.remaining) }
                         }
                     } else {
                         Launcher(act)
