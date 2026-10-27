@@ -1,1 +1,1 @@
-Precision screen-by-screen rebuild: Live hero and outcome architecture; verify Kotlin compile, Android lint, tests and signed in-app updater candidate 17.
+Precision Contrast screen redesign acceptance 18: contrast-first palette, deep-focus Live campaign hero, 3-action dock, white results card, high-contrast selected nav. Run tests, lint, signed update release.
