@@ -73,7 +73,7 @@ fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
 /** Primary brand colour: professional blue. */
-val Brand = Color(0xFF2457E7)
+val Brand = Color(0xFF174FD1)
 
 /** Kept as an alias so older references stay valid. */
 val BrandIndigo = Brand
@@ -99,38 +99,39 @@ private val ArabicFont = FontFamily(
     Font(R.font.plex_arabic_bold, FontWeight.Bold)
 )
 
+/** Precision Contrast: white working surfaces, cool slate canvas, decisive cobalt. */
 private val LightC = lightColorScheme(
-    primary = Brand, onPrimary = Color.White,
-    primaryContainer = Color(0xFFE7EEFF), onPrimaryContainer = Color(0xFF183EAA),
-    secondary = Color(0xFF4667A8), onSecondary = Color.White,
-    secondaryContainer = Color(0xFFEAF0FC), onSecondaryContainer = Color(0xFF223B69),
-    tertiary = Color(0xFF0D966A), onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFDDF7ED), onTertiaryContainer = Color(0xFF07533D),
-    background = Color(0xFFFAFBFD), onBackground = Color(0xFF101828),
-    surface = Color.White, onSurface = Color(0xFF101828),
-    surfaceVariant = Color(0xFFF3F5F8), onSurfaceVariant = Color(0xFF65728A),
-    outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFE7ECF3),
-    error = Color(0xFFB42318), onError = Color.White,
-    errorContainer = Color(0xFFFFE8E8), onErrorContainer = Color(0xFF8F262D),
-    inverseSurface = Color(0xFF15203A), inverseOnSurface = Color.White,
+    primary = Color(0xFF174FD1), onPrimary = Color.White,
+    primaryContainer = Color(0xFFE4EDFF), onPrimaryContainer = Color(0xFF163E91),
+    secondary = Color(0xFF334860), onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE8EDF3), onSecondaryContainer = Color(0xFF26384D),
+    tertiary = Color(0xFF087E5A), onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFDFF5EB), onTertiaryContainer = Color(0xFF06583F),
+    background = Color(0xFFF0F3F7), onBackground = Color(0xFF101B2B),
+    surface = Color.White, onSurface = Color(0xFF101B2B),
+    surfaceVariant = Color(0xFFF3F6FA), onSurfaceVariant = Color(0xFF485A70),
+    outline = Color(0xFFC7D0DC), outlineVariant = Color(0xFFDCE3EC),
+    error = Color(0xFFB32632), onError = Color.White,
+    errorContainer = Color(0xFFFDE8EA), onErrorContainer = Color(0xFF802028),
+    inverseSurface = Color(0xFF112740), inverseOnSurface = Color.White,
     surfaceTint = Color.Transparent
 )
 
-/** Matching deep-navy alternative to the clean light workspace. */
+/** Purpose-built dark hierarchy; not an automatic inversion of the light palette. */
 val NocturneDark = darkColorScheme(
-    primary = Color(0xFF92B1FF), onPrimary = Color(0xFF0B2668),
-    primaryContainer = Color(0xFF243F7E), onPrimaryContainer = Color(0xFFE5EDFF),
-    secondary = Color(0xFFACC2F0), onSecondary = Color(0xFF1C345C),
-    secondaryContainer = Color(0xFF283954), onSecondaryContainer = Color(0xFFDCE7FF),
-    tertiary = Color(0xFF66D8B0), onTertiary = Color(0xFF073D2C),
-    tertiaryContainer = Color(0xFF164C3D), onTertiaryContainer = Color(0xFFD7F8EA),
-    background = Color(0xFF101216), onBackground = Color(0xFFF6F8FE),
-    surface = Color(0xFF191C22), onSurface = Color(0xFFF6F8FE),
-    surfaceVariant = Color(0xFF252930), onSurfaceVariant = Color(0xFFB3BAC6),
-    outline = Color(0xFF41464F), outlineVariant = Color(0xFF2D323A),
-    error = Color(0xFFFF9FA6), onError = Color(0xFF5C1620),
-    errorContainer = Color(0xFF6A2832), onErrorContainer = Color(0xFFFFDADD),
-    inverseSurface = Color(0xFFE7EDFA), inverseOnSurface = Color(0xFF17213A),
+    primary = Color(0xFF8FB0FF), onPrimary = Color(0xFF0D2D70),
+    primaryContainer = Color(0xFF263F74), onPrimaryContainer = Color(0xFFEBF0FF),
+    secondary = Color(0xFFB7C9DC), onSecondary = Color(0xFF233B51),
+    secondaryContainer = Color(0xFF293C51), onSecondaryContainer = Color(0xFFDEEBF7),
+    tertiary = Color(0xFF75DAB0), onTertiary = Color(0xFF063B2A),
+    tertiaryContainer = Color(0xFF174938), onTertiaryContainer = Color(0xFFDBF7E9),
+    background = Color(0xFF0B1420), onBackground = Color(0xFFF2F6FC),
+    surface = Color(0xFF182536), onSurface = Color(0xFFF2F6FC),
+    surfaceVariant = Color(0xFF263648), onSurfaceVariant = Color(0xFFB9C7D9),
+    outline = Color(0xFF586A7E), outlineVariant = Color(0xFF344558),
+    error = Color(0xFFFFA0A8), onError = Color(0xFF631820),
+    errorContainer = Color(0xFF662A34), onErrorContainer = Color(0xFFFFE1E6),
+    inverseSurface = Color(0xFFEAF0F8), inverseOnSurface = Color(0xFF101B2B),
     surfaceTint = Color.Transparent
 )
 
