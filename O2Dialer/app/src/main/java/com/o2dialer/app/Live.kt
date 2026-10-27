@@ -122,9 +122,75 @@ private fun RunSetupPanel() {
         Box(Modifier.padding(16.dp)) {
             MetricGrid(listOf(UiMetric(gap, T("Between calls", "بين المكالمات")),
                 UiMetric("${s.retries}", T("Retries", "إعادة المحاولة")),
-                UiMetric("${s.loops}", T("Rounds", "الجولات"))))
+                UiMetric(if (s.autoSpeaker) T("Auto mute", "كتم تلقائي") else T("Phone", "الهاتف"), T("Audio", "الصوت"))))
         }
     }
+}
+
+@Composable
+private fun UpNext(list: CallList, remaining: Int) {
+    val next = remember(Store.camp.queuedIds, list.entries) { queuedEntries(Store.camp, list).take(3) }
+    var removing by remember { mutableStateOf<Entry?>(null) }
+    if (next.isEmpty()) return
+    val cs = MaterialTheme.colorScheme
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = Sp.l, end = Sp.s, top = Sp.l, bottom = Sp.xs)) {
+            Row(Modifier.padding(end = Sp.s), verticalAlignment = Alignment.CenterVertically) {
+                Text(T("Up next", "التالي"), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    T("$remaining left", "$remaining متبقي"),
+                    style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.height(Sp.s))
+            next.forEachIndexed { i, e ->
+                if (i > 0) Hairline()
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        Modifier.size(30.dp).clip(CircleShape)
+                            .background(cs.secondary.copy(alpha = 0.10f))
+                            .border(1.dp, cs.secondary.copy(alpha = 0.15f), CircleShape),
+                        Alignment.Center
+                    ) {
+                        Text(
+                            "0${i + 1}", style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold, fontSize = 9.sp
+                            ),
+                            color = cs.secondary
+                        )
+                    }
+                    Spacer(Modifier.width(Sp.m))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            e.name.ifBlank { e.number }, style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                        if (e.name.isNotBlank()) NumText(
+                            e.number, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            removing = e
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Close, T("Remove from the queue", "حذف من القائمة"),
+                            tint = cs.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+    removing?.let { entry -> ConfirmDialog(T("Remove ${entry.name.ifBlank { entry.number }} from this campaign?", "حذف ${entry.name.ifBlank { entry.number }} من الحملة؟"), { removing = null }) {
+        Store.deleteEntry(list.id, entry.id); removing = null
+    } }
 }
 
 // ====================================================================== idle launcher

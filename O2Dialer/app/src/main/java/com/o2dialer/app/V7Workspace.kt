@@ -94,10 +94,12 @@ fun V7CampaignWorkspace(
                             modifier = Modifier.weight(1f))
                         Icon(Icons.Rounded.Insights, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         CountUp(called, style = MaterialTheme.typography.displaySmall, color = cs.onSurface)
                         Text(T("of $total contacts called", "من أصل $total جهة اتصال"),
-                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                     LinearProgressIndicator(progress = { completion },
                         modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
