@@ -65,8 +65,9 @@ fun ListsScreen() {
     }
     deleting?.let { l ->
         ConfirmDialog(T("Delete \"${l.name}\" and all its numbers?", "حذف \"${l.name}\" وكل أرقامها؟"), { deleting = null }) {
-            Store.deleteList(l.id); deleting = null
-            Store.notify(Tk.INFO, T("Campaign deleted", "تم حذف الحملة"))
+            val count = Store.deleteLists(setOf(l.id)); deleting = null
+            Store.notify(Tk.INFO, if (count > 0) T("Campaign deleted", "تم حذف الحملة")
+                else T("Stop the session before deleting", "أوقف الجلسة قبل الحذف"))
         }
     }
 }
@@ -159,7 +160,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                 }
                 Column(
                     Modifier.fillMaxWidth()
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.background)))
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
                     Box(
                         Modifier.fillMaxWidth().navigationBarsPadding()
@@ -283,7 +284,7 @@ fun EntryRow(
         bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
     )
     Column(Modifier.fillMaxWidth().clip(shape).background(cs.surface).clickable(onClick = onEdit)) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Avatar(e.name.ifBlank { e.number }, cs.primary, size = 28.dp)
                 Spacer(Modifier.width(10.dp))
@@ -294,7 +295,7 @@ fun EntryRow(
                         maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (e.name.isNotBlank()) NumText(e.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                 }
-                IconButton(onClick = { askDelete = true }, modifier = Modifier.size(44.dp)) {
+                IconButton(onClick = { askDelete = true }, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Rounded.DeleteOutline, T("Delete number", "حذف الرقم"), tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
             }

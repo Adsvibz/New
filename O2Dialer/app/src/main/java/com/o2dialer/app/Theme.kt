@@ -73,7 +73,7 @@ fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
 /** Primary brand colour: professional blue. */
-val Brand = Color(0xFF174FD1)
+val Brand = Color(0xFF2457E7)
 
 /** Kept as an alias so older references stay valid. */
 val BrandIndigo = Brand
@@ -101,16 +101,16 @@ private val ArabicFont = FontFamily(
 
 /** Precision Contrast: white working surfaces, cool slate canvas, decisive cobalt. */
 private val LightC = lightColorScheme(
-    primary = Color(0xFF174FD1), onPrimary = Color.White,
-    primaryContainer = Color(0xFFE4EDFF), onPrimaryContainer = Color(0xFF163E91),
+    primary = Color(0xFF2457E7), onPrimary = Color.White,
+    primaryContainer = Color(0xFFEBF0FF), onPrimaryContainer = Color(0xFF163E91),
     secondary = Color(0xFF334860), onSecondary = Color.White,
     secondaryContainer = Color(0xFFE8EDF3), onSecondaryContainer = Color(0xFF26384D),
     tertiary = Color(0xFF087E5A), onTertiary = Color.White,
     tertiaryContainer = Color(0xFFDFF5EB), onTertiaryContainer = Color(0xFF06583F),
-    background = Color(0xFFF0F3F7), onBackground = Color(0xFF101B2B),
-    surface = Color.White, onSurface = Color(0xFF101B2B),
-    surfaceVariant = Color(0xFFF3F6FA), onSurfaceVariant = Color(0xFF485A70),
-    outline = Color(0xFFC7D0DC), outlineVariant = Color(0xFFDCE3EC),
+    background = Color(0xFFF7F9FC), onBackground = Color(0xFF101828),
+    surface = Color.White, onSurface = Color(0xFF101828),
+    surfaceVariant = Color(0xFFF2F4F7), onSurfaceVariant = Color(0xFF475467),
+    outline = Color(0xFF98A2B3), outlineVariant = Color(0xFFE4E7EC),
     error = Color(0xFFB32632), onError = Color.White,
     errorContainer = Color(0xFFFDE8EA), onErrorContainer = Color(0xFF802028),
     inverseSurface = Color(0xFF112740), inverseOnSurface = Color.White,
@@ -125,13 +125,13 @@ val NocturneDark = darkColorScheme(
     secondaryContainer = Color(0xFF293C51), onSecondaryContainer = Color(0xFFDEEBF7),
     tertiary = Color(0xFF75DAB0), onTertiary = Color(0xFF063B2A),
     tertiaryContainer = Color(0xFF174938), onTertiaryContainer = Color(0xFFDBF7E9),
-    background = Color(0xFF0B1420), onBackground = Color(0xFFF2F6FC),
-    surface = Color(0xFF182536), onSurface = Color(0xFFF2F6FC),
-    surfaceVariant = Color(0xFF263648), onSurfaceVariant = Color(0xFFB9C7D9),
-    outline = Color(0xFF586A7E), outlineVariant = Color(0xFF344558),
+    background = Color(0xFF101318), onBackground = Color(0xFFF2F6FC),
+    surface = Color(0xFF1A1E25), onSurface = Color(0xFFF2F6FC),
+    surfaceVariant = Color(0xFF252B35), onSurfaceVariant = Color(0xFFB5BECC),
+    outline = Color(0xFF667085), outlineVariant = Color(0xFF343B48),
     error = Color(0xFFFFA0A8), onError = Color(0xFF631820),
     errorContainer = Color(0xFF662A34), onErrorContainer = Color(0xFFFFE1E6),
-    inverseSurface = Color(0xFFEAF0F8), inverseOnSurface = Color(0xFF101B2B),
+    inverseSurface = Color(0xFFEAF0F8), inverseOnSurface = Color(0xFF101828),
     surfaceTint = Color.Transparent
 )
 
@@ -166,23 +166,23 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
         fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
     )
     val b = FontWeight.Bold
-    val n = FontWeight.Medium
+    val n = FontWeight.Normal
     return Typography(
         displayLarge = display(b, 58, 60, -1.4f),
         displayMedium = display(b, 46, 48, -1.1f),
         displaySmall = display(b, 32, 37, -0.6f),
-        headlineLarge = display(b, 29, 35, -0.4f),
+        headlineLarge = display(b, 28, 36, -0.4f),
         headlineMedium = display(b, 24, 30, -0.3f),
         headlineSmall = text(FontWeight.Bold, 20, 26),
-        titleLarge = text(FontWeight.Bold, 19, 26),
+        titleLarge = text(FontWeight.Bold, 22, 28),
         titleMedium = text(b, 16, 24),
         titleSmall = text(b, 14, 20),
         bodyLarge = text(n, 16, 24),
         bodyMedium = text(n, 14, 21),
         bodySmall = text(n, 12, 17),
         labelLarge = text(b, 14, 20),
-        labelMedium = text(n, 12, 16, 0.1f),
-        labelSmall = text(n, 11, 14, 0.2f)
+        labelMedium = text(FontWeight.Medium, 12, 18, 0.1f),
+        labelSmall = text(FontWeight.Medium, 12, 16, 0.1f)
     )
 }
 

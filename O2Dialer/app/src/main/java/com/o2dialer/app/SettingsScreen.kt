@@ -45,7 +45,7 @@ private fun SettingsFooter() {
         ) { LogoMark(21.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
-            T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
+            T("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", "الإصدار ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"),
             style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
         )
         Text(
@@ -113,10 +113,10 @@ fun SettingsScreen() {
                 Hint(T("Some phones don't allow apps to change call audio.", "بعض الأجهزة لا تسمح للتطبيقات بتغيير صوت المكالمة."))
             }
 
-            SettingsSection(Icons.Rounded.Star, T("Call results (stages)", "نتائج المكالمات (Stages)")) {
+            SettingsSection(Icons.Rounded.Star, T("Call outcomes", "تصنيفات المكالمات")) {
                 SwitchRow(T("Ask for a stage after answered calls", "اسأل عن النتيجة بعد المكالمات اللي تم الرد عليها"), null,
                     c.askStage) { v -> up { it.copy(askStage = v) } }
-                if (c.askStage) SliderRow(T("Wait for your choice", "الانتظار لاختيارك"), c.stageWaitSec, 0, 60, "s",
+                if (c.askStage) SliderRow(T("Wait for your choice", "الانتظار لاختيارك"), c.stageWaitSec, 0, 60, T("s", "ث"),
                     T("Don't wait", "بدون انتظار")) { v -> up { it.copy(stageWaitSec = v) } }
             }
 

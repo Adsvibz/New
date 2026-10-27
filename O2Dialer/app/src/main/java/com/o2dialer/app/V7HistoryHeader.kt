@@ -16,6 +16,5 @@ fun V7HistoryHeader(total: Int, answered: Int, missed: Int) {
             UiMetric("$answered", T("Answered", "تم الرد")),
             UiMetric("$missed", T("No answer", "لم يرد"))
         ))
-        HorizontalDivider(color = cs.outlineVariant)
     }
 }

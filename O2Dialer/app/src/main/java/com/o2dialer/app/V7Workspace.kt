@@ -40,9 +40,10 @@ fun V7CampaignWorkspace(
     onDelete: (CallList) -> Unit
 ) {
     val lists = Store.lists.toList()
-    val total = lists.sumOf { Store.prog(it).total }
-    val called = lists.sumOf { Store.prog(it).called }
-    val answered = lists.sumOf { Store.prog(it).answered }
+    val progress = remember(lists) { lists.map { Store.prog(it) } }
+    val total = progress.sumOf { it.total }
+    val called = progress.sumOf { it.called }
+    val answered = progress.sumOf { it.answered }
     var search by rememberSaveable { mutableStateOf("") }
     val shown = lists.filter { it.name.contains(search.trim(), ignoreCase = true) }
     val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
@@ -84,30 +85,18 @@ fun V7CampaignWorkspace(
                 }
             }
         }
-        if (!selecting) item {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(T("Calls made", "المكالمات المنفذة"), color = cs.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium)
-                        Row(verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            CountUp(called, style = MaterialTheme.typography.headlineLarge, color = cs.onSurface)
-                            Text(T("/ $total contacts", "/ $total جهة اتصال"),
-                                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 4.dp))
-                        }
+        if (!selecting && lists.isNotEmpty()) item {
+            Panel {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(T("Overview", "نظرة عامة"), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                        Text("${(completion * 100).toInt()}%", color = cs.primary, style = MaterialTheme.typography.labelLarge)
                     }
-                    Text("${(completion * 100).toInt()}%", color = cs.primary,
-                        style = MaterialTheme.typography.titleMedium)
+                    MetricGrid(listOf(UiMetric("$total", T("Contacts", "جهة اتصال")),
+                        UiMetric("$called", T("Called", "تم الاتصال")),
+                        UiMetric("$answered", T("Answered", "تم الرد"))))
+                    BProgress(completion, height = 4.dp, track = cs.outlineVariant)
                 }
-                LinearProgressIndicator(progress = { completion },
-                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-                    color = cs.primary, trackColor = cs.surfaceVariant)
-                MetricGrid(listOf(UiMetric("$answered", T("Answered", "تم الرد")),
-                    UiMetric("$responseRate%", T("Answer rate", "نسبة الرد")),
-                    UiMetric("${lists.size}", T("Campaigns", "الحملات"))))
-                HorizontalDivider(color = cs.outlineVariant)
             }
         }
         if (!selecting) item {
@@ -117,10 +106,11 @@ fun V7CampaignWorkspace(
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth().clickable { Store.tab = 1 },
-                    color = cs.tertiaryContainer, shape = RoundedCornerShape(18.dp)
+                    color = cs.surface, shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.onTertiaryContainer)
+                        Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.primary)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -129,12 +119,12 @@ fun V7CampaignWorkspace(
                                 else if (Store.camp.status == CS.WAITING)
                                     T("Waiting for next call", "بانتظار المكالمة التالية")
                                 else T("Session in progress", "حملة قيد التشغيل"),
-                                color = cs.onTertiaryContainer, fontWeight = FontWeight.Bold
+                                color = cs.primary, fontWeight = FontWeight.Bold
                             )
                             Text(Store.camp.listName, style = MaterialTheme.typography.bodySmall,
-                                color = cs.onTertiaryContainer, maxLines = 1)
+                                color = cs.primary, maxLines = 1)
                         }
-                        Icon(Icons.Rounded.ChevronRight, null, tint = cs.onTertiaryContainer)
+                        Icon(Icons.Rounded.ChevronRight, null, tint = cs.primary)
                     }
                 }
             }
@@ -155,7 +145,9 @@ fun V7CampaignWorkspace(
                 } else {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text(T("Your campaigns", "حملاتك"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                        Text("${lists.size}", color = cs.onSurfaceVariant)
+                        TextButton(onClick = { selected = ArrayList(shown.filterNot { Store.isRunningList(it.id) }.take(1).map { it.id }) }, enabled = shown.any { !Store.isRunningList(it.id) }) {
+                            Text(T("Select", "تحديد"))
+                        }
                     }
                 }
                 BTextField(value = search, onChange = { search = it },
@@ -204,14 +196,14 @@ private fun V7CampaignRow(
     var reset by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
             .combinedClickable(onClick = onOpen, onLongClick = onLongPress,
                 onLongClickLabel = T("Select campaign", "تحديد الحملة"))
             .semantics { this.selected = selected },
-        shape = RoundedCornerShape(12.dp), color = cs.surface,
+        shape = RoundedCornerShape(16.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.primary else cs.outlineVariant)
     ) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary, modifier = Modifier.size(21.dp))
@@ -229,6 +221,8 @@ private fun V7CampaignRow(
                         Icon(Icons.Rounded.MoreVert, T("Actions", "الخيارات"))
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(enabled = !active, text = { Text(T("Select", "تحديد")) },
+                            onClick = { menu = false; onLongPress() })
                         DropdownMenuItem(enabled = !active, text = { Text(T("Edit", "تعديل")) },
                             onClick = { menu = false; onEdit() })
                         DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },

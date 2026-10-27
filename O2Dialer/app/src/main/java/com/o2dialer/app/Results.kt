@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
 package com.o2dialer.app
 
@@ -7,6 +7,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,13 +41,13 @@ import java.util.Locale
 @Composable
 private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(50)
-    val bg by animateColorAsState(if (selected) cs.primary else cs.surface, tween(220), label = "pillBg")
-    val fg by animateColorAsState(if (selected) cs.onPrimary else cs.onSurfaceVariant, tween(220), label = "pillFg")
+    val shape = RoundedCornerShape(12.dp)
+    val bg by animateColorAsState(if (selected) cs.primaryContainer else cs.surface, tween(220), label = "pillBg")
+    val fg by animateColorAsState(if (selected) cs.onPrimaryContainer else cs.onSurfaceVariant, tween(220), label = "pillFg")
     Box(
         Modifier.clip(shape).background(bg)
             .border(1.dp, if (selected) Color.Transparent else cs.outline.copy(alpha = 0.7f), shape)
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .heightIn(min = 48.dp).padding(horizontal = 14.dp),
         Alignment.Center
     ) {
@@ -58,59 +60,19 @@ private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun StatFilter(
-    label: String, value: Int, color: Color, selected: Boolean, modifier: Modifier, onClick: () -> Unit
-) {
+private fun StageLegendRow(stage: Int, count: Int, share: Float, selected: Boolean, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val bg by animateColorAsState(
-        if (selected) color.copy(alpha = 0.12f) else Color.Transparent, tween(220), label = "statBg"
-    )
-    Column(
-        modifier.clip(RoundedCornerShape(Rd.s)).background(bg)
-            .clickable(onClick = onClick).padding(vertical = 9.dp, horizontal = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        CountUp(
-            value, color = if (selected) readable(color) else cs.onSurface,
-            style = MaterialTheme.typography.displaySmall.copy(fontSize = 28.sp, lineHeight = 30.sp)
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Dot(color, 5.dp)
-            Spacer(Modifier.width(5.dp))
-            Text(
-                label, style = MaterialTheme.typography.labelSmall,
-                color = if (selected) readable(color) else cs.onSurfaceVariant, maxLines = 1
-            )
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        .background(if (selected) cs.primaryContainer else Color.Transparent)
+        .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+        .heightIn(min = 56.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(stageIcon(stage), null, tint = cs.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Text(Stg.label(stage), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            NumText("$count", style = MaterialTheme.typography.titleSmall)
+            NumText("${(share * 100).toInt()}%", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
         }
-    }
-}
-
-@Composable
-private fun StageLegendRow(
-    stage: Int, count: Int, share: Float, selected: Boolean, onClick: () -> Unit
-) {
-    val c = Stg.color(stage)
-    val cs = MaterialTheme.colorScheme
-    val bg by animateColorAsState(if (selected) c.copy(alpha = 0.08f) else Color.Transparent, tween(200), label = "legendBg")
-    Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(Rd.s)).background(bg)
-            .clickable(onClick = onClick).heightIn(min = 44.dp).padding(horizontal = Sp.s),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(Modifier.size(26.dp).clip(CircleShape).background(c.copy(alpha = 0.12f)), Alignment.Center) {
-            Icon(stageIcon(stage), null, tint = readable(c), modifier = Modifier.size(14.dp))
-        }
-        Spacer(Modifier.width(Sp.s))
-        Text(Stg.label(stage), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Text(
-            "$count", style = MaterialTheme.typography.titleSmall, color = cs.onSurface
-        )
-        Spacer(Modifier.width(Sp.s))
-        Text(
-            "${(share * 100).toInt()}%", style = MaterialTheme.typography.labelSmall,
-            color = cs.onSurfaceVariant, modifier = Modifier.widthIn(min = 34.dp), maxLines = 1
-        )
+        BProgress(share, color = cs.primary, track = cs.outlineVariant, height = 3.dp)
     }
 }
 
@@ -120,9 +82,9 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
     val canStage = St.isAnswered(e.status)
     Column(
         Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(cs.surface)
-            .border(1.dp, cs.outlineVariant, RoundedCornerShape(10.dp))
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(16.dp))
             .then(if (canStage) Modifier.clickable { Store.stageTarget = listId to e.id } else Modifier)
     ) {
         Row(
@@ -137,7 +99,8 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(
                     e.name.ifBlank { e.number },
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold,
+                        textDirection = if (e.name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content),
                     maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 if (e.name.isNotBlank()) NumText(
@@ -156,210 +119,90 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
 @Composable
 fun ResultsScreen() {
     val ctx = LocalContext.current
+    val cs = MaterialTheme.colorScheme
     val sel = Store.resultsListId?.takeIf { id -> Store.lists.any { it.id == id } }
-        ?: Store.runListId?.takeIf { id -> Store.lists.any { it.id == id } }
-        ?: Store.lists.firstOrNull()?.id
+        ?: Store.runListId?.takeIf { id -> Store.lists.any { it.id == id } } ?: Store.lists.firstOrNull()?.id
     val list = Store.lists.find { it.id == sel }
-    var f by rememberSaveable { mutableIntStateOf(0) }
-
-    Scaffold(
-        topBar = {
-            BlendBar(T("Results", "النتائج"), subtitle = list?.name, actions = {
-                if (list != null) SoftIconButton(
-                    Icons.Rounded.Share, T("Share report", "مشاركة التقرير"),
-                    onClick = { shareText(ctx, Store.listReport(list)) }
-                )
-            })
-        },
-        containerColor = Color.Transparent
-    ) { pad ->
-        if (list == null) {
-            EmptyState(
-                Icons.Rounded.BarChart, T("No results yet", "لا توجد نتائج بعد"),
-                T("Run a campaign and its results will appear here.", "شغّل حملة وستظهر نتائجها هنا."),
-                Modifier.padding(pad), actionText = T("Go to campaigns", "الذهاب إلى الحملات"),
-                onAction = { Store.tab = 0 }
-            )
-        } else {
+    var f by rememberSaveable(sel) { mutableIntStateOf(0) }
+    var picker by remember { mutableStateOf(false) }
+    Scaffold(topBar = {
+        BlendBar(T("Results", "النتائج"), subtitle = list?.name, actions = {
+            if (list != null) SoftIconButton(Icons.Rounded.Share, T("Share report", "مشاركة التقرير"),
+                { shareText(ctx, Store.listReport(list)) })
+        })
+    }, containerColor = Color.Transparent) { pad ->
+        if (list == null) EmptyState(Icons.Rounded.BarChart, T("No results yet", "لا توجد نتائج بعد"),
+            T("Run a campaign to see its results.", "شغّل حملة لعرض نتائجها."), Modifier.padding(pad),
+            T("Go to campaigns", "الذهاب للحملات"), { Store.tab = 0 })
+        else {
             val p = Store.prog(list)
-            val rows = list.entries.filter {
+            val rows = remember(list.entries, f) { list.entries.filter {
                 when {
                     f == 0 -> it.status != St.PENDING && it.status != St.CALLING
                     f == 1 -> St.isConfirmedAnswered(it.status)
                     f == 2 -> it.status == St.NO_ANSWER
                     f == 3 -> it.status == St.FAILED
+                    f == 4 -> it.status == St.DONE
                     f >= 10 -> it.stage == f - 10
-                    else -> true
+                    else -> false
                 }
-            }.sortedByDescending { it.calledAt }
-            val staged = list.entries.count { it.stage != Stg.NONE }
-            val answered = p.answered
-            val filterName = when {
-                f == 0 -> T("All called", "كل من تم الاتصال به")
-                f == 1 -> T("Answered", "ردّوا")
-                f == 2 -> T("No answer", "لم يردّوا")
-                f == 3 -> T("Failed", "فشل")
-                else -> Stg.label(f - 10)
-            }
-            LazyColumn(
-                Modifier.padding(pad),
-                contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = Sp.l),
-                verticalArrangement = Arrangement.spacedBy(Sp.m)
-            ) {
-                item { V7ResultsHeader(p) }
+            }.sortedByDescending { it.calledAt } }
+            val counts = remember(list.entries) { Stg.all.associateWith { stage -> list.entries.count { it.stage == stage } } }
+            val staged = counts.values.sum()
+            LazyColumn(Modifier.padding(pad).fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (Store.lists.size > 1) item {
+                    BButton(list.name, { picker = true }, Modifier.fillMaxWidth(), kind = BtnKind.Outline,
+                        icon = Icons.Rounded.KeyboardArrowDown, compact = true)
+                }
+                item { Panel { Box(Modifier.padding(20.dp)) { V7ResultsHeader(p) } } }
                 if (p.unverified > 0) item {
                     Banner(Tk.INFO, T("${p.unverified} unverified calls", "${p.unverified} مكالمة غير مؤكدة"),
-                        T("These calls ended without a matching call-log result. They are not counted as answered.",
-                            "المكالمات دي انتهت بدون نتيجة مطابقة في سجل الهاتف، ومش محسوبة ضمن الردود المؤكدة."))
+                        T("No matching phone log. These are not counted as answered.", "لا توجد نتيجة مطابقة في سجل الهاتف. المكالمات دي مش محسوبة كردود مؤكدة."))
                 }
-                if (Store.lists.size > 1) item {
-                    Row(
-                        Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(Sp.s)
-                    ) {
-                        Store.lists.forEach { l ->
-                            FilterPill(l.name, l.id == list.id) { Store.resultsListId = l.id; f = 0 }
-                        }
-                    }
-                }
-
-                if (p.total > 0 && p.remaining == 0) item {
-                    Banner(
-                        Tk.SUCCESS, T("Campaign completed", "اكتملت الحملة"),
-                        T("${p.answered} of ${p.total} answered", "${p.answered} من ${p.total} ردّوا")
-                    )
-                }
-
                 item {
-                    Enter(0) {
-                        Panel(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        SectionLabel(T("Campaign", "الحملة"))
-                                        Text(
-                                            T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        Text(
-                                            if (p.total == 0) T("Add contacts to begin", "أضف جهات اتصال للبدء")
-                                            else if (p.remaining == 0) T("Every contact has been called", "تم الاتصال بكل الجهات")
-                                            else T("${p.remaining} contacts remaining", "${p.remaining} جهة متبقية"),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    ProgressRing(
-                                        p.pct / 100f, 78.dp, 7.dp,
-                                        if (p.remaining == 0 && p.total > 0) Sem.success else MaterialTheme.colorScheme.primary,
-                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-                                    ) {
-                                        Row(verticalAlignment = Alignment.Bottom) {
-                                            CountUp(
-                                                p.pct,
-                                                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 19.sp)
-                                            )
-                                            Text(
-                                                "%", style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(bottom = 2.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                                Hairline()
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                    StatFilter(T("Answered", "ردّوا"), p.answered, Sem.success, f == 1, Modifier.weight(1f)) { f = 1 }
-                                    StatFilter(T("No answer", "لم يردّوا"), p.noAnswer, Sem.warning, f == 2, Modifier.weight(1f)) { f = 2 }
-                                    StatFilter(T("Failed", "فشل"), p.failed, Sem.danger, f == 3, Modifier.weight(1f)) { f = 3 }
-                                }
+                    Panel {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(T("Call outcomes", "تصنيفات المكالمات"), style = MaterialTheme.typography.titleMedium)
+                            if (staged == 0) Text(T("Saved outcomes will appear here.", "التصنيفات المحفوظة هتظهر هنا."),
+                                style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
+                            else Stg.all.forEach { stage ->
+                                StageLegendRow(stage, counts[stage] ?: 0, (counts[stage] ?: 0) / staged.toFloat(), f == stage + 10) { f = stage + 10 }
                             }
                         }
                     }
                 }
-
                 item {
-                    Enter(1) {
-                        Panel(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.s)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    StageDonut(
-                                        segments = Stg.all.map { s -> s to list.entries.count { it.stage == s } },
-                                        total = staged, size = if (isCompact() || LocalDensity.current.fontScale > 1.3f) 88.dp else 130.dp, stroke = 13.dp,
-                                        selected = if (f >= 10) f - 10 else null
-                                    )
-                                    Spacer(Modifier.width(Sp.l))
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        SectionLabel(T("Stages", "المراحل"))
-                                        Text(T("Call outcomes", "نتائج المكالمات"), style = MaterialTheme.typography.titleMedium)
-                                        Text(
-                                            T("$staged contacts have saved outcomes", "$staged جهة اتصال لها نتائج محفوظة"),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        val top = Stg.all.maxByOrNull { s -> list.entries.count { it.stage == s } }
-                                        if (top != null && staged > 0) {
-                                            Spacer(Modifier.height(2.dp))
-                                            Pill(
-                                                T("Top · ${Stg.label(top)}", "الأكثر · ${Stg.label(top)}"),
-                                                Stg.color(top), stageIcon(top)
-                                            )
-                                        }
-                                    }
-                                }
-                                if (staged == 0) {
-                                    Text(
-                                        T("Tag outcomes after calls to see the breakdown here.",
-                                            "صنّف نتائج المكالمات لعرض التفاصيل هنا."),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                } else {
-                                    Hairline(Modifier.padding(vertical = Sp.xs))
-                                    Stg.all.forEach { s ->
-                                        val n = list.entries.count { it.stage == s }
-                                        StageLegendRow(s, n, n / staged.toFloat(), f == 10 + s) { f = 10 + s }
-                                    }
-                                    val unstaged = answered - list.entries.count { St.isAnswered(it.status) && it.stage != Stg.NONE }
-                                    if (unstaged > 0) Text(
-                                        T("$unstaged answered calls have no stage yet", "$unstaged مكالمة تم الرد عليها بدون نتيجة"),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = 2.dp)
-                                    )
-                                }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(T("Call details", "تفاصيل المكالمات"), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                            Text("${rows.size}", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
+                        }
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            listOf(T("All", "الكل"), T("Answered", "تم الرد"), T("No answer", "لم يرد"),
+                                T("Failed", "فشل"), T("Unverified", "غير مؤكد")).forEachIndexed { i, label ->
+                                FilterPill(label, f == i) { f = i }
                             }
                         }
-                    }
-                }
-
-                item {
-                    Row(
-                        Modifier.fillMaxWidth().padding(top = Sp.s),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(filterName, style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.width(Sp.s))
-                        Text(
-                            "${rows.size}", style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.weight(1f))
-                        if (f != 0) TextButton(onClick = { f = 0 }) {
-                            Text(T("Show all", "عرض الكل"), style = MaterialTheme.typography.labelLarge)
+                        if (f >= 10) Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(Stg.label(f - 10), Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                            TextButton(onClick = { f = 0 }) { Text(T("Clear filter", "إلغاء الفلتر")) }
                         }
                     }
                 }
-                if (rows.isEmpty()) item {
-                    Text(
-                        T("Nothing here yet.", "لا يوجد شيء هنا بعد."),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = Sp.l)
-                    )
-                }
-                itemsIndexed(rows, key = { _, e -> e.id }) { i, e ->
-                    ResultRow(e, list.id, isFirst = i == 0, isLast = i == rows.lastIndex)
-                }
+                if (rows.isEmpty()) item { Text(T("No calls match this filter.", "لا توجد مكالمات مطابقة."), color = cs.onSurfaceVariant) }
+                itemsIndexed(rows, key = { _, e -> e.id }) { i, e -> ResultRow(e, list.id, i == 0, i == rows.lastIndex) }
+            }
+        }
+    }
+    if (picker) BSheet(T("Choose a campaign", "اختيار حملة"), { picker = false }, scrollable = false) {
+        LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
+            itemsIndexed(Store.lists, key = { _, l -> l.id }) { _, l ->
+                ListItem(headlineContent = { Text(l.name) }, supportingContent = { Text(T("${l.entries.size} contacts", "${l.entries.size} جهة اتصال")) },
+                    modifier = Modifier.selectable(selected = l.id == sel, role = Role.RadioButton) { Store.resultsListId = l.id; picker = false },
+                    trailingContent = { RadioButton(selected = l.id == sel, onClick = null) },
+                    colors = ListItemDefaults.colors(containerColor = cs.surface))
             }
         }
     }
@@ -397,50 +240,22 @@ private fun logIcon(s: Int): ImageVector = when (s) {
 @Composable
 private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
     val cs = MaterialTheme.colorScheme
-    val color = statusColor(l.status)
-    Column(
-        Modifier.fillMaxWidth()
-            .background(cs.surface)
-    ) {
-        Row(
-            Modifier.padding(start = Sp.m, end = Sp.m, top = 10.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.10f))
-                    .border(1.dp, color.copy(alpha = 0.15f), CircleShape),
-                Alignment.Center
-            ) { Icon(logIcon(l.status), null, tint = readable(color), modifier = Modifier.size(18.dp)) }
-            Spacer(Modifier.width(Sp.m))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    l.name.ifBlank { l.number }, style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                if (l.name.isNotBlank()) NumText(
-                    l.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(
-                        l.listName, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                    Text("·", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
-                    Text(
-                        "#${l.attempt}", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                    )
-                }
+    val shape = RoundedCornerShape(topStart = if (isFirst) 16.dp else 0.dp, topEnd = if (isFirst) 16.dp else 0.dp,
+        bottomStart = if (isLast) 16.dp else 0.dp, bottomEnd = if (isLast) 16.dp else 0.dp)
+    Column(Modifier.fillMaxWidth().clip(shape).background(cs.surface)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(logIcon(l.status), null, tint = readable(statusColor(l.status)), modifier = Modifier.size(20.dp))
+                Text(l.name.ifBlank { l.number }, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall.copy(
+                    textDirection = if (l.name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content))
+                NumText(clock(l.time), style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
             }
-            Spacer(Modifier.width(Sp.s))
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                NumText(clock(l.time), style = MaterialTheme.typography.labelMedium, color = cs.onSurface)
-                Text(
-                    St.label(l.status) + if (l.duration > 0) " · ${fmtDur(l.duration)}" else "",
-                    style = MaterialTheme.typography.labelSmall, color = readable(color), maxLines = 1
-                )
-            }
+            if (l.name.isNotBlank()) NumText(l.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+            Text(l.listName + " · #${l.attempt}", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
+            Text(St.label(l.status) + if (l.duration > 0) " · ${fmtDur(l.duration)}" else "",
+                style = MaterialTheme.typography.labelMedium, color = readable(statusColor(l.status)))
         }
-        if (!isLast) HorizontalDivider(color = cs.outlineVariant)
+        if (!isLast) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = cs.outlineVariant)
     }
 }
 
@@ -472,61 +287,33 @@ fun LogScreen() {
         },
         containerColor = Color.Transparent
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
-            Box(Modifier.padding(horizontal = Sp.xl)) {
-                V7HistoryHeader(
-                    total = Store.log.size,
-                    answered = Store.log.count { St.isConfirmedAnswered(it.status) },
-                    missed = Store.log.count { it.status == St.NO_ANSWER }
-                )
+        LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)) {
+            item {
+                Panel { Box(Modifier.padding(20.dp)) { V7HistoryHeader(Store.log.size,
+                    Store.log.count { St.isConfirmedAnswered(it.status) }, Store.log.count { it.status == St.NO_ANSWER }) } }
+                Spacer(Modifier.height(16.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf(-1 to T("All", "الكل"), St.ANSWERED to T("Answered", "تم الرد"), St.NO_ANSWER to T("No answer", "لم يرد"),
+                        St.FAILED to T("Failed", "فشل"), St.DONE to T("Unverified", "غير مؤكد")).forEach { (k, n) -> FilterPill(n, f == k) { f = k } }
+                }
             }
-            Spacer(Modifier.height(Sp.m))
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
-                horizontalArrangement = Arrangement.spacedBy(Sp.s)
-            ) {
-                listOf(
-                    -1 to T("All", "الكل"), St.ANSWERED to T("Answered", "ردّوا"),
-                    St.NO_ANSWER to T("No answer", "لم يردّوا"), St.FAILED to T("Failed", "فشل"),
-                    St.DONE to T("Unverified", "غير مؤكد")
-                ).forEach { (k, n) -> FilterPill(n, f == k) { f = k } }
+            if (shown.isEmpty()) item {
+                EmptyState(Icons.Rounded.History, T("No calls here", "لا توجد مكالمات"),
+                    if (Store.log.isEmpty()) T("Your call history will appear here.", "سجل مكالماتك هيظهر هنا.")
+                    else T("Try another filter.", "جرّب فلتر تاني."), Modifier.heightIn(min = 240.dp))
             }
-            if (shown.isEmpty()) {
-                EmptyState(
-                    Icons.Rounded.History, T("No calls logged", "لا يوجد سجل"),
-                    T("Every call will be listed here.", "كل مكالمة هتظهر هنا.")
-                )
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.m, bottom = Sp.l)
-                ) {
-                    groups.forEach { (day, items) ->
-                        item(key = "day-$day") {
-                            Row(
-                                Modifier.fillMaxWidth().padding(top = Sp.l, bottom = Sp.s),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                SectionLabel(day)
-                                Spacer(Modifier.width(Sp.s))
-                                Box(
-                                    Modifier.weight(1f).height(1.dp)
-                                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
-                                )
-                                Spacer(Modifier.width(Sp.s))
-                                Text(
-                                    "${items.size}", style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        itemsIndexed(items, key = { i, _ -> "$day-$i" }) { i, l ->
-                            LogRow(l, isFirst = i == 0, isLast = i == items.lastIndex)
-                        }
+            groups.forEach { (day, entries) ->
+                item(key = "day-$day") {
+                    Row(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(day, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                        Text("${entries.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                itemsIndexed(entries, key = { i, _ -> "$day-$i" }) { i, l -> LogRow(l, i == 0, i == entries.lastIndex) }
             }
         }
     }
+
     if (confirm) ConfirmDialog(T("Clear the whole call log?", "مسح كل السجل؟"), { confirm = false }) {
         Store.clearLog(); confirm = false; Store.notify(Tk.INFO, T("Call log cleared", "تم مسح السجل"))
     }

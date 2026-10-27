@@ -40,6 +40,5 @@ fun V7ResultsHeader(progress: Prog) {
         Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
             style = MaterialTheme.typography.labelMedium,
             color = cs.onSurfaceVariant)
-        HorizontalDivider(color = cs.outlineVariant)
     }
 }

@@ -1,1 +1,1 @@
-Precision Contrast screen redesign acceptance 18: contrast-first palette, deep-focus Live campaign hero, 3-action dock, white results card, high-contrast selected nav. Run tests, lint, signed update release.
+Coherent interface repair 19: neutral theme-aware Live, centered adaptive metrics, single results summary, outcome bars, scrollable history, shared forms and queue-stage guards. Run release tests/lint/signing.

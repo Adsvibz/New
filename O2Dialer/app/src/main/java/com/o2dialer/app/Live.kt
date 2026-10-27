@@ -75,23 +75,10 @@ private fun OutcomesPanel(p: Prog, remaining: Int) {
                     style = MaterialTheme.typography.labelMedium,
                     color = cs.onSurfaceVariant)
             }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                @Composable
-                fun resultCell(value: Int, title: String, color: Color, modifier: Modifier) {
-                    Column(modifier, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text("$value", style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold, color = color)
-                        Text(title, style = MaterialTheme.typography.labelMedium,
-                            color = cs.onSurfaceVariant, maxLines = 2)
-                    }
-                }
-                resultCell(p.answered, T("Answered", "تم الرد"),
-                    readable(Sem.success), Modifier.weight(1f))
-                resultCell(p.noAnswer, T("No answer", "لم يرد"),
-                    cs.onSurface, Modifier.weight(1f))
-                resultCell(p.failed, T("Failed", "فشل"),
-                    readable(Sem.danger), Modifier.weight(1f))
-            }
+            MetricGrid(listOf(
+                UiMetric("${p.answered}", T("Answered", "تم الرد"), readable(Sem.success)),
+                UiMetric("${p.noAnswer}", T("No answer", "لم يرد")),
+                UiMetric("${p.failed}", T("Failed", "فشل"), readable(Sem.danger))))
             if (p.unverified > 0) Text(
                 T("${p.unverified} calls are unverified", "${p.unverified} مكالمة غير مؤكدة"),
                 color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall
@@ -220,7 +207,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                     ) {
                         Text(
                             "0${i + 1}", style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold, fontSize = 9.sp
+                                fontWeight = FontWeight.Medium, fontSize = 12.sp
                             ),
                             color = cs.secondary
                         )
@@ -398,12 +385,9 @@ fun LiveScreen(act: MainActivity) {
         bottomBar = {
             if (active && showHero) {
                 Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.outlineVariant
-                    )
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
                         CallControls(c.status == CS.PAUSED)
                     }
                 }
@@ -413,7 +397,7 @@ fun LiveScreen(act: MainActivity) {
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             LicenseBanner()

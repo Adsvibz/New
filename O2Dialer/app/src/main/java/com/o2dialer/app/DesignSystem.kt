@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -115,7 +116,7 @@ fun BProgress(
 ) {
     val p by animateFloatAsState(
         progress.coerceIn(0f, 1f),
-        animationSpec = Motion.settle(), label = "bar"
+        animationSpec = tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS, easing = Motion.easeOut), label = "bar"
     )
 
     Box(modifier.fillMaxWidth().height(height).clip(CircleShape).background(track.copy(alpha = 0.55f))) {
@@ -132,7 +133,7 @@ fun ProgressRing(
 ) {
     val p by animateFloatAsState(
         progress.coerceIn(0f, 1f),
-        animationSpec = tween(900, easing = Motion.easeOut), label = "ring"
+        animationSpec = tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS, easing = Motion.easeOut), label = "ring"
     )
     Box(Modifier.size(size), Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
@@ -191,7 +192,7 @@ fun BButton(
             .clip(shape)
             .background(brush)
             .then(border)
-            .clickable(interactionSource = src, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = src, indication = rememberRipple(), enabled = enabled, role = Role.Button, onClick = onClick)
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
             .padding(horizontal = if (iconOnly) 0.dp else 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
@@ -219,12 +220,12 @@ fun SoftIconButton(
 ) {
     val cs = MaterialTheme.colorScheme
     val src = remember { MutableInteractionSource() }
-    val shape = CircleShape
+    val shape = RoundedCornerShape(12.dp)
     Box(
         modifier.size(48.dp).pressScale(src)
             .clip(shape).background(container)
-            .border(1.dp, cs.outline.copy(alpha = 0.7f), shape)
-            .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick),
+            .border(1.dp, cs.outlineVariant, shape)
+            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, onClick = onClick),
         Alignment.Center
     ) {
         Icon(icon, desc, tint = tint, modifier = Modifier.size(19.dp))
@@ -253,7 +254,7 @@ fun CircleAction(
                     else Modifier.background(container)
                 )
                 .then(if (outlined) Modifier.border(1.dp, cs.outline, CircleShape) else Modifier)
-                .clickable(interactionSource = src, indication = null, role = Role.Button, enabled = enabled, onClick = onClick),
+                .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, enabled = enabled, onClick = onClick),
             Alignment.Center
         ) { Icon(icon, null, tint = content, modifier = Modifier.size(25.dp)) }
         Text(
@@ -275,7 +276,7 @@ fun BTextField(
     val focused by src.collectIsFocusedAsState()
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
     val line by animateColorAsState(
-        if (isError) cs.error else if (focused) cs.primary else cs.outline,
+        if (isError) cs.error else if (focused) cs.primary else cs.outlineVariant,
         tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "fieldBorder"
     )
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -304,7 +305,7 @@ fun BTextField(
             interactionSource = src,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = cs.surface,
-                unfocusedContainerColor = cs.surfaceVariant.copy(alpha = 0.35f),
+                unfocusedContainerColor = cs.surfaceVariant,
                 errorContainerColor = cs.surface,
                 focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
@@ -354,14 +355,14 @@ fun Panel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(Rd.l)
     val interaction = remember { MutableInteractionSource() }
     val base = modifier
         .then(if (onClick != null) Modifier.pressScale(interaction, 0.99f) else Modifier)
         .clip(shape)
         .background(cs.surface)
         .border(1.dp, accent?.copy(alpha = 0.5f) ?: cs.outlineVariant, shape)
-        .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick) else Modifier)
+        .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = rememberRipple(), role = Role.Button, onClick = onClick) else Modifier)
     Column(base.fillMaxWidth(), content = content)
 }
 
@@ -486,19 +487,11 @@ fun EmptyState(
         modifier.fillMaxSize().padding(Sp.xxxl), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(Modifier.size(136.dp), Alignment.Center) {
-            Canvas(Modifier.fillMaxSize()) {
-                val c = this.size.minDimension / 2f
-                drawCircle(cs.primary.copy(alpha = 0.05f), radius = c * 0.98f)
-                drawCircle(cs.primary.copy(alpha = 0.08f), radius = c * 0.76f)
-                drawCircle(cs.secondary.copy(alpha = 0.10f), radius = c * 0.54f)
-            }
-            Box(Modifier.size(62.dp).clip(CircleShape).background(cs.primary.copy(alpha = 0.10f)), Alignment.Center) {
-                Icon(icon, null, tint = cs.primary, modifier = Modifier.size(27.dp))
-            }
+        Box(Modifier.size(64.dp).clip(RoundedCornerShape(20.dp)).background(cs.surfaceVariant), Alignment.Center) {
+            Icon(icon, null, tint = cs.primary, modifier = Modifier.size(28.dp))
         }
         Spacer(Modifier.height(Sp.xl))
-        Text(title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Sp.s))
         Text(
             sub, color = cs.onSurfaceVariant, textAlign = TextAlign.Center,
@@ -531,7 +524,11 @@ fun CountUp(
     color: Color = Color.Unspecified
 ) {
     val a = remember { Animatable(value.toFloat()) }
-    LaunchedEffect(value) { a.animateTo(value.toFloat(), tween(950, easing = Motion.easeOut)) }
+    val reduced = LocalReducedMotion.current
+    LaunchedEffect(value, reduced) {
+        if (reduced) a.snapTo(value.toFloat())
+        else a.animateTo(value.toFloat(), tween(Motion.ENTER_MS, easing = Motion.easeOut))
+    }
     Text(
         a.value.roundToInt().toString(), modifier = modifier,
         style = style.copy(fontFeatureSettings = "tnum"), color = color
@@ -597,14 +594,14 @@ fun StatusDot(s: Int) {
 fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val src = remember { MutableInteractionSource() }
-    val shape = RoundedCornerShape(50)
+    val shape = RoundedCornerShape(12.dp)
     Row(
         Modifier.clip(shape)
             .background(cs.surface)
             .border(1.dp, cs.outline.copy(alpha = 0.8f), shape)
             .pressScale(src, 0.94f)
-            .clickable(interactionSource = src, indication = null, role = Role.Button) { onClick() }
-            .heightIn(min = 48.dp).padding(horizontal = 15.dp),
+            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button) { onClick() }
+            .heightIn(min = 48.dp).padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = cs.primary, modifier = Modifier.size(16.dp))
@@ -641,7 +638,7 @@ fun BlendBar(
 ) {
     Column(
         Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = Sp.xl, end = Sp.l, top = 8.dp, bottom = 8.dp)
+            .padding(start = Sp.xl, end = Sp.l, top = 12.dp, bottom = 12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
@@ -651,7 +648,7 @@ fun BlendBar(
             Column(Modifier.weight(1f)) {
                 Text(
                     title, style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                    maxLines = 2, overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
                     Spacer(Modifier.height(2.dp))
@@ -680,7 +677,7 @@ fun BDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         title = if (title != null) { { Text(title, style = MaterialTheme.typography.titleLarge) } } else null,
@@ -778,7 +775,7 @@ fun BrandFab(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Mod
             .clip(shape)
             .background(Brush.horizontalGradient(listOf(cs.primary, cs.primary)))
             .border(1.dp, Color.White.copy(alpha = 0.16f), shape)
-            .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, onClick = onClick)
             .heightIn(min = 54.dp).padding(horizontal = 19.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {

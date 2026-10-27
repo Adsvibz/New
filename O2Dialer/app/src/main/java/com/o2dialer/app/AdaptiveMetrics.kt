@@ -17,9 +17,10 @@ data class UiMetric(val value: String, val label: String, val color: Color = Col
 /** Equal, centered columns; wraps by available width AND the user's font size. */
 @Composable
 fun MetricGrid(metrics: List<UiMetric>, modifier: Modifier = Modifier) {
+    if (metrics.isEmpty()) return
     val scale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        val columns = (maxWidth.value / (80f * scale)).toInt().coerceIn(1, metrics.size.coerceAtLeast(1))
+        val columns = (maxWidth.value / (88f * scale)).toInt().coerceIn(1, metrics.size.coerceAtLeast(1))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             metrics.chunked(columns).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -27,7 +28,7 @@ fun MetricGrid(metrics: List<UiMetric>, modifier: Modifier = Modifier) {
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             NumText(metric.value, Modifier.fillMaxWidth(),
-                                MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
+                                MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
                                 if (metric.color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else metric.color)
                             Text(metric.label, Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelMedium,
                                 textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
