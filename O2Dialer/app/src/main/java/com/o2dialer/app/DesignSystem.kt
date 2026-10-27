@@ -667,26 +667,15 @@ fun WhatsAppButton(number: String, size: Dp = 40.dp) {
     }
 }
 
-/** The O2 monogram shares its geometry with the adaptive launcher icon. */
+/** A handset and forward-flow arrow, shared with the adaptive launcher icon. */
 @Composable
 fun LogoMark(dp: Dp, color: Color = Cream) {
-    Canvas(Modifier.size(dp)) {
-        val unit = this.size.minDimension / 60f
-        val left = (this.size.width - 60f * unit) / 2f
-        val top = (this.size.height - 36f * unit) / 2f
-        drawCircle(
-            color, 14f * unit, Offset(left + 17f * unit, top + 18f * unit),
-            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f * unit)
-        )
-        val two = androidx.compose.ui.graphics.Path().apply {
-            moveTo(left + 39f * unit, top + 10f * unit)
-            cubicTo(left + 39f * unit, top + 2f * unit, left + 55f * unit, top + 2f * unit, left + 55f * unit, top + 10f * unit)
-            cubicTo(left + 55f * unit, top + 16f * unit, left + 39f * unit, top + 22f * unit, left + 39f * unit, top + 30f * unit)
-            lineTo(left + 55f * unit, top + 30f * unit)
-        }
-        drawPath(two, color, style = androidx.compose.ui.graphics.drawscope.Stroke(
-            width = 5f * unit, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-    }
+    Icon(
+        painter = androidx.compose.ui.res.painterResource(R.drawable.ic_brand_mark),
+        contentDescription = null,
+        tint = color,
+        modifier = Modifier.size(dp)
+    )
 }
 
 // ====================================================================== top bar

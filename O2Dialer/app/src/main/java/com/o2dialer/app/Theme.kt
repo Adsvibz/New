@@ -88,14 +88,10 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
-private val Outfit = FontFamily(
-    Font(R.font.outfit_regular, FontWeight.Normal),
-    Font(R.font.outfit_bold, FontWeight.Bold)
-)
-
-private val PlexArabic = FontFamily(
-    Font(R.font.plex_arabic_regular, FontWeight.Normal),
-    Font(R.font.plex_arabic_bold, FontWeight.Bold)
+private val AppFont = FontFamily(
+    Font(R.font.tajawal_regular, FontWeight.Normal),
+    Font(R.font.tajawal_medium, FontWeight.Medium),
+    Font(R.font.tajawal_bold, FontWeight.Bold)
 )
 
 
@@ -149,14 +145,14 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
     fun tr(v: Float): TextUnit = if (arabic) 0.sp else v.sp
     fun display(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
         fontFamily = ff,
-        fontWeight = if (arabic) FontWeight.Bold else w,
+        fontWeight = w,
         fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track),
         fontFeatureSettings = "lnum"
     )
     fun text(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
         fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
     )
-    val b = FontWeight.Bold
+    val b = FontWeight.Medium
     val n = FontWeight.Normal
     return Typography(
         displayLarge = display(n, 58, 60, -1.4f),
@@ -164,9 +160,9 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
         displaySmall = display(n, 36, 40, -0.8f),
         headlineLarge = display(n, 33, 37, -0.6f),
         headlineMedium = display(n, 27, 31, -0.4f),
-        headlineSmall = text(b, 22, 28, -0.4f),
-        titleLarge = text(b, 19, 25, -0.3f),
-        titleMedium = text(b, 16, 22, -0.2f),
+        headlineSmall = text(FontWeight.Bold, 22, 28),
+        titleLarge = text(FontWeight.Bold, 20, 28),
+        titleMedium = text(b, 16, 24),
         titleSmall = text(b, 14, 20),
         bodyLarge = text(n, 16, 24),
         bodyMedium = text(n, 14, 21),
@@ -188,9 +184,9 @@ fun AppTheme(content: @Composable () -> Unit) {
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
     } else if (dark) NocturneDark else LightC
-    // IBM Plex Sans Arabic for Arabic mode, Outfit for English: one consistent voice per language.
+    // Bundled Tajawal keeps Arabic, Latin and mixed-script content visually consistent offline.
     val arabic = c.lang == 1
-    val ty = remember(c.lang) { typo(if (arabic) PlexArabic else Outfit, arabic) }
+    val ty = remember(c.lang) { typo(AppFont, arabic) }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
