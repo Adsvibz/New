@@ -35,14 +35,14 @@ private fun Hint(text: String) {
 private fun SettingsFooter() {
     val cs = MaterialTheme.colorScheme
     Column(
-        Modifier.fillMaxWidth().padding(top = Sp.l),
+        Modifier.fillMaxWidth().padding(top = Sp.s),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Sp.s)
     ) {
         Box(
-            Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
+            Modifier.size(34.dp).clip(RoundedCornerShape(10.dp))
                 .background(cs.surfaceVariant),
             Alignment.Center
-        ) { LogoMark(25.dp, color = cs.primary) }
+        ) { LogoMark(21.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
             T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
