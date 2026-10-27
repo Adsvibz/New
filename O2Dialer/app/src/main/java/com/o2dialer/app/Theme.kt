@@ -44,11 +44,11 @@ object Sp {
 
 /** Corner radii. Softer than stock Material, still disciplined. */
 object Rd {
-    val xs = 10.dp
-    val s = 14.dp
-    val m = 18.dp
-    val l = 24.dp
-    val xl = 30.dp
+    val xs = 6.dp
+    val s = 9.dp
+    val m = 12.dp
+    val l = 16.dp
+    val xl = 20.dp
 }
 
 /** Semantic status colours. */
@@ -106,10 +106,10 @@ private val LightC = lightColorScheme(
     secondaryContainer = Color(0xFFEAF0FC), onSecondaryContainer = Color(0xFF223B69),
     tertiary = Color(0xFF0D966A), onTertiary = Color.White,
     tertiaryContainer = Color(0xFFDDF7ED), onTertiaryContainer = Color(0xFF07533D),
-    background = Color(0xFFF7F9FC), onBackground = Color(0xFF101828),
+    background = Color(0xFFFAFBFD), onBackground = Color(0xFF101828),
     surface = Color.White, onSurface = Color(0xFF101828),
-    surfaceVariant = Color(0xFFF1F4F9), onSurfaceVariant = Color(0xFF65728A),
-    outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFEDF1F6),
+    surfaceVariant = Color(0xFFF3F5F8), onSurfaceVariant = Color(0xFF65728A),
+    outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFE7ECF3),
     error = Color(0xFFB42318), onError = Color.White,
     errorContainer = Color(0xFFFFE8E8), onErrorContainer = Color(0xFF8F262D),
     inverseSurface = Color(0xFF15203A), inverseOnSurface = Color.White,
@@ -169,11 +169,11 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
     return Typography(
         displayLarge = display(b, 58, 60, -1.4f),
         displayMedium = display(b, 46, 48, -1.1f),
-        displaySmall = display(b, 36, 40, -0.8f),
-        headlineLarge = display(b, 33, 37, -0.6f),
-        headlineMedium = display(b, 27, 31, -0.4f),
-        headlineSmall = text(FontWeight.Bold, 22, 28),
-        titleLarge = text(FontWeight.Bold, 20, 28),
+        displaySmall = display(b, 32, 37, -0.6f),
+        headlineLarge = display(b, 29, 35, -0.4f),
+        headlineMedium = display(b, 24, 30, -0.3f),
+        headlineSmall = text(FontWeight.Bold, 20, 26),
+        titleLarge = text(FontWeight.Bold, 19, 26),
         titleMedium = text(b, 16, 24),
         titleSmall = text(b, 14, 20),
         bodyLarge = text(n, 16, 24),
