@@ -20,22 +20,22 @@ fun V7DetailHeader(list: CallList, progress: Prog) {
     val cs = MaterialTheme.colorScheme
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(16.dp),
         color = cs.surface,
         border = BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(shape = RoundedCornerShape(14.dp), color = cs.primaryContainer) {
                     Icon(Icons.Rounded.Groups, null, tint = cs.primary,
-                        modifier = Modifier.padding(12.dp).size(23.dp))
+                        modifier = Modifier.padding(8.dp).size(20.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(T("Contacts", "جهات الاتصال"),
                         style = MaterialTheme.typography.labelSmall,
                         color = cs.primary, fontWeight = FontWeight.Bold)
-                    Text(list.name, style = MaterialTheme.typography.titleLarge,
+                    Text(list.name, style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold, color = cs.onSurface)
                 }
             }
@@ -44,7 +44,7 @@ fun V7DetailHeader(list: CallList, progress: Prog) {
                 UiMetric("${progress.remaining}", T("Remaining", "متبقي"))))
             LinearProgressIndicator(
                 progress = { progress.pct / 100f },
-                modifier = Modifier.fillMaxWidth().height(7.dp),
+                modifier = Modifier.fillMaxWidth().height(4.dp),
                 color = cs.primary, trackColor = cs.surfaceVariant
             )
         }
