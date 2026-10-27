@@ -45,14 +45,14 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
         else -> cs.primary
     }
     Surface(
-        shape = RoundedCornerShape(24.dp), color = cs.surface,
+        shape = RoundedCornerShape(18.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.Start) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = emphasis.copy(alpha = 0.1f), shape = CircleShape) {
                     Icon(Icons.Rounded.PhoneInTalk, null, tint = emphasis,
-                        modifier = Modifier.padding(11.dp).size(21.dp))
+                        modifier = Modifier.padding(9.dp).size(20.dp))
                 }
                 Spacer(Modifier.width(11.dp))
                 Column(Modifier.weight(1f)) {
@@ -67,14 +67,13 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
             if (state.message.isNotBlank() && state.message !in setOf("Paused", "متوقفة مؤقتًا"))
                 Text(state.message, Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-            HorizontalDivider(color = cs.outlineVariant)
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
                 Text(name.ifBlank { number.ifBlank { if (finished) T("${progress.called} contacts processed", "تمت معالجة ${progress.called} جهة اتصال") else if (state.evaluating || state.awaitingStage) T("Finishing this step", "إتمام الخطوة الحالية") else T("Waiting for the queue", "بانتظار قائمة الاتصال") } },
-                    modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.headlineSmall.copy(
+                    modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleLarge.copy(
                         textDirection = if (name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = cs.onSurface,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Start, color = cs.onSurface,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (number.isNotBlank() && name.isNotBlank() && name != number) {
                     NumText(number, color = cs.onSurfaceVariant,
@@ -88,7 +87,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                     Text("${progress.pct}%", fontWeight = FontWeight.Bold, color = cs.primary)
                 }
                 BProgress(progress = progress.pct / 100f,
-                    modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape),
+                    modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
                     color = cs.primary, track = cs.surfaceVariant)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(T("${progress.called} of ${progress.total} called",
@@ -103,7 +102,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
             if (!finished && seconds > 0) {
                 Surface(color = cs.primaryContainer.copy(alpha = 0.6f),
                     shape = RoundedCornerShape(12.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(13.dp),
+                    Row(Modifier.fillMaxWidth().padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Timer, null, tint = cs.primary)
                         Spacer(Modifier.width(8.dp))
