@@ -85,7 +85,7 @@ fun V7CampaignWorkspace(
             }
         }
         if (!selecting) item {
-            Surface(shape = RoundedCornerShape(16.dp), color = cs.surface,
+            Surface(shape = RoundedCornerShape(12.dp), color = cs.surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -94,12 +94,12 @@ fun V7CampaignWorkspace(
                             modifier = Modifier.weight(1f))
                         Icon(Icons.Rounded.Insights, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
                     }
-                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         CountUp(called, style = MaterialTheme.typography.headlineLarge, color = cs.onSurface)
                         Text(T("of $total contacts called", "من أصل $total جهة اتصال"),
                             color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Start)
                     }
                     LinearProgressIndicator(progress = { completion },
                         modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
@@ -209,10 +209,10 @@ private fun V7CampaignRow(
             .combinedClickable(onClick = onOpen, onLongClick = onLongPress,
                 onLongClickLabel = T("Select campaign", "تحديد الحملة"))
             .semantics { this.selected = selected },
-        shape = RoundedCornerShape(14.dp), color = cs.surface,
+        shape = RoundedCornerShape(12.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.primary else cs.outlineVariant)
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(13.dp)) {
                     Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary,
