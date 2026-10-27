@@ -58,23 +58,28 @@ import kotlinx.coroutines.delay
 @Composable
 private fun OutcomesPanel(p: Prog, remaining: Int) {
     val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = cs.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    SectionLabel(T("Outcomes", "النتائج"))
-                    Text(
-                        T("${p.called} calls placed", "${p.called} مكالمة تم إجراؤها"),
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
-                Pill(T("$remaining left", "$remaining متبقي"), cs.primary)
+                Text(T("Call outcomes", "نتائج المكالمات"),
+                    style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                Text(T("${p.called} placed", "${p.called} مكالمة"),
+                    style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
             }
-            MetricGrid(listOf(UiMetric("${p.answered}", T("Answered", "تم الرد"), readable(Sem.success)),
+            MetricGrid(listOf(
+                UiMetric("${p.answered}", T("Answered", "تم الرد"), readable(Sem.success)),
                 UiMetric("${p.noAnswer}", T("No answer", "لم يرد"), readable(Sem.warning)),
-                UiMetric("${p.failed}", T("Failed", "فشل"), readable(Sem.danger))))
-            if (p.unverified > 0) Text(T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
-                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                UiMetric("${p.failed}", T("Failed", "فشل"), readable(Sem.danger))
+            ))
+            if (p.unverified > 0) Text(
+                T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
+                color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
