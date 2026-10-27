@@ -204,7 +204,7 @@ private fun V7CampaignRow(
     var reset by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
             .combinedClickable(onClick = onOpen, onLongClick = onLongPress,
                 onLongClickLabel = T("Select campaign", "تحديد الحملة"))
             .semantics { this.selected = selected },
@@ -213,9 +213,8 @@ private fun V7CampaignRow(
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = cs.primaryContainer, shape = RoundedCornerShape(13.dp)) {
-                    Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary,
-                        modifier = Modifier.padding(8.dp).size(19.dp))
+                Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary, modifier = Modifier.size(21.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -246,7 +245,7 @@ private fun V7CampaignRow(
                     }
                 }
             }
-            if (active) Pill(sessionLabel(Store.camp), cs.primary)
+            if (active) Text(sessionLabel(Store.camp), color = cs.primary, style = MaterialTheme.typography.labelMedium)
             BProgress(progress = p.pct / 100f,
                 modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
                 color = cs.primary, track = cs.surfaceVariant)
