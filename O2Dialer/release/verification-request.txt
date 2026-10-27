@@ -1,1 +1,1 @@
-Precision design pass: verify shared surfaces and typography rhythm, campaign density, results hierarchy, live controls and signed in-app update delivery. Candidate 14.
+Precision structural redesign acceptance: unboxed campaign, contact and history summaries, results layout, typography tokens and calling controls; run automated tests, lint, signing and in-app release. Candidate 15.
