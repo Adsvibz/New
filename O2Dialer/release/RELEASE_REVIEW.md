@@ -53,4 +53,11 @@ The existing signing keystore and its build configuration are committed in this 
 
 ## Verification results
 
-To be filled with actual command/run outcomes. No physical-device behavior is marked verified by code review alone.
+- GitHub Actions run [40460783024](https://github.com/Adsvibz/New/actions/runs/40460783024) completed successfully for commit `bd91f6becac93bac9f5965db1c73bfc1d2ee9a63`.
+- Release unit tests: 9 passed. Fatal Android lint: passed. R8/minified release packaging: passed.
+- Artifact `O2Dialer-7.0-release` (ID `12713909642`) was generated and retained by GitHub Actions through 2027-01-25.
+- APK identity: `com.o2dialer.app`, version name `7.0`, version code `157`, minimum SDK 26, target SDK 34; licensing was enabled for the build.
+- APK SHA-256: `75691eba18885f9ab86f95314e2332dd92e4bf406d3b40a83a70209ad491e3c2`; the downloaded artifact checksum was independently rechecked successfully.
+- APK signature verification passed with one RSA-2048 signer using APK Signature Scheme v2. Certificate SHA-256: `c484e4216d54bcf601fb00850c5673bd36b1c5451ad71158a94f5450f1cfae3b`.
+- The extracted APK archive passed an independent ZIP integrity check. Workflow metadata also verified that the APK is not debuggable.
+- Android runtime tooling was unavailable in the final execution environment. Consequently, no emulator result is claimed; all hardware-, telephony-, OEM-, upgrade- and accessibility-dependent checks above remain required on physical devices.
