@@ -354,7 +354,7 @@ fun Panel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(Rd.m)
+    val shape = RoundedCornerShape(12.dp)
     val interaction = remember { MutableInteractionSource() }
     val base = modifier
         .then(if (onClick != null) Modifier.pressScale(interaction, 0.99f) else Modifier)
@@ -641,7 +641,7 @@ fun BlendBar(
 ) {
     Column(
         Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = Sp.xl, end = Sp.l, top = Sp.m, bottom = Sp.m)
+            .padding(start = Sp.xl, end = Sp.l, top = 8.dp, bottom = 8.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
@@ -680,7 +680,7 @@ fun BDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         title = if (title != null) { { Text(title, style = MaterialTheme.typography.titleLarge) } } else null,
