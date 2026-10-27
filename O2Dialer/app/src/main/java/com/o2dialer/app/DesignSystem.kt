@@ -232,38 +232,6 @@ fun SoftIconButton(
     }
 }
 
-/** A large circular control with a caption underneath, used by the live call bar. */
-@Composable
-fun CircleAction(
-    icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
-    container: Color = MaterialTheme.colorScheme.surface,
-    content: Color = MaterialTheme.colorScheme.onSurface,
-    outlined: Boolean = true, enabled: Boolean = true
-) {
-    val src = remember { MutableInteractionSource() }
-    val cs = MaterialTheme.colorScheme
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Box(
-            Modifier.size(62.dp).pressScale(src, 0.94f)
-                .semantics { contentDescription = label }
-                .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
-                .shadow(if (outlined) 6.dp else 14.dp, CircleShape, ambientColor = container.copy(alpha = 0.4f))
-                .clip(CircleShape)
-                .then(
-                    if (outlined) Modifier.background(container)
-                    else Modifier.background(container)
-                )
-                .then(if (outlined) Modifier.border(1.dp, cs.outline, CircleShape) else Modifier)
-                .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, enabled = enabled, onClick = onClick),
-            Alignment.Center
-        ) { Icon(icon, null, tint = content, modifier = Modifier.size(25.dp)) }
-        Text(
-            label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = cs.onSurfaceVariant, maxLines = 2, textAlign = TextAlign.Center
-        )
-    }
-}
-
 // ====================================================================== inputs
 @Composable
 fun BTextField(
@@ -276,7 +244,7 @@ fun BTextField(
     val focused by src.collectIsFocusedAsState()
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
     val line by animateColorAsState(
-        if (isError) cs.error else if (focused) cs.primary else cs.outlineVariant,
+        if (isError) cs.error else if (focused) cs.primary else cs.outline,
         tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "fieldBorder"
     )
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
