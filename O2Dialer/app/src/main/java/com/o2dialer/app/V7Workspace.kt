@@ -77,10 +77,10 @@ fun V7CampaignWorkspace(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(T("Campaigns", "الحملات"),
-                        style = MaterialTheme.typography.headlineMedium, color = cs.onBackground)
+                        style = MaterialTheme.typography.titleLarge, color = cs.onBackground)
                 }
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(16.dp)) {
-                    Box(Modifier.padding(13.dp)) { LogoMark(25.dp, cs.primary) }
+                    Box(Modifier.padding(9.dp)) { LogoMark(22.dp, cs.primary) }
                 }
             }
         }
@@ -155,7 +155,7 @@ fun V7CampaignWorkspace(
                     }
                 } else {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(T("Your campaigns", "حملاتك"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        Text(T("Your campaigns", "حملاتك"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                         Text("${lists.size}", color = cs.onSurfaceVariant)
                     }
                 }
@@ -205,18 +205,18 @@ private fun V7CampaignRow(
     var reset by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
             .combinedClickable(onClick = onOpen, onLongClick = onLongPress,
                 onLongClickLabel = T("Select campaign", "تحديد الحملة"))
             .semantics { this.selected = selected },
-        shape = RoundedCornerShape(18.dp), color = cs.surface,
+        shape = RoundedCornerShape(14.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.primary else cs.outlineVariant)
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(13.dp)) {
                     Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary,
-                        modifier = Modifier.padding(11.dp).size(20.dp))
+                        modifier = Modifier.padding(8.dp).size(19.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
