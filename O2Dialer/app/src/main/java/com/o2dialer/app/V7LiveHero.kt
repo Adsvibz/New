@@ -45,10 +45,10 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
         else -> cs.primary
     }
     Surface(
-        shape = RoundedCornerShape(18.dp), color = cs.surface,
+        shape = RoundedCornerShape(12.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.Start) {
+        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp), horizontalAlignment = Alignment.Start) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = emphasis.copy(alpha = 0.1f), shape = CircleShape) {
                     Icon(Icons.Rounded.PhoneInTalk, null, tint = emphasis,
@@ -71,7 +71,7 @@ fun V7LiveHero(state: CampState, list: CallList, progress: Prog, now: Long) {
                 Text(contactLabel, color = cs.onSurfaceVariant,
                     fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.6.sp)
                 Text(name.ifBlank { number.ifBlank { if (finished) T("${progress.called} contacts processed", "تمت معالجة ${progress.called} جهة اتصال") else if (state.evaluating || state.awaitingStage) T("Finishing this step", "إتمام الخطوة الحالية") else T("Waiting for the queue", "بانتظار قائمة الاتصال") } },
-                    modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleLarge.copy(
+                    modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleMedium.copy(
                         textDirection = if (name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Start, color = cs.onSurface,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
