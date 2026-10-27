@@ -122,3 +122,50 @@ jobs:
           fi
           gh release upload "$TAG" O2Dialer-7.0-release.apk update.json SHA256SUMS signing-verification.txt apk-metadata.txt build-provenance.txt --clobber
           gh release edit "$TAG" --draft=false --latest
+
+  publish_browser_preview:
+    name: Update native browser preview (optional)
+    needs: [build, publish_update]
+    if: github.ref == 'refs/heads/design/o2dialer-v7-rebuild'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Download verified release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: O2Dialer-7.0-release
+          path: preview-release
+      - name: Check browser preview connection and current release
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: \${{ github.token }}
+          APPETIZE_API_TOKEN: \${{ secrets.APPETIZE_API_TOKEN }}
+          APPETIZE_PUBLIC_KEY: \${{ secrets.APPETIZE_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$APPETIZE_API_TOKEN" || -z "$APPETIZE_PUBLIC_KEY" ]]; then
+            echo "Native browser preview is not connected. Add both APPETIZE_API_TOKEN and APPETIZE_PUBLIC_KEY as GitHub Actions secrets."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          VERSION_CODE=$(python3 -c 'import json; print(json.load(open("preview-release/update.json"))["versionCode"])')
+          LATEST=$(gh release view --json tagName --jq '.tagName' 2>/dev/null || true)
+          if [[ "$LATEST" != "o2dialer-build-$VERSION_CODE" ]]; then
+            echo "Skipping an outdated APK; only the latest published release may replace the native browser preview."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+      - name: Update real Android app on Appetize
+        if: steps.gate.outputs.enabled == 'true'
+        uses: appetizeio/github-action-appetize@v1.1.0
+        with:
+          apiToken: \${{ secrets.APPETIZE_API_TOKEN }}
+          publicKey: \${{ secrets.APPETIZE_PUBLIC_KEY }}
+          platform: android
+          appFile: preview-release/O2Dialer-7.0-release.apk
+          fileType: apk
+          note: O2Dialer native preview • \${{ github.sha }}
