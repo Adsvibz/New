@@ -1,1 +1,1 @@
-Precision structural redesign acceptance: unboxed campaign, contact and history summaries, results layout, typography tokens and calling controls; run automated tests, lint, signing and in-app release. Candidate 15.
+Precision integrated UI pass 16: compact unboxed history rows, enhanced campaign hierarchy, lighter live controls and hero, confirm build tests lint signing and OTA publication.
