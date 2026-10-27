@@ -19,14 +19,14 @@ fun V7HistoryHeader(total: Int, answered: Int, missed: Int) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = cs.surface,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(T("Summary", "الملخص"),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold)
                 }
                 Icon(Icons.Rounded.History, null, tint = cs.primary)
