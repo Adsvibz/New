@@ -400,17 +400,14 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
     val color = statusColor(l.status)
     Column(
         Modifier.fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(Rd.m))
             .background(cs.surface)
-            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
     ) {
         Row(
-            Modifier.padding(start = Sp.l, end = Sp.l, top = 12.dp, bottom = 12.dp),
+            Modifier.padding(start = Sp.m, end = Sp.m, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                Modifier.size(38.dp).clip(CircleShape).background(color.copy(alpha = 0.10f))
+                Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.10f))
                     .border(1.dp, color.copy(alpha = 0.15f), CircleShape),
                 Alignment.Center
             ) { Icon(logIcon(l.status), null, tint = readable(color), modifier = Modifier.size(18.dp)) }
@@ -421,7 +418,7 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
                     maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 if (l.name.isNotBlank()) NumText(
-                    l.number, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
+                    l.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(
@@ -443,6 +440,7 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
                 )
             }
         }
+        if (!isLast) HorizontalDivider(color = cs.outlineVariant)
     }
 }
 
