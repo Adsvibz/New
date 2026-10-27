@@ -20,14 +20,14 @@ fun MetricGrid(metrics: List<UiMetric>, modifier: Modifier = Modifier) {
     val scale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val columns = (maxWidth.value / (80f * scale)).toInt().coerceIn(1, metrics.size.coerceAtLeast(1))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             metrics.chunked(columns).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { metric ->
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             NumText(metric.value, Modifier.fillMaxWidth(),
-                                MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, textAlign = TextAlign.Center),
+                                MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
                                 if (metric.color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else metric.color)
                             Text(metric.label, Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelMedium,
                                 textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
