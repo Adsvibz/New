@@ -120,19 +120,18 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
     val canStage = St.isAnswered(e.status)
     Column(
         Modifier.fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(Rd.m))
+            .clip(RoundedCornerShape(10.dp))
             .background(cs.surface)
-            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(10.dp))
             .then(if (canStage) Modifier.clickable { Store.stageTarget = listId to e.id } else Modifier)
     ) {
         Row(
-            Modifier.padding(start = Sp.l, end = Sp.m, top = 13.dp, bottom = 13.dp),
+            Modifier.padding(start = Sp.l, end = Sp.m, top = 9.dp, bottom = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Avatar(
                 e.name.ifBlank { e.number },
-                if (e.stage != Stg.NONE) Stg.color(e.stage) else statusColor(e.status), size = 42.dp
+                if (e.stage != Stg.NONE) Stg.color(e.stage) else statusColor(e.status), size = 34.dp
             )
             Spacer(Modifier.width(Sp.m))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -150,7 +149,7 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
                 )
             }
         }
-        Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) { ContactMetadata(e, listId, showTime = true) }
+        Box(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)) { ContactMetadata(e, listId, showTime = true) }
     }
 }
 
