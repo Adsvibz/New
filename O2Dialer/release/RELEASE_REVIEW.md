@@ -62,4 +62,12 @@ The existing signing keystore and its build configuration are committed in this 
 - The extracted APK archive passed an independent ZIP integrity check. Workflow metadata also verified that the APK is not debuggable.
 - Android runtime tooling was unavailable in the final execution environment. Consequently, no emulator result is claimed; all hardware-, telephony-, OEM-, upgrade- and accessibility-dependent checks above remain required on physical devices.
 
-The first successful candidate above targeted API 34 and is retained as reproducible evidence, but it does not meet the Google Play target requirement in force from 2026-08-31. The build toolchain and application target were subsequently raised to API 36; the final candidate must repeat all automated checks before Play submission readiness is claimed.
+The first successful candidate above targeted API 34 and is retained as reproducible evidence. The final candidate raised the build toolchain and application target to API 36 and repeated the complete verification contract successfully:
+
+- Final GitHub Actions run [40461569301](https://github.com/Adsvibz/New/actions/runs/40461569301) completed successfully for commit `53633463109594273f51c3ce8c7876503df0137f`.
+- Gradle 8.11.1, Android Gradle Plugin 8.10.1, compile SDK 36 and target SDK 36 were used; minimum SDK remains 26.
+- 9 tests passed with 0 failures or ignored tests; fatal lint passed with 0 errors; R8/minified release packaging passed.
+- Final artifact `O2Dialer-7.0-release` (ID `12714833061`) contains version `7.0` (code `158`) with licensing enabled and is retained through 2027-01-25.
+- Final APK SHA-256: `91bcf33c00a8584632ba683b2419a6edfc5bd2aa485f6d1dfc8ee1ef29fc01eb`; downloaded checksum and ZIP integrity were independently rechecked successfully.
+- Signing identity is unchanged and independently reconfirmed: one RSA-2048 signer, APK Signature Scheme v2, certificate SHA-256 `c484e4216d54bcf601fb00850c5673bd36b1c5451ad71158a94f5450f1cfae3b`.
+- Lint reports 20 non-fatal warnings and one hint: dependency update notices, intentionally required telephony/device-license identifiers, application-context false positives, KTX style suggestions and launcher/Compose style improvements. None are compile, packaging, signing or fatal correctness failures; dependency upgrades require a separately tested compatibility cycle.
