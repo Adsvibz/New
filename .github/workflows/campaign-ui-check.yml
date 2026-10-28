@@ -5,8 +5,17 @@ on:
       - design/o2dialer-v7-rebuild
     paths:
       - 'O2Dialer/app/src/main/java/com/o2dialer/app/V7Workspace.kt'
+      - 'O2Dialer/app/src/main/java/com/o2dialer/app/MainActivity.kt'
+      - 'O2Dialer/app/src/main/java/com/o2dialer/app/Components.kt'
       - 'O2Dialer/gradle/**'
       - 'O2Dialer/gradlew'
+      - '.github/workflows/campaign-ui-check.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'O2Dialer/app/src/main/java/com/o2dialer/app/V7Workspace.kt'
+      - 'O2Dialer/app/src/main/java/com/o2dialer/app/MainActivity.kt'
+      - 'O2Dialer/app/src/main/java/com/o2dialer/app/Components.kt'
       - '.github/workflows/campaign-ui-check.yml'
   workflow_dispatch:
 permissions:
