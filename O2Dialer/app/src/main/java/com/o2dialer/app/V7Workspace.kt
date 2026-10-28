@@ -63,7 +63,7 @@ fun V7CampaignWorkspace(
 }
 
 @Composable
-private fun PrecisionCampaignTheme(content: @Composable () -> Unit) {
+fun PrecisionCampaignTheme(content: @Composable () -> Unit) {
     val family = remember(Store.cfg.lang) {
         if (Store.cfg.lang == 1) {
             FontFamily(Font(R.font.plex_arabic_regular), Font(R.font.plex_arabic_bold, FontWeight.Bold))
