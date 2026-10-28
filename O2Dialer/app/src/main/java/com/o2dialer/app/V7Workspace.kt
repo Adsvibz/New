@@ -46,6 +46,7 @@ private val Muted = Color(0xFF8E95A2)
 private val Soft = Color(0xFFF4F5F7)
 private val Line = Color(0xFFEBECEF)
 private val ProgressBlue = Color(0xFF2563EB)
+private fun displayNumber(n: Int): String = java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(n)
 private val Green = Color(0xFF047857)
 private val Amber = Color(0xFFB45309)
 
@@ -76,8 +77,8 @@ private fun PrecisionCampaignTheme(content: @Composable () -> Unit) {
         lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
     )
     val typography = MaterialTheme.typography.copy(
-        headlineMedium = type(24, 30, FontWeight.Bold),
-        titleLarge = type(20, 26, FontWeight.Bold),
+        headlineMedium = type(24, 30, FontWeight.SemiBold),
+        titleLarge = type(20, 26, FontWeight.SemiBold),
         titleMedium = type(15, 21, FontWeight.Bold),
         titleSmall = type(13, 19, FontWeight.Bold),
         bodyLarge = type(14, 21),
@@ -163,7 +164,7 @@ private fun PrecisionCampaignContent(
         "active" to lists.count { statusOf(it) == "active" },
         "completed" to lists.count { statusOf(it) == "completed" },
         "paused" to lists.count { statusOf(it) == "paused" },
-        "ready" to lists.count { statusOf(it) == "ready" }
+        "scheduled" to 0
     )
     fun toggle(id: String) {
         selecting = true
@@ -173,30 +174,31 @@ private fun PrecisionCampaignContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White).statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
+
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text("O2DIALER 7.0", style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.weight(1f))
-                TextButton(onClick = {
-                    Store.updateCfg { it.copy(lang = if (it.lang == 1) 0 else 1) }
-                }, contentPadding = PaddingValues(horizontal = 6.dp), modifier = Modifier.height(32.dp)) {
-                    Icon(Icons.Rounded.Translate, null, modifier = Modifier.size(16.dp), tint = Muted)
-                    Spacer(Modifier.width(4.dp))
-                    Text(if (Store.cfg.lang == 1) "English" else "العربية",
-                        style = MaterialTheme.typography.labelSmall, color = Muted)
+                    fontWeight = FontWeight.SemiBold, color = Muted, modifier = Modifier.weight(1f))
+                TextButton(onClick = { Store.updateCfg { it.copy(lang = if (it.lang == 1) 0 else 1) } },
+                    modifier = Modifier.height(30.dp), contentPadding = PaddingValues(horizontal = 4.dp)) {
+                    Icon(Icons.Rounded.Translate, null, modifier = Modifier.size(15.dp), tint = Muted)
+                    Spacer(Modifier.width(5.dp))
+                    Text(if (Store.cfg.lang == 1) "English" else "العربية", fontSize = 11.sp, color = Muted)
                 }
+                Spacer(Modifier.width(9.dp))
+                Icon(Icons.Rounded.Smartphone, null, tint = Muted, modifier = Modifier.size(15.dp))
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(11.dp))
             BoxWithConstraints(Modifier.fillMaxWidth()) {
-                val narrow = maxWidth < 340.dp || fontScale > 1.25f
+                val narrow = maxWidth < 337.dp || fontScale > 1.3f
                 if (narrow) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                         Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium)
-                        Text(T(lists.size.toString() + " campaigns · " + total + " contacts",
-                            lists.size.toString() + " حملات · " + total + " جهة اتصال"),
+                        Text(T("${lists.size} campaigns · ${displayNumber(total)} contacts",
+                            "${lists.size} حملات · ${displayNumber(total)} جهة اتصال"),
                             color = Muted, style = MaterialTheme.typography.bodySmall)
                         HeaderControls(onCreate, selecting, onSelect = {
                             selecting = !selecting
@@ -204,8 +206,8 @@ private fun PrecisionCampaignContent(
                         })
                     }
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                             Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier.weight(1f))
                             HeaderControls(onCreate, selecting, onSelect = {
@@ -213,8 +215,9 @@ private fun PrecisionCampaignContent(
                                 if (!selecting) selected.clear()
                             })
                         }
-                        Text(T(lists.size.toString() + " campaigns · " + total + " contacts",
-                            lists.size.toString() + " حملات · " + total + " جهة اتصال"),
+                        Spacer(Modifier.height(6.dp))
+                        Text(T("${lists.size} campaigns · ${displayNumber(total)} contacts",
+                            "${lists.size} حملات · ${displayNumber(total)} جهة اتصال"),
                             style = MaterialTheme.typography.bodySmall, color = Muted)
                     }
                 }
@@ -223,41 +226,37 @@ private fun PrecisionCampaignContent(
         item { Spacer(Modifier.height(19.dp)) }
         item {
             Column(Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(13.dp))
                 .background(Color(0xFFF7F8FA))
-                .border(1.dp, Color(0xFFE7E9ED), RoundedCornerShape(14.dp))
-                .padding(horizontal = 13.dp, vertical = 12.dp)) {
+                .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(13.dp))
+                .padding(horizontal = 12.dp, vertical = 13.dp)) {
                 Row(Modifier.fillMaxWidth()) {
-                    Metric(T("Campaigns", "الحملات"), lists.size.toString(),
-                        if (activeCount > 0) T(activeCount.toString() + " active", activeCount.toString() + " نشطة") else "",
+                    StatCell(T("Campaigns", "الحملات"), displayNumber(lists.size),
+                        if (activeCount > 0) T("($activeCount active)", "($activeCount نشطة)") else "",
                         Modifier.weight(1f))
                     Spacer(Modifier.width(12.dp))
-                    Metric(T("Contacts", "جهات الاتصال"), total.toString(), "", Modifier.weight(1f))
+                    StatCell(T("Contacts", "جهات الاتصال"), displayNumber(total), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
                 Spacer(Modifier.height(10.dp))
                 Row(Modifier.fillMaxWidth()) {
-                    Metric(T("Completed", "تم الاتصال"), called.toString(),
+                    StatCell(T("Completed", "تم الاتصال"), displayNumber(called),
                         if (total > 0) (completion * 100).toInt().toString() + "%" else "",
                         Modifier.weight(1f), secondaryColor = Green)
                     Spacer(Modifier.width(12.dp))
-                    Metric(T("Pending", "المتبقي"), pending.toString(), "", Modifier.weight(1f))
+                    StatCell(T("Pending", "المتبقي"), displayNumber(pending), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(10.dp))
-                HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(9.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(T("Overall Progress", "إجمالي التقدم"), color = Muted,
-                        style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
-                    Box(Modifier.width(94.dp).height(5.dp).clip(CircleShape)
+                    Text(T("Overall Progress", "إجمالي التقدم"), color = Muted, fontSize = 11.sp,
+                        modifier = Modifier.weight(1f))
+                    Box(Modifier.width(95.dp).height(5.dp).clip(CircleShape)
                         .background(Color(0xFFE8EAF0))) {
                         Box(Modifier.fillMaxHeight().fillMaxWidth(completion.coerceIn(0f, 1f))
                             .background(ProgressBlue))
                     }
                     Spacer(Modifier.width(8.dp))
                     Text((completion * 100).toInt().toString() + "%",
-                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Ink)
                 }
             }
         }
@@ -333,7 +332,7 @@ private fun PrecisionCampaignContent(
                     "active" to T("Active", "نشطة"),
                     "completed" to T("Completed", "مكتملة"),
                     "paused" to T("Paused", "متوقفة"),
-                    "ready" to T("Ready", "جاهزة")
+                    "scheduled" to T("Scheduled", "مجدولة")
                 ).forEach { (key, label) ->
                     val selectedChip = key == filter
                     Surface(
@@ -516,22 +515,24 @@ private fun HeaderControls(onCreate: () -> Unit, selecting: Boolean, onSelect: (
 }
 
 @Composable
-private fun Metric(
+private fun StatCell(
     label: String, number: String, extra: String, modifier: Modifier = Modifier,
     secondaryColor: Color = Muted
 ) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label.uppercase(), color = Muted, style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold, maxLines = 2)
+    Column(modifier) {
+        Text(label.uppercase(), color = Color(0xFF7B8392), fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold, maxLines = 1, letterSpacing = 0.4.sp)
+        Spacer(Modifier.height(5.dp))
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(number, color = Ink, style = MaterialTheme.typography.titleLarge,
+            Text(number, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (extra.isNotEmpty()) {
                 Spacer(Modifier.width(5.dp))
-                Text(extra, style = MaterialTheme.typography.labelSmall,
-                    color = secondaryColor, maxLines = 1)
+                Text(extra, fontSize = 10.sp, color = secondaryColor, maxLines = 1)
             }
         }
+        Spacer(Modifier.height(7.dp))
+        HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
     }
 }
 
