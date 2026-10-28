@@ -1,1 +1,1 @@
-Campaign typography refinement: 22sp heading, 16sp section/card titles, 13sp header metadata, compact decorative icon. Preserve functionality and accessibility font scaling. Run release verification.
+Build verified native Campaigns update for phone installation. AI Studio screen reproduction; include latest commit c0dfd0c538059d0b100917042876ed02ac19607d. Run release tests, lint, packaging, and signing checks; publish update only after successful verification.
