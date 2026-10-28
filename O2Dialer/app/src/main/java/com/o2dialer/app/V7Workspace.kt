@@ -555,6 +555,10 @@ private fun PrecisionCampaignCard(
     var menu by remember { mutableStateOf(false) }
     var reset by remember { mutableStateOf(false) }
     val last = relativeActivity(activityTime(list))
+    val duplicateCount = remember(list.entries) {
+        list.entries.groupingBy { it.number.filter(Char::isDigit) }
+            .eachCount().values.sumOf { (it - 1).coerceAtLeast(0) }
+    }
     val statusLabel = when (status) {
         "active" -> T("Active", "نشطة")
         "paused" -> T("Paused", "متوقفة")
@@ -562,123 +566,158 @@ private fun PrecisionCampaignCard(
         else -> T("Ready", "جاهزة")
     }
     val statusColor = when (status) {
-        "active" -> Green
-        "paused" -> Amber
+        "active" -> Color(0xFF047857)
+        "paused" -> Color(0xFFB45309)
         "completed" -> Color(0xFF52525B)
         else -> Color(0xFF1D4ED8)
     }
     val statusSurface = when (status) {
         "active" -> Color(0xFFECFDF5)
         "paused" -> Color(0xFFFFF7ED)
-        "completed" -> Soft
+        "completed" -> Color(0xFFF4F4F5)
         else -> Color(0xFFEFF6FF)
     }
 
     Column(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(15.dp))
-            .background(if (selected) Color(0xFFF7F8FA) else Color.White)
+            .background(if (selected) Color(0xFFFAFAFA) else Color.White)
             .border(1.dp, if (selected) Ink else Line, RoundedCornerShape(15.dp))
-            .combinedClickable(onClick = { if (selecting) onToggle() else onOpen() },
-                onLongClick = onToggle)
-            .padding(horizontal = 14.dp, vertical = 13.dp)
+            .combinedClickable(
+                onClick = { if (selecting) onToggle() else onOpen() },
+                onLongClick = onToggle
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (selecting) {
                 Box(
-                    Modifier.size(19.dp)
-                        .clip(RoundedCornerShape(5.dp))
+                    Modifier.size(19.dp).clip(RoundedCornerShape(5.dp))
                         .background(if (selected) Ink else Color.White)
                         .border(1.dp, if (selected) Ink else Color(0xFFD1D5DB), RoundedCornerShape(5.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (selected) Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
                 }
-                Spacer(Modifier.width(9.dp))
+                Spacer(Modifier.width(8.dp))
             }
-            Text(list.name, style = MaterialTheme.typography.titleMedium, color = Ink,
+            Text(list.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink,
                 maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-            Spacer(Modifier.width(7.dp))
+            Spacer(Modifier.width(8.dp))
             Surface(shape = RoundedCornerShape(5.dp), color = statusSurface) {
-                Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
             }
             Spacer(Modifier.weight(1f))
-            if (running) {
-                IconButton(onClick = { Store.tab = 1 }, modifier = Modifier.size(31.dp)) {
-                    Icon(if (Store.camp.status == CS.PAUSED) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-                        T("Manage session", "إدارة الجلسة"), tint = Color(0xFF6B7280),
-                        modifier = Modifier.size(19.dp))
+            if (status == "active" || status == "paused") {
+                IconButton(
+                    onClick = { if (running) Store.tab = 1 else onOpen() },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        if (status == "paused") Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                        T("Open session controls", "افتح عناصر التحكم في الحملة"),
+                        tint = Color(0xFF838996), modifier = Modifier.size(17.dp)
+                    )
                 }
             }
             Box {
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(30.dp)) {
                     Icon(Icons.Rounded.MoreVert, T("Campaign actions", "خيارات الحملة"),
-                        tint = Color(0xFF6B7280), modifier = Modifier.size(18.dp))
+                        tint = Color(0xFF838996), modifier = Modifier.size(17.dp))
                 }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text(T("Open campaign", "فتح الحملة")) },
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false },
+                    modifier = Modifier.background(Color.White)) {
+                    DropdownMenuItem(
+                        text = { Text(T("Campaign details", "تفاصيل الحملة")) },
                         onClick = { menu = false; onOpen() },
-                        leadingIcon = { Icon(Icons.Rounded.OpenInNew, null) })
-                    DropdownMenuItem(enabled = !running, text = { Text(T("Edit", "تعديل")) },
+                        leadingIcon = { Icon(Icons.Rounded.BarChart, null) }
+                    )
+                    DropdownMenuItem(enabled = !running,
+                        text = { Text(T("Edit", "تعديل")) },
                         onClick = { menu = false; onEdit() },
-                        leadingIcon = { Icon(Icons.Rounded.Edit, null) })
-                    DropdownMenuItem(enabled = !running, text = { Text(T("Rename", "تغيير الاسم")) },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, null) }
+                    )
+                    DropdownMenuItem(enabled = !running,
+                        text = { Text(T("Rename", "تغيير الاسم")) },
                         onClick = { menu = false; onRename() },
-                        leadingIcon = { Icon(Icons.Rounded.DriveFileRenameOutline, null) })
-                    DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },
+                        leadingIcon = { Icon(Icons.Rounded.DriveFileRenameOutline, null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(T("View report", "عرض التقرير")) },
                         onClick = { menu = false; Store.resultsListId = list.id; Store.tab = 2 },
-                        leadingIcon = { Icon(Icons.Rounded.BarChart, null) })
-                    DropdownMenuItem(text = { Text(T("Share report", "مشاركة التقرير")) },
-                        onClick = { menu = false; shareText(ctx, Store.listReport(list)) },
-                        leadingIcon = { Icon(Icons.Rounded.Share, null) })
-                    HorizontalDivider()
-                    DropdownMenuItem(enabled = !running, text = { Text(T("Remove duplicates", "حذف المكرر")) },
+                        leadingIcon = { Icon(Icons.Rounded.Assessment, null) }
+                    )
+                    HorizontalDivider(color = Line)
+                    DropdownMenuItem(enabled = !running,
+                        text = { Text(T("Remove duplicates", "حذف المكرر") + if (duplicateCount > 0) " ($duplicateCount)" else "") },
                         onClick = {
                             menu = false
                             val count = Store.dedupe(list.id)
-                            Store.notify(Tk.SUCCESS, T("Removed " + count + " duplicates", "تم حذف " + count + " رقم مكرر"))
-                        }, leadingIcon = { Icon(Icons.Rounded.GroupRemove, null) })
-                    DropdownMenuItem(enabled = !running, text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
+                            Store.notify(Tk.SUCCESS, T("Removed $count duplicates", "تم حذف $count رقم مكرر"))
+                        }, leadingIcon = { Icon(Icons.Rounded.GroupRemove, null) }
+                    )
+                    DropdownMenuItem(enabled = !running,
+                        text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
                         onClick = { menu = false; reset = true },
-                        leadingIcon = { Icon(Icons.Rounded.Refresh, null) })
-                    DropdownMenuItem(enabled = !running, text = { Text(T("Delete", "حذف"), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Rounded.Refresh, null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(T("Share report", "مشاركة التقرير")) },
+                        onClick = { menu = false; shareText(ctx, Store.listReport(list)) },
+                        leadingIcon = { Icon(Icons.Rounded.Share, null) }
+                    )
+                    HorizontalDivider(color = Line)
+                    DropdownMenuItem(enabled = !running,
+                        text = { Text(T("Delete", "حذف"), color = MaterialTheme.colorScheme.error) },
                         onClick = { menu = false; onDelete() },
-                        leadingIcon = { Icon(Icons.Rounded.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) })
+                        leadingIcon = { Icon(Icons.Rounded.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) }
+                    )
                 }
             }
         }
 
-        val simText = if (list.simSlot >= 0) T("SIM " + (list.simSlot + 1), "شريحة " + (list.simSlot + 1))
-            else T("Default SIM", "الشريحة الافتراضية")
-        Text(simText, style = MaterialTheme.typography.labelSmall, color = Muted,
-            modifier = Modifier.padding(top = 2.dp), maxLines = 1)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(T("Auto Dialer", "اتصال آلي"), color = Muted,
+                style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            Spacer(Modifier.width(6.dp))
+            Text("·", color = Muted, fontSize = 11.sp)
+            Spacer(Modifier.width(6.dp))
+            Text(if (list.simSlot >= 0) T("SIM ${list.simSlot + 1}", "شريحة ${list.simSlot + 1}")
+                else T("Default SIM", "الشريحة الافتراضية"),
+                color = Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            if (duplicateCount > 0) {
+                Spacer(Modifier.width(7.dp))
+                Text("· $duplicateCount " + T("dups", "مكرر"), color = Color(0xFFEA580C),
+                    style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            }
+        }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(14.dp))
+        HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
+        Spacer(Modifier.height(12.dp))
+
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(T(p.called.toString() + " / " + p.total + " (" + p.remaining + " remaining)",
-                p.called.toString() + " / " + p.total + " (" + p.remaining + " متبقي)"),
-                style = MaterialTheme.typography.bodySmall, color = Color(0xFF5E6570),
-                modifier = Modifier.weight(1f))
-            Text(p.pct.toString() + "%", style = MaterialTheme.typography.labelLarge,
-                color = Ink, fontWeight = FontWeight.Bold)
+            Text(T("${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} remaining)",
+                "${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} متبقي)"),
+                fontSize = 12.sp, color = Color(0xFF6B7280), modifier = Modifier.weight(1f))
+            Text("${p.pct}%", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Ink)
         }
         Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(4.dp).clip(CircleShape)
+        Box(Modifier.fillMaxWidth().height(5.dp).clip(CircleShape)
             .background(Color(0xFFF0F2F5))) {
             Box(Modifier.fillMaxHeight().fillMaxWidth((p.pct / 100f).coerceIn(0f, 1f))
-                .background(if (status == "paused") Amber else ProgressBlue))
+                .background(if (status == "paused") Color(0xFFF59E0B) else ProgressBlue))
         }
-        Spacer(Modifier.height(11.dp))
+        Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(T(p.total.toString() + " contacts", p.total.toString() + " جهة اتصال"),
-                color = Muted, style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.weight(1f))
-            Text(if (last.isNotEmpty()) last else statusLabel,
-                color = Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            Text(T("${displayNumber(p.total)} contacts", "${displayNumber(p.total)} جهة اتصال"),
+                color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
+            Text(if (last.isEmpty()) statusLabel else statusLabel + " " + last,
+                color = Muted, fontSize = 11.sp, maxLines = 1)
         }
     }
-
     if (reset) {
         ConfirmDialog(T("Reset call progress? Contacts, stages and notes will be kept.",
             "إعادة ضبط تقدم الاتصال؟ جهات الاتصال والتصنيفات والملاحظات هتفضل محفوظة."),
