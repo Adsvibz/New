@@ -7,9 +7,11 @@ permissions:
   contents: read
 concurrency:
   group: o2-release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -21,13 +23,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Accept Android licenses
+      - name: Ensure Android SDK 36 is installed
+        shell: bash
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
-      - uses: gradle/actions/setup-gradle@v3
+          if [[ -f "$ANDROID_HOME/platforms/android-36/android.jar" && -x "$ANDROID_HOME/build-tools/36.0.0/apksigner" ]]; then
+            echo "Android SDK 36 already installed"
+          else
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+          fi
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.11.1
+          cache-read-only: false
       - name: Validate release configuration
         env:
           LICENSE_URL: ${{ secrets.LICENSE_URL }}
@@ -41,7 +49,7 @@ jobs:
           LICENSE_URL: ${{ secrets.LICENSE_URL }}
         run: |
           set -o pipefail
-          gradle testReleaseUnitTest lintRelease assembleRelease --no-daemon --console=plain --stacktrace 2>&1 | tee build.log
+          gradle testReleaseUnitTest lintRelease assembleRelease --build-cache --no-daemon --console=plain --stacktrace 2>&1 | tee build.log
       - name: Verify signed release and metadata
         run: |
           set -euo pipefail
@@ -64,32 +72,6 @@ jobs:
           cat out/SHA256SUMS
       - name: Prepare verified update feed
         run: python3 release/prepare_update.py
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: O2Dialer-verification
-          path: |
-            O2Dialer/build.log
-            O2Dialer/app/build/reports/tests/testReleaseUnitTest/
-            O2Dialer/app/build/reports/lint-results-release.*
-          if-no-files-found: warn
-      - uses: actions/upload-artifact@v4
-        with:
-          name: O2Dialer-7.0-release
-          path: O2Dialer/out/
-          if-no-files-found: error
-  publish_update:
-    needs: build
-    if: github.ref == 'refs/heads/design/o2dialer-v7-rebuild'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: O2Dialer-7.0-release
-          path: release
       - name: Publish complete update after verification
         env:
           GH_TOKEN: ${{ github.token }}
@@ -97,7 +79,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd release
+          cd out
           sha256sum --check SHA256SUMS
           VERSION_CODE=$(python3 -c 'import json; print(json.load(open("update.json"))["versionCode"])')
           TAG="o2dialer-build-$VERSION_CODE"
@@ -119,3 +101,17 @@ jobs:
           fi
           gh release upload "$TAG" O2Dialer-7.0-release.apk update.json SHA256SUMS signing-verification.txt apk-metadata.txt build-provenance.txt --clobber
           gh release edit "$TAG" --draft=false --latest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: O2Dialer-verification
+          path: |
+            O2Dialer/build.log
+            O2Dialer/app/build/reports/tests/testReleaseUnitTest/
+            O2Dialer/app/build/reports/lint-results-release.*
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: O2Dialer-7.0-release
+          path: O2Dialer/out/
+          if-no-files-found: error
