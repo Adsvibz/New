@@ -35,17 +35,17 @@ private fun Hint(text: String) {
 private fun SettingsFooter() {
     val cs = MaterialTheme.colorScheme
     Column(
-        Modifier.fillMaxWidth().padding(top = Sp.s),
+        Modifier.fillMaxWidth().padding(top = Sp.l),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Sp.s)
     ) {
         Box(
-            Modifier.size(34.dp).clip(RoundedCornerShape(10.dp))
+            Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
                 .background(cs.surfaceVariant),
             Alignment.Center
-        ) { LogoMark(21.dp, color = cs.primary) }
+        ) { LogoMark(25.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
-            T("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", "الإصدار ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"),
+            T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
             style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
         )
         Text(
@@ -113,10 +113,10 @@ fun SettingsScreen() {
                 Hint(T("Some phones don't allow apps to change call audio.", "بعض الأجهزة لا تسمح للتطبيقات بتغيير صوت المكالمة."))
             }
 
-            SettingsSection(Icons.Rounded.Star, T("Call outcomes", "تصنيفات المكالمات")) {
+            SettingsSection(Icons.Rounded.Star, T("Call results (stages)", "نتائج المكالمات (Stages)")) {
                 SwitchRow(T("Ask for a stage after answered calls", "اسأل عن النتيجة بعد المكالمات اللي تم الرد عليها"), null,
                     c.askStage) { v -> up { it.copy(askStage = v) } }
-                if (c.askStage) SliderRow(T("Wait for your choice", "الانتظار لاختيارك"), c.stageWaitSec, 0, 60, T("s", "ث"),
+                if (c.askStage) SliderRow(T("Wait for your choice", "الانتظار لاختيارك"), c.stageWaitSec, 0, 60, "s",
                     T("Don't wait", "بدون انتظار")) { v -> up { it.copy(stageWaitSec = v) } }
             }
 

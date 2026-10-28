@@ -361,24 +361,7 @@ object Store {
 
     fun deleteList(id: String) {
         if (isRunningList(id)) { notify(Tk.WARN, T("Stop the session before deleting this campaign", "أوقف الجلسة قبل حذف الحملة")); return }
-        deleteLists(setOf(id)) }
-
-    fun deleteLists(ids: Set<String>): Int {
-        val removable = removableCampaignIds(lists.map { it.id }.toSet(), ids, camp.listId.takeIf { campActive() })
-        if (removable.isEmpty()) return 0
-        lists.removeAll { it.id in removable }
-        if (selectedListId in removable) selectedListId = null
-        if (resultsListId in removable) resultsListId = null
-        if (runListId in removable) runListId = null
-        saveLists()
-        return removable.size
-    }
-
-    fun editCampaign(id: String, name: String, simSlot: Int): Boolean {
-        if (isRunningList(id) || name.isBlank() || lists.none { it.id == id }) return false
-        updateList(id) { it.copy(name = name.trim(), simSlot = simSlot) }
-        return true
-    }
+        lists.removeAll { it.id == id }; saveLists() }
 
     fun updateList(id: String, f: (CallList) -> CallList) {
         val i = lists.indexOfFirst { it.id == id }

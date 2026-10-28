@@ -20,25 +20,38 @@ fun V7ResultsHeader(progress: Prog) {
     val rate = if (progress.called > 0)
         (progress.answered.toLong() * 100 / progress.called).coerceIn(0L, 100L)
     else 0L
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(T("Call performance", "أداء المكالمات"),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleSmall)
-            Text("${progress.pct}%", color = cs.primary,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.labelLarge)
+            Column(Modifier.weight(1f)) {
+                Text(T("Summary", "الملخص"), color = cs.onSurface, style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            }
+            Icon(Icons.Rounded.Insights, null, tint = cs.primary)
         }
-        MetricGrid(listOf(
-            UiMetric("${progress.called}", T("Calls made", "مكالمات")),
-            UiMetric("${progress.answered}", T("Answered", "تم الرد")),
-            UiMetric("$rate%", T("Answer rate", "نسبة الرد"))
-        ))
-        LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth().height(4.dp),
-            color = cs.primary, trackColor = cs.surfaceVariant)
-        Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
-            style = MaterialTheme.typography.labelMedium,
-            color = cs.onSurfaceVariant)
+        Surface(shape = RoundedCornerShape(20.dp), color = cs.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
+            Column(Modifier.fillMaxWidth().padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    V7ResultMetric("${progress.called}", T("Calls made", "مكالمات"), Modifier.weight(1f))
+                    V7ResultMetric("${progress.answered}", T("Answered", "تم الرد"), Modifier.weight(1f))
+                    V7ResultMetric("$rate%", T("Answer rate", "نسبة الرد"), Modifier.weight(1f))
+                }
+                LinearProgressIndicator(progress = { (progress.pct / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(7.dp),
+                    color = cs.primary, trackColor = cs.surfaceVariant)
+                Text(T("${progress.remaining} contacts remaining", "${progress.remaining} جهة اتصال متبقية"),
+                    color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+@Composable
+private fun V7ResultMetric(value: String, label: String, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(value, style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

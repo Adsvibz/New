@@ -53,13 +53,12 @@ fun WelcomeScreen() {
             }, label = "welcomePage") { current ->
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = Sp.xxl),
                     verticalArrangement = Arrangement.spacedBy(Sp.xxl)) {
-                    Surface(color = cs.surface, shape = RoundedCornerShape(20.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
+                    Surface(color = cs.primaryContainer, shape = RoundedCornerShape(28.dp)) {
                         Column(Modifier.fillMaxWidth().padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.l)) {
-                            Icon(icons[current], null, tint = cs.primary, modifier = Modifier.size(44.dp))
-                            Text(T("${current + 1} / 3", "الخطوة ${current + 1} من 3"), color = cs.onSurface,
+                            Icon(icons[current], null, tint = cs.onPrimaryContainer, modifier = Modifier.size(44.dp))
+                            Text(T("STEP ${current + 1} OF 3", "الخطوة ${current + 1} من 3"), color = cs.onPrimaryContainer,
                                 style = MaterialTheme.typography.labelMedium)
-                            Text(titles[current], color = cs.onSurface, style = MaterialTheme.typography.headlineLarge)
+                            Text(titles[current], color = cs.onPrimaryContainer, style = MaterialTheme.typography.headlineLarge)
                         }
                     }
                     Text(bodies[current], style = MaterialTheme.typography.bodyLarge, color = cs.onSurfaceVariant)

@@ -1,1 +1,1 @@
-Coherent interface repair 20: final contrast/legacy component review. Validate all release tests, lint, packaging and signature.
+Restore exact O2Dialer 7.0 build 165 application source (2e0ecff9729c02d8fafd0efd141f0a7ae44a4590), with a monotonically newer release version for in-place upgrades. Run release tests, lint, packaging and signing verification.

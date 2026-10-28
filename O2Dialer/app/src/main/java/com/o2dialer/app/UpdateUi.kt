@@ -23,12 +23,15 @@ fun UpdateSettingsSection() {
         if (AppUpdates.available != null) {
             if (Store.campActive()) Text(T("Stop or finish the campaign before updating.", "أوقف الحملة أو انتظر نهايتها قبل التحديث."),
                 style = MaterialTheme.typography.bodySmall)
-            BButton(if (AppUpdates.ready) T("Update ready", "التحديث جاهز") else T("View update", "عرض التحديث"),
-                { AppUpdates.open() }, Modifier.fillMaxWidth(), enabled = !Store.campActive(), compact = true)
+            Button(onClick = { AppUpdates.open() }, enabled = !Store.campActive(), modifier = Modifier.fillMaxWidth()) {
+                Text(if (AppUpdates.ready) T("Update ready", "التحديث جاهز") else T("View update", "عرض التحديث"))
+            }
         }
-        BButton(if (AppUpdates.checking) T("Checking…", "جارٍ الفحص…") else T("Check for updates", "البحث عن تحديث"),
-            { AppUpdates.check(ctx, manual = true) }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true,
-            enabled = !AppUpdates.checking && !AppUpdates.downloading && !AppUpdates.verifying)
+        OutlinedButton(onClick = { AppUpdates.check(ctx, manual = true) },
+            enabled = !AppUpdates.checking && !AppUpdates.downloading && !AppUpdates.verifying,
+            modifier = Modifier.fillMaxWidth()) {
+            Text(if (AppUpdates.checking) T("Checking…", "جارٍ الفحص…") else T("Check for updates", "البحث عن تحديث"))
+        }
     }
 }
 
@@ -40,7 +43,7 @@ fun UpdateHost(activity: Activity) {
     val permissionTick = Store.permTick
     val mayInstall = androidx.compose.runtime.remember(permissionTick) { activity.packageManager.canRequestPackageInstalls() }
     AlertDialog(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         onDismissRequest = { AppUpdates.dismiss(activity) },

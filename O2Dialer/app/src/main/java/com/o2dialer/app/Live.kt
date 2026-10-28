@@ -56,33 +56,43 @@ import kotlinx.coroutines.delay
 
 // ====================================================================== outcomes
 @Composable
+private fun Outcome(value: Int, label: String, color: Color, modifier: Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        CountUp(
+            value, color = readable(color),
+            style = MaterialTheme.typography.displaySmall.copy(fontSize = 28.sp, lineHeight = 30.sp)
+        )
+        Text(
+            label, style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1
+        )
+    }
+}
+
+@Composable
 private fun OutcomesPanel(p: Prog, remaining: Int) {
     val cs = MaterialTheme.colorScheme
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = cs.surface,
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
-    ) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(T("Results so far", "النتائج حتى الآن"),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = cs.onSurface,
-                    modifier = Modifier.weight(1f))
-                Text(T("${p.called} calls", "${p.called} مكالمة"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = cs.onSurfaceVariant)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    SectionLabel(T("Outcomes", "النتائج"))
+                    Text(
+                        T("${p.called} calls placed", "${p.called} مكالمة تم إجراؤها"),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+                Pill(T("$remaining left", "$remaining متبقي"), cs.primary)
             }
-            MetricGrid(listOf(
-                UiMetric("${p.answered}", T("Answered", "تم الرد"), readable(Sem.success)),
-                UiMetric("${p.noAnswer}", T("No answer", "لم يرد")),
-                UiMetric("${p.failed}", T("Failed", "فشل"), readable(Sem.danger))))
-            if (p.unverified > 0) Text(
-                T("${p.unverified} calls are unverified", "${p.unverified} مكالمة غير مؤكدة"),
-                color = cs.onSurfaceVariant, style = MaterialTheme.typography.labelSmall
-            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Outcome(p.answered, T("answered", "ردّوا"), Sem.success, Modifier.weight(1f))
+                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
+                Outcome(p.noAnswer, T("no answer", "لم يردّوا"), Sem.warning, Modifier.weight(1f))
+                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
+                Outcome(p.failed, T("failed", "فشل"), Sem.danger, Modifier.weight(1f))
+            }
+            if (p.unverified > 0) Text(T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
+                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -93,85 +103,95 @@ private fun CallControls(paused: Boolean) {
     var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    val pauseLabel = if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت")
-    val pauseAction = {
-        DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE)
-    }
-    val canSkip = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating
-
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val stacked = maxWidth < 310.dp ||
-            androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.4f
-        val pauseButton: @Composable (Modifier) -> Unit = { m ->
-            Button(onClick = pauseAction, modifier = m.heightIn(min = 52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = cs.primary),
-                contentPadding = PaddingValues(horizontal = 10.dp)) {
-                Icon(if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-                    contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(5.dp))
-                Text(pauseLabel, maxLines = 2,
-                    style = MaterialTheme.typography.labelLarge)
-            }
-        }
-        val skipButton: @Composable (Modifier) -> Unit = { m ->
-            OutlinedButton(
-                onClick = { DialerService.send(ctx, DialerService.ACT_SKIP) },
-                enabled = canSkip, modifier = m.heightIn(min = 52.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, cs.outline),
-                contentPadding = PaddingValues(horizontal = 7.dp)
-            ) { Text(T("Skip", "تخطي"), maxLines = 1,
-                style = MaterialTheme.typography.labelLarge) }
-        }
-        val stopButton: @Composable (Modifier) -> Unit = { m ->
-            OutlinedButton(
-                onClick = { confirmStop = true },
-                modifier = m.heightIn(min = 52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.error),
-                border = androidx.compose.foundation.BorderStroke(1.dp, cs.error.copy(alpha = 0.5f)),
-                contentPadding = PaddingValues(horizontal = 7.dp)
-            ) { Text(T("Stop", "إنهاء"), maxLines = 1,
-                style = MaterialTheme.typography.labelLarge) }
-        }
-        if (stacked) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                pauseButton(Modifier.fillMaxWidth())
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    skipButton(Modifier.weight(1f))
-                    stopButton(Modifier.weight(1f))
-                }
-            }
-        } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                pauseButton(Modifier.weight(1.45f))
-                skipButton(Modifier.weight(1f))
-                stopButton(Modifier.weight(1f))
-            }
-        }
-    }
-    if (confirmStop) ConfirmDialog(
-        T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
-          "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."),
-        { confirmStop = false }
+    Surface(
+        shape = RoundedCornerShape(Rd.l),
+        color = cs.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        DialerService.send(ctx, DialerService.ACT_STOP)
-        confirmStop = false
+        Column(Modifier.fillMaxWidth().padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
+            Text(
+                T("SESSION CONTROLS", "التحكم في الجلسة"),
+                style = MaterialTheme.typography.labelSmall,
+                color = cs.onSurfaceVariant,
+                fontWeight = FontWeight.Bold
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircleAction(
+                    if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                    if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
+                    { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.primary, content = cs.onPrimary, outlined = false
+                )
+                CircleAction(
+                    Icons.Rounded.SkipNext,
+                    T("Skip call", "تخطي المكالمة"),
+                    { DialerService.send(ctx, DialerService.ACT_SKIP) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.surfaceVariant, content = cs.onSurface, outlined = true,
+                    enabled = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating
+                )
+                CircleAction(
+                    Icons.Rounded.Stop,
+                    T("Stop session", "إنهاء الجلسة"),
+                    { confirmStop = true },
+                    modifier = Modifier.weight(1f),
+                    container = cs.errorContainer, content = cs.onErrorContainer, outlined = false
+                )
+            }
+        }
+    }
+    if (confirmStop) ConfirmDialog(T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
+        "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."), { confirmStop = false }) {
+        DialerService.send(ctx, DialerService.ACT_STOP); confirmStop = false
     }
 }
 
 // ====================================================================== run setup + queue
 @Composable
+private fun SetupItem(icon: ImageVector, value: String, caption: String, modifier: Modifier) {
+    Column(
+        modifier, horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
+            Text(value, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+        }
+        Text(
+            caption, style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 private fun RunSetupPanel() {
     val s = Store.cfg
     val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + T("s", "ث") else "${s.delaySec}" + T("s", "ث")
     Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
-        Box(Modifier.padding(16.dp)) {
-            MetricGrid(listOf(UiMetric(gap, T("Between calls", "بين المكالمات")),
-                UiMetric("${s.retries}", T("Retries", "إعادة المحاولة")),
-                UiMetric(if (s.autoSpeaker) T("Auto mute", "كتم تلقائي") else T("Phone", "الهاتف"), T("Audio", "الصوت"))))
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SetupItem(Icons.Rounded.Timer, gap, T("between calls", "بين المكالمات"), Modifier.weight(1f))
+            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
+            SetupItem(
+                Icons.Rounded.Replay, "${s.retries}",
+                if (s.retries == 0) T("no retries", "بدون إعادة") else T("retries", "إعادة"),
+                Modifier.weight(1f)
+            )
+            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
+            SetupItem(
+                if (s.autoSpeaker) Icons.Rounded.MicOff else Icons.Rounded.Mic,
+                if (s.autoSpeaker) T("Auto mute", "كتم تلقائي") else T("Phone", "الهاتف"),
+                T("audio preference", "إعداد الصوت"), Modifier.weight(1f)
+            )
         }
     }
 }
@@ -207,7 +227,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                     ) {
                         Text(
                             "0${i + 1}", style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Medium, fontSize = 12.sp
+                                fontWeight = FontWeight.Bold, fontSize = 9.sp
                             ),
                             color = cs.secondary
                         )
@@ -226,7 +246,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                         onClick = {
                             removing = e
                         },
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             Icons.Rounded.Close, T("Remove from the queue", "حذف من القائمة"),
@@ -378,27 +398,13 @@ fun LiveScreen(act: MainActivity) {
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
 
     Scaffold(
-        topBar = {
-            if (!showHero) BlendBar(T("Dialer", "الاتصال"))
-            else BlendBar(T("Live calling", "المكالمات"))
-        },
-        bottomBar = {
-            if (active && showHero) {
-                Surface(
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
-                        CallControls(c.status == CS.PAUSED)
-                    }
-                }
-            }
-        },
+        topBar = { BlendBar(T("Dialer", "الاتصال")) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = Sp.xl, vertical = Sp.s),
+            verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
             LicenseBanner()
             PermissionBanner(act)
@@ -410,7 +416,7 @@ fun LiveScreen(act: MainActivity) {
                 },
                 label = "liveState"
             ) { hero ->
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
                     if (hero && heroList != null) {
                         val p = Store.prog(heroList)
                         Enter(0) { V7LiveHero(c, heroList, p, now) }
@@ -429,8 +435,9 @@ fun LiveScreen(act: MainActivity) {
                             }
                         } else {
                             Enter(1) { OutcomesPanel(p, p.remaining) }
-                            if (active) Enter(2) { UpNext(heroList, p.remaining) }
+                            if (active) Enter(2) { CallControls(c.status == CS.PAUSED) }
                             if (active) Enter(3) { RunSetupPanel() }
+                            if (active) Enter(4) { UpNext(heroList, p.remaining) }
                         }
                     } else {
                         Launcher(act)

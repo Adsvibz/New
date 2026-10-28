@@ -44,11 +44,11 @@ object Sp {
 
 /** Corner radii. Softer than stock Material, still disciplined. */
 object Rd {
-    val xs = 6.dp
-    val s = 9.dp
-    val m = 12.dp
-    val l = 16.dp
-    val xl = 20.dp
+    val xs = 10.dp
+    val s = 14.dp
+    val m = 18.dp
+    val l = 24.dp
+    val xl = 30.dp
 }
 
 /** Semantic status colours. */
@@ -88,50 +88,45 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
-private val LatinFont = FontFamily(
-    Font(R.font.outfit_regular, FontWeight.Normal),
-    Font(R.font.outfit_medium, FontWeight.Medium),
-    Font(R.font.outfit_bold, FontWeight.Bold)
-)
-private val ArabicFont = FontFamily(
-    Font(R.font.plex_arabic_regular, FontWeight.Normal),
-    Font(R.font.plex_arabic_medium, FontWeight.Medium),
-    Font(R.font.plex_arabic_bold, FontWeight.Bold)
+private val AppFont = FontFamily(
+    Font(R.font.tajawal_regular, FontWeight.Normal),
+    Font(R.font.tajawal_medium, FontWeight.Medium),
+    Font(R.font.tajawal_bold, FontWeight.Bold)
 )
 
-/** Precision Contrast: white working surfaces, cool slate canvas, decisive cobalt. */
+
 private val LightC = lightColorScheme(
-    primary = Color(0xFF2457E7), onPrimary = Color.White,
-    primaryContainer = Color(0xFFEBF0FF), onPrimaryContainer = Color(0xFF163E91),
-    secondary = Color(0xFF334860), onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE8EDF3), onSecondaryContainer = Color(0xFF26384D),
-    tertiary = Color(0xFF087E5A), onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFDFF5EB), onTertiaryContainer = Color(0xFF06583F),
+    primary = Brand, onPrimary = Color.White,
+    primaryContainer = Color(0xFFE7EEFF), onPrimaryContainer = Color(0xFF183EAA),
+    secondary = Color(0xFF4667A8), onSecondary = Color.White,
+    secondaryContainer = Color(0xFFEAF0FC), onSecondaryContainer = Color(0xFF223B69),
+    tertiary = Color(0xFF0D966A), onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFDDF7ED), onTertiaryContainer = Color(0xFF07533D),
     background = Color(0xFFF7F9FC), onBackground = Color(0xFF101828),
     surface = Color.White, onSurface = Color(0xFF101828),
-    surfaceVariant = Color(0xFFF2F4F7), onSurfaceVariant = Color(0xFF475467),
-    outline = Color(0xFF7B8494), outlineVariant = Color(0xFFE4E7EC),
-    error = Color(0xFFB32632), onError = Color.White,
-    errorContainer = Color(0xFFFDE8EA), onErrorContainer = Color(0xFF802028),
-    inverseSurface = Color(0xFF112740), inverseOnSurface = Color.White,
+    surfaceVariant = Color(0xFFF1F4F9), onSurfaceVariant = Color(0xFF65728A),
+    outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFEDF1F6),
+    error = Color(0xFFB42318), onError = Color.White,
+    errorContainer = Color(0xFFFFE8E8), onErrorContainer = Color(0xFF8F262D),
+    inverseSurface = Color(0xFF15203A), inverseOnSurface = Color.White,
     surfaceTint = Color.Transparent
 )
 
-/** Purpose-built dark hierarchy; not an automatic inversion of the light palette. */
+/** Matching deep-navy alternative to the clean light workspace. */
 val NocturneDark = darkColorScheme(
-    primary = Color(0xFF8FB0FF), onPrimary = Color(0xFF0D2D70),
-    primaryContainer = Color(0xFF263F74), onPrimaryContainer = Color(0xFFEBF0FF),
-    secondary = Color(0xFFB7C9DC), onSecondary = Color(0xFF233B51),
-    secondaryContainer = Color(0xFF293C51), onSecondaryContainer = Color(0xFFDEEBF7),
-    tertiary = Color(0xFF75DAB0), onTertiary = Color(0xFF063B2A),
-    tertiaryContainer = Color(0xFF174938), onTertiaryContainer = Color(0xFFDBF7E9),
-    background = Color(0xFF101318), onBackground = Color(0xFFF2F6FC),
-    surface = Color(0xFF1A1E25), onSurface = Color(0xFFF2F6FC),
-    surfaceVariant = Color(0xFF252B35), onSurfaceVariant = Color(0xFFB5BECC),
-    outline = Color(0xFF8492A6), outlineVariant = Color(0xFF343B48),
-    error = Color(0xFFFFA0A8), onError = Color(0xFF631820),
-    errorContainer = Color(0xFF662A34), onErrorContainer = Color(0xFFFFE1E6),
-    inverseSurface = Color(0xFFEAF0F8), inverseOnSurface = Color(0xFF101828),
+    primary = Color(0xFF92B1FF), onPrimary = Color(0xFF0B2668),
+    primaryContainer = Color(0xFF243F7E), onPrimaryContainer = Color(0xFFE5EDFF),
+    secondary = Color(0xFFACC2F0), onSecondary = Color(0xFF1C345C),
+    secondaryContainer = Color(0xFF283954), onSecondaryContainer = Color(0xFFDCE7FF),
+    tertiary = Color(0xFF66D8B0), onTertiary = Color(0xFF073D2C),
+    tertiaryContainer = Color(0xFF164C3D), onTertiaryContainer = Color(0xFFD7F8EA),
+    background = Color(0xFF101216), onBackground = Color(0xFFF6F8FE),
+    surface = Color(0xFF191C22), onSurface = Color(0xFFF6F8FE),
+    surfaceVariant = Color(0xFF252930), onSurfaceVariant = Color(0xFFB3BAC6),
+    outline = Color(0xFF41464F), outlineVariant = Color(0xFF2D323A),
+    error = Color(0xFFFF9FA6), onError = Color(0xFF5C1620),
+    errorContainer = Color(0xFF6A2832), onErrorContainer = Color(0xFFFFDADD),
+    inverseSurface = Color(0xFFE7EDFA), inverseOnSurface = Color(0xFF17213A),
     surfaceTint = Color.Transparent
 )
 
@@ -149,40 +144,32 @@ private fun typo(ff: FontFamily, arabic: Boolean): Typography {
     val k = if (arabic) 1.16f else 1f
     fun tr(v: Float): TextUnit = if (arabic) 0.sp else v.sp
     fun display(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
-        platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
-        lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
-            alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center,
-            trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.None),
         fontFamily = ff,
         fontWeight = w,
         fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track),
         fontFeatureSettings = "lnum"
     )
     fun text(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
-        platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
-        lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
-            alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center,
-            trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.None),
         fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
     )
-    val b = FontWeight.Bold
+    val b = FontWeight.Medium
     val n = FontWeight.Normal
     return Typography(
-        displayLarge = display(b, 58, 60, -1.4f),
-        displayMedium = display(b, 46, 48, -1.1f),
-        displaySmall = display(b, 32, 37, -0.6f),
-        headlineLarge = display(b, 28, 36, -0.4f),
-        headlineMedium = display(b, 24, 30, -0.3f),
-        headlineSmall = text(FontWeight.Bold, 20, 26),
-        titleLarge = text(FontWeight.Bold, 22, 28),
+        displayLarge = display(n, 58, 60, -1.4f),
+        displayMedium = display(n, 46, 48, -1.1f),
+        displaySmall = display(n, 36, 40, -0.8f),
+        headlineLarge = display(n, 33, 37, -0.6f),
+        headlineMedium = display(n, 27, 31, -0.4f),
+        headlineSmall = text(FontWeight.Bold, 22, 28),
+        titleLarge = text(FontWeight.Bold, 20, 28),
         titleMedium = text(b, 16, 24),
         titleSmall = text(b, 14, 20),
         bodyLarge = text(n, 16, 24),
         bodyMedium = text(n, 14, 21),
         bodySmall = text(n, 12, 17),
         labelLarge = text(b, 14, 20),
-        labelMedium = text(FontWeight.Medium, 12, 18, 0.1f),
-        labelSmall = text(FontWeight.Medium, 12, 16, 0.1f)
+        labelMedium = text(n, 12, 16, 0.1f),
+        labelSmall = text(n, 11, 14, 0.2f)
     )
 }
 
@@ -197,9 +184,9 @@ fun AppTheme(content: @Composable () -> Unit) {
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
     } else if (dark) NocturneDark else LightC
-    // Balanced font metrics and real medium/bold weights keep text aligned with controls.
+    // Bundled Tajawal keeps Arabic, Latin and mixed-script content visually consistent offline.
     val arabic = c.lang == 1
-    val ty = remember(c.lang) { typo(if (arabic) ArabicFont else LatinFont, arabic) }
+    val ty = remember(c.lang) { typo(AppFont, arabic) }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

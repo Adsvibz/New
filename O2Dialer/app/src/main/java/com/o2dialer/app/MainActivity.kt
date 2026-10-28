@@ -28,7 +28,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +39,6 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -151,40 +149,56 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AppNavBar() {
     val cs = MaterialTheme.colorScheme
-    val labels = listOf(T("Campaigns", "الحملات"), T("Live", "الاتصال"), T("Results", "النتائج"), T("History", "السجل"), T("Settings", "الإعدادات"))
-    val filled = listOf(Icons.Rounded.Campaign, Icons.Rounded.Call, Icons.Rounded.BarChart, Icons.Rounded.History, Icons.Rounded.Settings)
-    val outlined = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call, Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
-    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
-        Surface(modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp), color = cs.surface, tonalElevation = 0.dp, shadowElevation = 2.dp,
-            border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
-            Row(Modifier.padding(4.dp).height(IntrinsicSize.Min).selectableGroup(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                labels.forEachIndexed { index, label ->
-                    val selected = Store.tab == index
-                    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    val background by animateColorAsState(if (selected) cs.primaryContainer else Color.Transparent,
-                        tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "navigationSelection")
-                    val tint by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant,
-                        tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "navigationTint")
-                    Column(
-                        Modifier.weight(1f).fillMaxHeight().heightIn(min = 60.dp).pressScale(source)
-                            .clip(RoundedCornerShape(15.dp)).background(background)
-                            .selectable(selected = selected, role = Role.Tab, interactionSource = source, indication = rememberRipple()) {
-                                if (index == 4) Store.openSettings() else {
-                                    if (index == 0) Store.selectedListId = null
-                                    Store.tab = index
+    val slots = listOf(
+        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
+        Triple(T("Live", "مباشر"), Icons.Rounded.Call, 1),
+        Triple(T("Results", "النتائج"), Icons.Rounded.BarChart, 2),
+        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
+        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
+    )
+    val inactiveIcons = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call,
+        Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
+    Surface(
+        color = cs.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
+            Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
+            NavigationBar(
+                modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
+                containerColor = cs.surface,
+                tonalElevation = 0.dp,
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+            ) {
+                slots.forEach { (label, icon, destination) ->
+                    val active = Store.tab == destination
+                    NavigationBarItem(
+                        selected = active,
+                        onClick = {
+                                if (destination == 4) Store.openSettings()
+                                else {
+                                    if (destination == 0) Store.selectedListId = null
+                                    Store.tab = destination
                                 }
-                            }.padding(horizontal = 2.dp, vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(if (selected) filled[index] else outlined[index], null, tint = tint, modifier = Modifier.size(22.dp))
-                        Spacer(Modifier.height(3.dp))
-                        Text(label, color = tint, style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    }
+                        },
+                        icon = { Icon(if (active) icon else inactiveIcons[destination], null,
+                            modifier = Modifier.size(23.dp)) },
+                        label = { Text(label, style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = cs.primary,
+                            selectedTextColor = cs.primary,
+                            unselectedIconColor = cs.onSurfaceVariant,
+                            unselectedTextColor = cs.onSurfaceVariant,
+                            indicatorColor = cs.primary.copy(alpha = 0.08f)
+                        )
+                    )
                 }
+            }
             }
         }
     }
@@ -219,7 +233,6 @@ fun Root(act: MainActivity) {
     val showNav = screenKey in 0..4
 
     Scaffold(
-        modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         bottomBar = { if (showNav) AppNavBar() }

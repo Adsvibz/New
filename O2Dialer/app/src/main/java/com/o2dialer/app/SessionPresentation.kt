@@ -17,8 +17,3 @@ fun sessionLabel(state: CampState): String = when {
     state.currentNumber.isNotBlank() -> T("Calling", "جارٍ الاتصال")
     else -> T("Preparing next call", "تحضير المكالمة التالية")
 }
-
-/** Editing an unrelated historical outcome must never release or hold a live queue. */
-fun stageCanControlQueue(state: CampState, listId: String): Boolean =
-    state.listId == listId && state.status in setOf(CS.RUNNING, CS.PAUSED, CS.WAITING) &&
-        state.currentNumber.isBlank() && !state.evaluating

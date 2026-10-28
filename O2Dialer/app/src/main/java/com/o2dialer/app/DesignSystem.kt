@@ -32,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,7 +115,7 @@ fun BProgress(
 ) {
     val p by animateFloatAsState(
         progress.coerceIn(0f, 1f),
-        animationSpec = tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS, easing = Motion.easeOut), label = "bar"
+        animationSpec = Motion.settle(), label = "bar"
     )
 
     Box(modifier.fillMaxWidth().height(height).clip(CircleShape).background(track.copy(alpha = 0.55f))) {
@@ -133,7 +132,7 @@ fun ProgressRing(
 ) {
     val p by animateFloatAsState(
         progress.coerceIn(0f, 1f),
-        animationSpec = tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS, easing = Motion.easeOut), label = "ring"
+        animationSpec = tween(900, easing = Motion.easeOut), label = "ring"
     )
     Box(Modifier.size(size), Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
@@ -192,7 +191,7 @@ fun BButton(
             .clip(shape)
             .background(brush)
             .then(border)
-            .clickable(interactionSource = src, indication = rememberRipple(), enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = src, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
             .padding(horizontal = if (iconOnly) 0.dp else 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
@@ -220,15 +219,47 @@ fun SoftIconButton(
 ) {
     val cs = MaterialTheme.colorScheme
     val src = remember { MutableInteractionSource() }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = CircleShape
     Box(
         modifier.size(48.dp).pressScale(src)
             .clip(shape).background(container)
-            .border(1.dp, cs.outlineVariant, shape)
-            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, onClick = onClick),
+            .border(1.dp, cs.outline.copy(alpha = 0.7f), shape)
+            .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick),
         Alignment.Center
     ) {
         Icon(icon, desc, tint = tint, modifier = Modifier.size(19.dp))
+    }
+}
+
+/** A large circular control with a caption underneath, used by the live call bar. */
+@Composable
+fun CircleAction(
+    icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier,
+    container: Color = MaterialTheme.colorScheme.surface,
+    content: Color = MaterialTheme.colorScheme.onSurface,
+    outlined: Boolean = true, enabled: Boolean = true
+) {
+    val src = remember { MutableInteractionSource() }
+    val cs = MaterialTheme.colorScheme
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(
+            Modifier.size(62.dp).pressScale(src, 0.94f)
+                .semantics { contentDescription = label }
+                .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
+                .shadow(if (outlined) 6.dp else 14.dp, CircleShape, ambientColor = container.copy(alpha = 0.4f))
+                .clip(CircleShape)
+                .then(
+                    if (outlined) Modifier.background(container)
+                    else Modifier.background(container)
+                )
+                .then(if (outlined) Modifier.border(1.dp, cs.outline, CircleShape) else Modifier)
+                .clickable(interactionSource = src, indication = null, role = Role.Button, enabled = enabled, onClick = onClick),
+            Alignment.Center
+        ) { Icon(icon, null, tint = content, modifier = Modifier.size(25.dp)) }
+        Text(
+            label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = cs.onSurfaceVariant, maxLines = 2, textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -273,7 +304,7 @@ fun BTextField(
             interactionSource = src,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = cs.surface,
-                unfocusedContainerColor = cs.surfaceVariant,
+                unfocusedContainerColor = cs.surfaceVariant.copy(alpha = 0.35f),
                 errorContainerColor = cs.surface,
                 focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
@@ -290,23 +321,38 @@ fun BTextField(
 @Composable
 fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val scale = androidx.compose.ui.platform.LocalDensity.current.fontScale.coerceAtLeast(1f)
-    BoxWithConstraints(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(cs.surfaceVariant).padding(4.dp)) {
-        val columns = (maxWidth.value / (80 * scale)).toInt().coerceIn(1, options.size.coerceAtLeast(1))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            options.indices.toList().chunked(columns).forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    row.forEach { index ->
-                        val on = selected == index
-                        val bg by animateColorAsState(if (on) cs.surface else Color.Transparent,
-                            tween(if (LocalReducedMotion.current) 0 else Motion.ENTER_MS), label = "segment")
-                        Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(RoundedCornerShape(9.dp))
-                            .background(bg).selectable(selected = on, role = Role.Tab) { onSelect(index) }
-                            .padding(horizontal = 8.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
-                            Text(options[index], color = if (on) cs.primary else cs.onSurfaceVariant,
-                                textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge)
-                        }
-                    }
+    val shape = RoundedCornerShape(Rd.s)
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().height(50.dp).clip(shape)
+            .background(cs.surfaceVariant.copy(alpha = 0.55f))
+            .border(1.dp, cs.outline.copy(alpha = 0.6f), shape).padding(4.dp)
+    ) {
+        val n = options.size.coerceAtLeast(1)
+        val slot = maxWidth / n
+        val pos by animateFloatAsState(selected.toFloat(), Motion.gentle(), label = "segment")
+        val x = slot * pos // offset is already layout-direction aware
+        Box(
+            Modifier.offset(x = x).width(slot).fillMaxHeight()
+                .shadow(5.dp, RoundedCornerShape(11.dp), ambientColor = Color.Black.copy(alpha = 0.10f))
+                .clip(RoundedCornerShape(11.dp)).background(cs.surface)
+                .border(1.dp, cs.onSurface.copy(alpha = 0.04f), RoundedCornerShape(11.dp))
+        )
+        Row(Modifier.fillMaxSize()) {
+            options.forEachIndexed { i, o ->
+                val on = i == selected
+                val fg by animateColorAsState(if (on) cs.onSurface else cs.onSurfaceVariant, tween(200), label = "segFg")
+                Box(
+                    Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp))
+                        .selectable(selected = on, role = Role.Tab) { onSelect(i) },
+                    Alignment.Center
+                ) {
+                    Text(
+                        o, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = if (options.size > 3) 12.sp else 13.5.sp
+                        )
+                    )
                 }
             }
         }
@@ -323,14 +369,14 @@ fun Panel(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(Rd.l)
+    val shape = RoundedCornerShape(Rd.m)
     val interaction = remember { MutableInteractionSource() }
     val base = modifier
         .then(if (onClick != null) Modifier.pressScale(interaction, 0.99f) else Modifier)
         .clip(shape)
         .background(cs.surface)
         .border(1.dp, accent?.copy(alpha = 0.5f) ?: cs.outlineVariant, shape)
-        .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = rememberRipple(), role = Role.Button, onClick = onClick) else Modifier)
+        .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick) else Modifier)
     Column(base.fillMaxWidth(), content = content)
 }
 
@@ -455,11 +501,19 @@ fun EmptyState(
         modifier.fillMaxSize().padding(Sp.xxxl), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(Modifier.size(64.dp).clip(RoundedCornerShape(20.dp)).background(cs.surfaceVariant), Alignment.Center) {
-            Icon(icon, null, tint = cs.primary, modifier = Modifier.size(28.dp))
+        Box(Modifier.size(136.dp), Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val c = this.size.minDimension / 2f
+                drawCircle(cs.primary.copy(alpha = 0.05f), radius = c * 0.98f)
+                drawCircle(cs.primary.copy(alpha = 0.08f), radius = c * 0.76f)
+                drawCircle(cs.secondary.copy(alpha = 0.10f), radius = c * 0.54f)
+            }
+            Box(Modifier.size(62.dp).clip(CircleShape).background(cs.primary.copy(alpha = 0.10f)), Alignment.Center) {
+                Icon(icon, null, tint = cs.primary, modifier = Modifier.size(27.dp))
+            }
         }
         Spacer(Modifier.height(Sp.xl))
-        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Sp.s))
         Text(
             sub, color = cs.onSurfaceVariant, textAlign = TextAlign.Center,
@@ -492,11 +546,7 @@ fun CountUp(
     color: Color = Color.Unspecified
 ) {
     val a = remember { Animatable(value.toFloat()) }
-    val reduced = LocalReducedMotion.current
-    LaunchedEffect(value, reduced) {
-        if (reduced) a.snapTo(value.toFloat())
-        else a.animateTo(value.toFloat(), tween(Motion.ENTER_MS, easing = Motion.easeOut))
-    }
+    LaunchedEffect(value) { a.animateTo(value.toFloat(), tween(950, easing = Motion.easeOut)) }
     Text(
         a.value.roundToInt().toString(), modifier = modifier,
         style = style.copy(fontFeatureSettings = "tnum"), color = color
@@ -519,17 +569,22 @@ fun Avatar(text: String, color: Color = MaterialTheme.colorScheme.primary, size:
 @Composable
 fun Pill(text: String, color: Color, icon: ImageVector? = null, onClick: (() -> Unit)? = null) {
     val fg = readable(color)
-    Box(Modifier.heightIn(min = if (onClick != null) 48.dp else 0.dp)
-        .then(if (onClick != null) Modifier.clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button, onClick = onClick) else Modifier),
-        contentAlignment = Alignment.CenterStart) {
-        Row(Modifier.clip(RoundedCornerShape(8.dp)).background(color.copy(alpha = 0.08f))
-            .padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) {
-                Icon(icon, null, tint = fg, modifier = Modifier.size(14.dp))
-                Spacer(Modifier.width(6.dp))
-            }
-            Text(text, color = fg, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+    val shape = RoundedCornerShape(50)
+    var m = Modifier.clip(shape).background(color.copy(alpha = 0.11f)).border(1.dp, color.copy(alpha = 0.16f), shape)
+    if (onClick != null) m = m.clickable(role = Role.Button, onClick = onClick)
+    Row(
+        m.heightIn(min = if (onClick != null) 48.dp else 24.dp).padding(horizontal = 9.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            Icon(icon, null, tint = fg, modifier = Modifier.size(12.dp))
+            Spacer(Modifier.width(4.dp))
         }
+        Text(
+            text, color = fg,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
+            maxLines = 1
+        )
     }
 }
 
@@ -562,28 +617,33 @@ fun StatusDot(s: Int) {
 fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val src = remember { MutableInteractionSource() }
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(50)
     Row(
         Modifier.clip(shape)
             .background(cs.surface)
             .border(1.dp, cs.outline.copy(alpha = 0.8f), shape)
             .pressScale(src, 0.94f)
-            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button) { onClick() }
-            .heightIn(min = 48.dp).padding(horizontal = 14.dp, vertical = 8.dp),
+            .clickable(interactionSource = src, indication = null, role = Role.Button) { onClick() }
+            .heightIn(min = 48.dp).padding(horizontal = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = cs.primary, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(7.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge)
+        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
     }
 }
 
 @Composable
-fun WhatsAppButton(number: String, size: Dp = 24.dp) {
+fun WhatsAppButton(number: String, size: Dp = 40.dp) {
     val ctx = LocalContext.current
-    IconButton(onClick = { openWhatsApp(ctx, number) }, modifier = Modifier.size(48.dp)) {
-        Icon(Icons.Rounded.Chat, T("Follow up on WhatsApp", "متابعة عبر واتساب"),
-            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(size.coerceAtMost(24.dp)))
+    val green = Color(0xFF1F8A70)
+    Box(
+        Modifier.size(maxOf(size, 48.dp)).clip(CircleShape).background(green.copy(alpha = 0.14f))
+            .border(1.dp, green.copy(alpha = 0.25f), CircleShape)
+            .clickable { openWhatsApp(ctx, number) },
+        Alignment.Center
+    ) {
+        Icon(Icons.Rounded.Chat, contentDescription = "WhatsApp", tint = readable(green), modifier = Modifier.size(size * 0.46f))
     }
 }
 
@@ -600,13 +660,31 @@ fun LogoMark(dp: Dp, color: Color = Cream) {
 
 // ====================================================================== top bar
 @Composable
+private fun LivePill() {
+    val pct = Store.lists.find { it.id == Store.camp.listId }?.let { Store.prog(it).pct } ?: 0
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(Sem.success.copy(alpha = 0.10f))
+            .border(1.dp, Sem.success.copy(alpha = 0.18f), RoundedCornerShape(50))
+            .clickable { Store.tab = 1 }.heightIn(min = 32.dp).padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PulseDot(Sem.success, 7.dp)
+        Spacer(Modifier.width(7.dp))
+        Text(
+            "${T("Live", "مباشر")} $pct%", color = readable(Sem.success),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+        )
+    }
+}
+
+@Composable
 fun BlendBar(
     title: String, onBack: (() -> Unit)? = null, showSettings: Boolean = false,
     subtitle: String? = null, actions: @Composable RowScope.() -> Unit = {}
 ) {
     Column(
         Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = Sp.xl, end = Sp.l, top = 12.dp, bottom = 12.dp)
+            .padding(start = Sp.xl, end = Sp.l, top = Sp.m, bottom = Sp.m)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
@@ -615,8 +693,8 @@ fun BlendBar(
             }
             Column(Modifier.weight(1f)) {
                 Text(
-                    title, style = MaterialTheme.typography.titleLarge,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis
+                    title, style = MaterialTheme.typography.headlineLarge,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 if (subtitle != null) {
                     Spacer(Modifier.height(2.dp))
@@ -628,6 +706,10 @@ fun BlendBar(
                 }
             }
             Spacer(Modifier.width(Sp.s))
+            if (Store.campActive() && Store.tab != 1) {
+                LivePill()
+                Spacer(Modifier.width(Sp.s))
+            }
             actions()
             if (showSettings) {
                 SoftIconButton(Icons.Rounded.Settings, T("Settings", "الإعدادات"), { Store.openSettings() })
@@ -645,7 +727,7 @@ fun BDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         title = if (title != null) { { Text(title, style = MaterialTheme.typography.titleLarge) } } else null,
@@ -743,7 +825,7 @@ fun BrandFab(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Mod
             .clip(shape)
             .background(Brush.horizontalGradient(listOf(cs.primary, cs.primary)))
             .border(1.dp, Color.White.copy(alpha = 0.16f), shape)
-            .clickable(interactionSource = src, indication = rememberRipple(), role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick)
             .heightIn(min = 54.dp).padding(horizontal = 19.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.o2dialer.app
 
@@ -59,15 +59,14 @@ fun ListsScreen() {
     }
     editing?.let { l ->
         CampaignDialog(l, { editingId = null }) { n, sim ->
-            val saved = Store.editCampaign(l.id, n, sim); editingId = null
-            Store.notify(if (saved) Tk.SUCCESS else Tk.WARN, if (saved) T("Campaign updated", "تم تحديث الحملة") else T("Stop the session before editing", "أوقف الجلسة قبل التعديل"))
+            Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editingId = null
+            Store.notify(Tk.SUCCESS, T("Campaign updated", "تم تحديث الحملة"))
         }
     }
     deleting?.let { l ->
         ConfirmDialog(T("Delete \"${l.name}\" and all its numbers?", "حذف \"${l.name}\" وكل أرقامها؟"), { deleting = null }) {
-            val count = Store.deleteLists(setOf(l.id)); deleting = null
-            Store.notify(Tk.INFO, if (count > 0) T("Campaign deleted", "تم حذف الحملة")
-                else T("Stop the session before deleting", "أوقف الجلسة قبل الحذف"))
+            Store.deleteList(l.id); deleting = null
+            Store.notify(Tk.INFO, T("Campaign deleted", "تم حذف الحملة"))
         }
     }
 }
@@ -81,7 +80,6 @@ fun ListDetail(listId: String, act: MainActivity) {
     val scope = rememberCoroutineScope()
     var query by rememberSaveable(listId) { mutableStateOf("") }
     var dlg by rememberSaveable(listId) { mutableStateOf("") }
-    var editCampaign by rememberSaveable(listId) { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
     var editingEntryId by rememberSaveable(listId) { mutableStateOf<String?>(null) }
     val editing = list.entries.find { it.id == editingEntryId }
@@ -125,7 +123,7 @@ fun ListDetail(listId: String, act: MainActivity) {
     val simText = when (list.simSlot) { 0 -> "SIM 1"; 1 -> "SIM 2"; else -> T("Default SIM", "الشريحة الافتراضية") }
 
     val chips: @Composable () -> Unit = {
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s), verticalArrangement = Arrangement.spacedBy(Sp.s)) {
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
             ActionChip(Icons.Rounded.Add, T("Add number", "إضافة رقم")) { dlg = "add" }
             ActionChip(Icons.Rounded.ContentPaste, T("Paste", "لصق")) { if (License.canImport) dlg = "bulk" else License.denyImport() }
             ActionChip(Icons.Rounded.UploadFile, T("Import file", "استيراد ملف")) {
@@ -141,13 +139,7 @@ fun ListDetail(listId: String, act: MainActivity) {
         topBar = {
             BlendBar(
                 list.name, onBack = { Store.selectedListId = null },
-                subtitle = T("${p.total} contacts · $simText", "${p.total} جهة · $simText"),
-                actions = {
-                    IconButton(onClick = {
-                        if (Store.isRunningList(listId)) Store.notify(Tk.INFO, T("Stop the session before editing", "أوقف الجلسة قبل التعديل"))
-                        else editCampaign = true
-                    }) { Icon(Icons.Rounded.Edit, T("Edit campaign", "تعديل الحملة")) }
-                }
+                subtitle = T("${p.total} contacts · $simText", "${p.total} جهة · $simText")
             )
         },
         bottomBar = {
@@ -160,15 +152,15 @@ fun ListDetail(listId: String, act: MainActivity) {
                 }
                 Column(
                     Modifier.fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.background)))
                 ) {
                     Box(
                         Modifier.fillMaxWidth().navigationBarsPadding()
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .padding(horizontal = Sp.xl, vertical = Sp.m)
                     ) {
                         BButton(
                             label, { act.startCampaign(listId, p.called > 0 && p.remaining == 0) },
-                            Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow, compact = true
+                            Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow
                         )
                     }
                 }
@@ -246,11 +238,6 @@ fun ListDetail(listId: String, act: MainActivity) {
         }
     }
 
-    if (editCampaign) CampaignDialog(list, { editCampaign = false }) { name, sim ->
-        val saved = Store.editCampaign(listId, name, sim)
-        editCampaign = false
-        Store.notify(if (saved) Tk.SUCCESS else Tk.WARN, if (saved) T("Campaign updated", "تم تحديث الحملة") else T("Stop the session before editing", "أوقف الجلسة قبل التعديل"))
-    }
     when (dlg) {
         "add" -> EntryDialog(null, { dlg = "" }) { n, num -> reportAdded(Store.addEntries(listId, listOf(n to num))); dlg = "" }
         "bulk" -> BulkDialog({ dlg = "" }) { t ->
@@ -284,24 +271,56 @@ fun EntryRow(
         bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
     )
     Column(Modifier.fillMaxWidth().clip(shape).background(cs.surface).clickable(onClick = onEdit)) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Avatar(e.name.ifBlank { e.number }, cs.primary, size = 28.dp)
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(e.name.ifBlank { e.number },
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold,
-                            textDirection = if (e.name.isBlank()) androidx.compose.ui.text.style.TextDirection.Ltr else androidx.compose.ui.text.style.TextDirection.Content),
-                        maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    if (e.name.isNotBlank()) NumText(e.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+        Row(
+            Modifier.fillMaxWidth().padding(start = Sp.l, end = Sp.xs, top = 13.dp, bottom = 13.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Avatar(
+                e.name.ifBlank { e.number },
+                if (e.stage != Stg.NONE) Stg.color(e.stage) else cs.primary, size = 40.dp
+            )
+            Spacer(Modifier.width(Sp.m))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    e.name.ifBlank { e.number },
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (e.name.isNotBlank()) {
+                        NumText(e.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+                    }
+                    if (answered && e.duration > 0) {
+                        if (e.name.isNotBlank()) Text(
+                            "  ·  ", style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
+                        )
+                        Text(fmtDur(e.duration), style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+                    }
                 }
-                IconButton(onClick = { askDelete = true }, modifier = Modifier.size(48.dp)) {
-                    Icon(Icons.Rounded.DeleteOutline, T("Delete number", "حذف الرقم"), tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                if (e.status != St.PENDING || e.stage != Stg.NONE) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(top = 1.dp)
+                    ) {
+                        if (e.status != St.PENDING) StatusDot(e.status)
+                        if (e.stage != Stg.NONE) StagePill(e.stage) { Store.stageTarget = listId to e.id }
+                        else if (answered) Pill(T("+ Stage", "+ نتيجة"), cs.primary) { Store.stageTarget = listId to e.id }
+                    }
                 }
             }
-            ContactMetadata(e, listId)
+            if (e.stage != Stg.NONE) {
+                WhatsAppButton(e.number, 32.dp)
+                Spacer(Modifier.width(Sp.xs))
+            }
+            IconButton(onClick = { askDelete = true }, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    Icons.Rounded.Delete, T("Delete number", "حذف الرقم"),
+                    tint = cs.onSurfaceVariant.copy(alpha = 0.65f), modifier = Modifier.size(17.dp)
+                )
+            }
         }
-        if (!isLast) Hairline(Modifier.padding(horizontal = 12.dp))
+        if (!isLast) Hairline(startIndent = 68.dp)
     }
     if (askDelete) {
         ConfirmDialog(

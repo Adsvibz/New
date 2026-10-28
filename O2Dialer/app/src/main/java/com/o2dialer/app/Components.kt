@@ -173,7 +173,7 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
                     ) {
                         Checkbox(checked = num in sel, onCheckedChange = null)
                         Spacer(Modifier.width(Sp.s))
-                        Column(Modifier.weight(1f)) {
+                        Column {
                             Text(n.ifBlank { num }, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             NumText(num, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -207,9 +207,9 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
     val shape = RoundedCornerShape(Rd.m)
     Row(
         modifier.clip(shape)
-            .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface)
-            .border(if (selected) 1.5.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, shape)
-            .selectable(selected = selected, role = androidx.compose.ui.semantics.Role.RadioButton, onClick = onClick).heightIn(min = 56.dp).padding(horizontal = Sp.m, vertical = 12.dp),
+            .background(if (selected) c.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
+            .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.75f else 0.14f), shape)
+            .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.size(26.dp).clip(CircleShape).background(c.copy(alpha = if (selected) 0.20f else 0.10f)), Alignment.Center) {
@@ -218,7 +218,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
         Spacer(Modifier.width(Sp.s))
         Text(
             Stg.label(s), color = if (selected) readable(c) else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall.copy(fontSize = 13.sp), maxLines = 2
         )
     }
 }
@@ -230,7 +230,7 @@ fun StageSheet(listId: String, entryId: String) {
     if (entry == null) { LaunchedEffect(Unit) { Store.stageTarget = null }; return }
     var selected by rememberSaveable(listId, entryId) { mutableIntStateOf(entry.stage) }
     var fb by rememberSaveable(listId, entryId) { mutableStateOf(entry.feedback) }
-    val release: () -> Unit = { if (stageCanControlQueue(Store.camp, listId)) DialerService.send(ctx, DialerService.ACT_STAGE_DONE) }
+    val release: () -> Unit = { if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_DONE) }
     // Dismissing the sheet keeps whatever comment was typed, then lets the campaign continue.
     val close: () -> Unit = {
         if (Stg.needsFeedback(selected)) Store.setStage(listId, entryId, selected, fb.trim())
@@ -259,7 +259,7 @@ fun StageSheet(listId: String, entryId: String) {
                     maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (entry.name.isNotBlank()) NumText(entry.number, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    NumText(entry.number, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (entry.duration > 0) Text(
                         "  ·  ${fmtDur(entry.duration)}", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -267,9 +267,7 @@ fun StageSheet(listId: String, entryId: String) {
                 }
             }
         }
-        val stageColumns = if (androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.3f ||
-            androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 360) 1 else 2
-        Stg.all.chunked(stageColumns).forEach { row ->
+        Stg.all.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
                 row.forEach { s ->
                     StageTile(s, selected == s, Modifier.weight(1f)) {
@@ -277,7 +275,7 @@ fun StageSheet(listId: String, entryId: String) {
                         Store.setStage(listId, entryId, s, fb)
                         if (Stg.needsFeedback(s)) {
                             // Hold the campaign until "Save feedback" so the next call does not start while typing.
-                            if (stageCanControlQueue(Store.camp, listId)) DialerService.send(ctx, DialerService.ACT_STAGE_HOLD)
+                            if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_HOLD)
                         } else {
                             release()
                             Store.stageTarget = null
@@ -285,7 +283,7 @@ fun StageSheet(listId: String, entryId: String) {
                         }
                     }
                 }
-                if (row.size < stageColumns) Spacer(Modifier.weight(1f))
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
         if (Stg.needsFeedback(selected)) {
@@ -309,11 +307,11 @@ fun SettingsSection(
     Panel(Modifier.fillMaxWidth()) {
         Column {
             Row(
-                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 64.dp)
+                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 66.dp)
                     .padding(horizontal = Sp.l),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(icon, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(22.dp))
+                IconTile(icon, cs.primary, 36.dp)
                 Spacer(Modifier.width(Sp.m))
                 Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 Icon(
