@@ -1,6 +1,11 @@
 package com.o2dialer.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +24,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +46,41 @@ fun V7CampaignWorkspace(
     onEdit: (CallList) -> Unit,
     onDelete: (CallList) -> Unit
 ) {
+    CampaignReferenceTheme {
+        CampaignWorkspaceContent(onCreate, onEdit, onDelete)
+    }
+}
+
+/** Local styling from the supplied My TAI reference; other destinations retain build 165. */
+@Composable
+private fun CampaignReferenceTheme(content: @Composable () -> Unit) {
+    val base = MaterialTheme.colorScheme
+    val dark = isDarkTheme()
+    val font = remember(Store.cfg.lang) {
+        if (Store.cfg.lang == 1) FontFamily(Font(R.font.plex_arabic_regular), Font(R.font.plex_arabic_bold, FontWeight.Bold))
+        else FontFamily(Font(R.font.outfit_regular), Font(R.font.outfit_bold, FontWeight.Bold))
+    }
+    fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
+        fontFamily = font, fontSize = size.sp, lineHeight = (line * if (Store.cfg.lang == 1) 1.12f else 1f).sp,
+        fontWeight = weight, platformStyle = PlatformTextStyle(includeFontPadding = false),
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None))
+    val type = MaterialTheme.typography.copy(
+        headlineMedium = style(28, 36, FontWeight.Bold), titleLarge = style(22, 28, FontWeight.Bold),
+        titleMedium = style(17, 24, FontWeight.Bold), titleSmall = style(15, 22, FontWeight.Bold),
+        bodyLarge = style(16, 24), bodyMedium = style(14, 21), bodySmall = style(13, 19),
+        labelLarge = style(15, 22, FontWeight.Bold), labelMedium = style(13, 18), labelSmall = style(12, 17))
+    val colors = if (dark) base.copy(surface = Color(0xFF1B1F27), surfaceVariant = Color(0xFF262C35),
+        outlineVariant = Color(0xFF353D49)) else base.copy(
+        primary = if (Store.cfg.dynamicColor) base.primary else Color(0xFF206DDC), onPrimary = Color.White,
+        primaryContainer = Color(0xFFEBF4FF), onPrimaryContainer = Color(0xFF174E9C),
+        surface = Color.White, surfaceVariant = Color(0xFFF8F8FA),
+        onSurface = Color(0xFF292D34), onSurfaceVariant = Color(0xFF667085),
+        outlineVariant = Color(0xFFE9EBF0), outline = Color(0xFF9AA3B2))
+    MaterialTheme(colorScheme = colors, typography = type, content = content)
+}
+
+@Composable
+private fun CampaignWorkspaceContent(onCreate: () -> Unit, onEdit: (CallList) -> Unit, onDelete: (CallList) -> Unit) {
     val lists = Store.lists.toList()
     val total = lists.sumOf { Store.prog(it).total }
     val called = lists.sumOf { Store.prog(it).called }
@@ -42,6 +90,8 @@ fun V7CampaignWorkspace(
     val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
     val responseRate = if (called > 0) (answered.toLong() * 100 / called).coerceIn(0L, 100L) else 0L
     val cs = MaterialTheme.colorScheme
+    val searchInteraction = remember { MutableInteractionSource() }
+    val searchFocused by searchInteraction.collectIsFocusedAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -49,55 +99,63 @@ fun V7CampaignWorkspace(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(T("Campaigns", "الحملات"),
-                        style = MaterialTheme.typography.headlineMedium, color = cs.onBackground)
-                }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Surface(color = cs.primaryContainer, shape = RoundedCornerShape(16.dp)) {
-                    Box(Modifier.padding(13.dp)) { LogoMark(25.dp, cs.primary) }
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.FolderOpen, null, tint = cs.primary, modifier = Modifier.size(24.dp))
+                    }
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium, color = cs.onSurface)
+                    Text(T("${lists.size} campaigns · $total contacts", "${lists.size} حملات · $total جهة اتصال"),
+                        style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
                 }
             }
         }
-        item {
+        if (lists.isNotEmpty()) item {
             Surface(shape = RoundedCornerShape(20.dp), color = cs.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(T("Calling overview", "ملخص المكالمات"), color = cs.onSurfaceVariant,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.weight(1f))
-                        Icon(Icons.Rounded.Insights, null, tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                border = BorderStroke(1.dp, cs.outlineVariant)) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(T("Overview", "نظرة عامة"), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        NumText("${(completion * 100).toInt()}%", style = MaterialTheme.typography.labelLarge, color = cs.primary)
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        CountUp(called, style = MaterialTheme.typography.displaySmall, color = cs.onSurface)
-                        Text(T("of $total contacts called", "من أصل $total جهة اتصال"),
-                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val metrics = listOf("$called" to T("Called", "تم الاتصال"),
+                            "$answered" to T("Answered", "تم الرد"), "$responseRate%" to T("Answer rate", "نسبة الرد"))
+                        val columns = (maxWidth.value / (88f * LocalDensity.current.fontScale.coerceAtLeast(1f))).toInt().coerceIn(1, 3)
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            metrics.chunked(columns).forEach { row ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    row.forEach { (value, label) -> V7HeroMetric(value, label) }
+                                }
+                            }
+                        }
                     }
-                    LinearProgressIndicator(progress = { completion },
-                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                    LinearProgressIndicator(progress = { completion }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
                         color = cs.primary, trackColor = cs.surfaceVariant)
-                    HorizontalDivider(color = cs.outlineVariant)
-                    Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                        V7HeroMetric("$answered", T("Answered", "تم الرد"))
-                        V7HeroMetric("$responseRate%",
-                            T("Answer rate", "نسبة الرد"))
-                        V7HeroMetric("${lists.size}", T("Campaigns", "الحملات"))
-                    }
                 }
             }
         }
         item {
-            BButton(T("New campaign", "حملة جديدة"), onCreate, Modifier.fillMaxWidth(), icon = Icons.Rounded.Add)
+            Button(onClick = onCreate, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                shape = RoundedCornerShape(14.dp), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = cs.primary, contentColor = cs.onPrimary)) {
+                Icon(Icons.Rounded.Add, null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(T("New campaign", "حملة جديدة"), style = MaterialTheme.typography.labelLarge)
+            }
         }
         if (Store.campActive()) {
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth().clickable { Store.tab = 1 },
-                    color = cs.tertiaryContainer, shape = RoundedCornerShape(18.dp)
+                    color = cs.surface, shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(1.dp, cs.outlineVariant)
                 ) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.onTertiaryContainer)
+                        Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.primary)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -106,12 +164,12 @@ fun V7CampaignWorkspace(
                                 else if (Store.camp.status == CS.WAITING)
                                     T("Waiting for next call", "بانتظار المكالمة التالية")
                                 else T("Session in progress", "حملة قيد التشغيل"),
-                                color = cs.onTertiaryContainer, fontWeight = FontWeight.Bold
+                                color = cs.primary, fontWeight = FontWeight.Bold
                             )
                             Text(Store.camp.listName, style = MaterialTheme.typography.bodySmall,
-                                color = cs.onTertiaryContainer, maxLines = 1)
+                                color = cs.primary, maxLines = 1)
                         }
-                        Icon(Icons.Rounded.ChevronRight, null, tint = cs.onTertiaryContainer)
+                        Icon(Icons.Rounded.ChevronRight, null, tint = cs.primary)
                     }
                 }
             }
@@ -120,11 +178,24 @@ fun V7CampaignWorkspace(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(T("Your campaigns", "حملاتك"), fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Text("${lists.size}", color = cs.onSurfaceVariant)
                 }
-                BTextField(value = search, onChange = { search = it },
-                    placeholder = T("Search campaigns", "بحث عن حملة"), leading = Icons.Rounded.Search)
+                TextField(value = search, onValueChange = { search = it }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().border(1.dp, if (searchFocused) cs.primary else cs.outlineVariant, RoundedCornerShape(14.dp))
+                        .semantics { contentDescription = T("Search campaigns", "بحث عن حملة") },
+                    interactionSource = searchInteraction,
+                    shape = RoundedCornerShape(14.dp), textStyle = MaterialTheme.typography.bodyLarge,
+                    placeholder = { Text(T("Search campaigns", "بحث عن حملة")) },
+                    leadingIcon = { Icon(Icons.Rounded.Search, null, modifier = Modifier.size(21.dp)) },
+                    trailingIcon = if (search.isNotBlank()) { { IconButton(onClick = { search = "" }) {
+                        Icon(Icons.Rounded.Close, T("Clear search", "مسح البحث"))
+                    } } } else null,
+                    colors = TextFieldDefaults.colors(focusedContainerColor = cs.surfaceVariant,
+                        unfocusedContainerColor = cs.surfaceVariant,
+                        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = cs.onSurface, unfocusedTextColor = cs.onSurface,
+                        focusedPlaceholderColor = cs.onSurfaceVariant, unfocusedPlaceholderColor = cs.onSurfaceVariant))
             }
         }
         if (shown.isEmpty()) {
@@ -155,11 +226,11 @@ fun V7CampaignWorkspace(
 
 @Composable
 private fun RowScope.V7HeroMetric(value: String, caption: String) {
-    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
         NumText(value, color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge)
         Text(caption, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelMedium, maxLines = 2)
+            style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
     }
 }
 
@@ -181,16 +252,16 @@ private fun V7CampaignRow(
         shape = RoundedCornerShape(18.dp), color = cs.surface,
         border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        Column(Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = cs.primaryContainer, shape = RoundedCornerShape(13.dp)) {
+                Surface(color = cs.surfaceVariant, shape = RoundedCornerShape(12.dp)) {
                     Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary,
-                        modifier = Modifier.padding(11.dp).size(20.dp))
+                        modifier = Modifier.padding(10.dp).size(20.dp))
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(list.name, color = cs.onSurface, fontWeight = FontWeight.Bold,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(list.name, color = cs.onSurface, style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(T("${p.total} contacts", "${p.total} جهة اتصال"),
                         color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
