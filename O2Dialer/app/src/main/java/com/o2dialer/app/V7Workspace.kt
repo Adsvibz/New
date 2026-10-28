@@ -122,6 +122,7 @@ private fun relativeActivity(time: Long): String {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PrecisionCampaignContent(
     onCreate: () -> Unit,
