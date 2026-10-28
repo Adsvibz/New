@@ -4,14 +4,14 @@ plugins {
 }
 android {
     namespace = "com.o2dialer.app"
-    compileSdk = 34
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.o2dialer.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         // Always rises with every GitHub run, so each build installs as an update over the previous one.
         versionCode = 100 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
-        versionName = "6.0"
+        versionName = "7.0"
         // Address of your license server (https://...). Empty = licensing is OFF and the app works exactly as before.
         // Set it with the LICENSE_URL GitHub secret (the workflow passes it in) or -PLICENSE_URL=... locally.
         val licenseUrl = (System.getenv("LICENSE_URL") ?: (project.findProperty("LICENSE_URL") as String?) ?: "").trim()
@@ -49,12 +49,14 @@ android {
     }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.8" }
     lint {
-        abortOnError = false
-        checkReleaseBuilds = false
+        abortOnError = true
+        checkReleaseBuilds = true
     }
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20231013")
     implementation(platform("androidx.compose:compose-bom:2024.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")

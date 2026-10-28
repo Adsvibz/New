@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.*
@@ -106,9 +107,12 @@ class MainActivity : ComponentActivity() {
         License.gate { gate, msg ->
             when (gate) {
                 License.Gate.ALLOWED -> requestCallPermissions {
-                    Store.runListId = listId
-                    Store.tab = 1
-                    DialerService.send(this, DialerService.ACT_START, listId, restart)
+                    if (!Store.campActive()) {
+                        Store.runListId = listId
+                        Store.tab = 1
+                        runCatching { DialerService.send(this, DialerService.ACT_START, listId, restart) }
+                            .onFailure { Store.notify(Tk.ERROR, T("Could not start calling. Reopen the app and check permissions.", "تعذّر بدء الاتصال. افتح التطبيق وتحقق من الصلاحيات.")) }
+                    }
                 }
                 License.Gate.NEED_ACTIVATION -> {
                     License.pendingStart = listId to restart
@@ -127,6 +131,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Store.permTick = Store.permTick + 1
+        if (Store.welcomed) AppUpdates.check(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,126 +140,122 @@ class MainActivity : ComponentActivity() {
         setContent {
             val dir = if (Store.cfg.lang == 1) LayoutDirection.Rtl else LayoutDirection.Ltr
             CompositionLocalProvider(LocalLayoutDirection provides dir) {
-                AppTheme { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() }
+                AppTheme { MotionPreferences { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() } }
             }
         }
     }
 }
 
-// ====================================================================== navigation dock
 @Composable
-private fun NavItem(
-    label: String, filled: ImageVector, outline: ImageVector, selected: Boolean,
-    modifier: Modifier, onClick: () -> Unit
-) {
-    val cs = MaterialTheme.colorScheme
-    val fg by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant, tween(220), label = "navFg")
-    val scale by animateFloatAsState(if (selected) 1.06f else 1f, Motion.press(), label = "navScale")
-    Column(
-        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            if (selected) filled else outline, null, tint = fg,
-            modifier = Modifier.size(22.dp).then(Modifier.graphicsLayer { scaleX = scale; scaleY = scale })
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 9.5.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                letterSpacing = 0.1.sp
-            ),
-            color = fg, maxLines = 1
-        )
-    }
-}
-
-/** The live dialer sits at the centre of the dock as the app's primary action. */
-@Composable
-private fun LiveNavItem(selected: Boolean, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    val tint by animateColorAsState(if (active) Sem.success else cs.primary, tween(300), label = "liveTint")
-    val scale by animateFloatAsState(if (selected) 1f else 0.96f, Motion.gentle(), label = "liveScale")
-    Column(
-        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            Modifier.size(36.dp).graphicsLayer { scaleX = scale; scaleY = scale }
-                .shadow(10.dp, CircleShape, ambientColor = tint.copy(alpha = 0.45f), spotColor = tint.copy(alpha = 0.35f))
-                .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(tint, lerp(tint, Brass, 0.30f))))
-                .border(1.dp, Color.White.copy(alpha = 0.20f), CircleShape),
-            Alignment.Center
-        ) { Icon(Icons.Rounded.Call, null, tint = if (active) Color.White else cs.onPrimary, modifier = Modifier.size(19.dp)) }
-        Spacer(Modifier.height(3.dp))
-        Text(
-            T("Live", "مباشر"),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 9.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.1.sp
-            ),
-            color = if (selected || active) readable(tint) else cs.onSurfaceVariant, maxLines = 1
-        )
+private fun CampaignReferenceNavigation() {
+    val muted = Color(0xFF9CA3AF)
+    val activeInk = Color(0xFF111827)
+    val activeCount = Store.lists.count { Store.isRunningList(it.id) }
+    val tabs = listOf(
+        Triple(T("Dialer", "الاتصال"), Icons.Rounded.Call, 1),
+        Triple(T("Results", "النتائج"), Icons.Rounded.Groups, 2),
+        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
+        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
+        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
+    )
+    Surface(color = Color.White, tonalElevation = 0.dp, shadowElevation = 0.dp) {
+        Column(Modifier.fillMaxWidth()) {
+            HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
+            Row(
+                Modifier.fillMaxWidth().navigationBarsPadding()
+                    .padding(horizontal = 24.dp, vertical = 7.dp),
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                tabs.forEach { (label, icon, destination) ->
+                    val active = Store.tab == destination
+                    Column(
+                        modifier = Modifier.weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                if (destination == 4) Store.openSettings()
+                                else {
+                                    if (destination == 0) Store.selectedListId = null
+                                    Store.tab = destination
+                                }
+                            }.heightIn(min = 46.dp).padding(top = 4.dp, bottom = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(icon, null, tint = if (active) activeInk else muted,
+                                modifier = Modifier.size(19.dp))
+                            if (destination == 0 && activeCount > 0) {
+                                Text(activeCount.toString(), fontSize = 8.sp, color = Color.White,
+                                    modifier = Modifier.align(Alignment.TopEnd)
+                                        .offset(x = 8.dp, y = (-5).dp)
+                                        .clip(CircleShape).background(activeInk)
+                                        .padding(horizontal = 4.dp, vertical = 1.dp))
+                            }
+                        }
+                        Text(label, fontSize = 10.sp,
+                            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (active) activeInk else muted, maxLines = 1)
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun AppNavBar() {
+    if (Store.tab == 0) { CampaignReferenceNavigation(); return }
     val cs = MaterialTheme.colorScheme
-    val dark = isDarkTheme()
-    val shape = RoundedCornerShape(30.dp)
-    val slot = when (Store.tab) { 0 -> 0; 2 -> 1; 1 -> 2; 3 -> 3; else -> 4 }
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val pos by animateFloatAsState(slot.toFloat(), Motion.gentle(), label = "dock")
-
-    Box(
-        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Sp.l).padding(bottom = Sp.s),
-        contentAlignment = Alignment.BottomCenter
+    val slots = listOf(
+        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
+        Triple(T("Live", "مباشر"), Icons.Rounded.Call, 1),
+        Triple(T("Results", "النتائج"), Icons.Rounded.BarChart, 2),
+        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
+        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
+    )
+    val inactiveIcons = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call,
+        Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
+    Surface(
+        color = cs.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        BoxWithConstraints(
-            Modifier.widthIn(max = 560.dp).fillMaxWidth().height(76.dp)
-                .shadow(
-                    22.dp, shape,
-                    ambientColor = Color.Black.copy(alpha = if (dark) 0.5f else 0.16f),
-                    spotColor = Color.Black.copy(alpha = 0.12f)
-                )
-                .clip(shape)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            cs.surface.copy(alpha = if (dark) 0.98f else 1f),
-                            cs.surfaceVariant.copy(alpha = if (dark) 0.55f else 0.45f)
+        Column {
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
+            Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
+            NavigationBar(
+                modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
+                containerColor = cs.surface,
+                tonalElevation = 0.dp,
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+            ) {
+                slots.forEach { (label, icon, destination) ->
+                    val active = Store.tab == destination
+                    NavigationBarItem(
+                        selected = active,
+                        onClick = {
+                                if (destination == 4) Store.openSettings()
+                                else {
+                                    if (destination == 0) Store.selectedListId = null
+                                    Store.tab = destination
+                                }
+                        },
+                        icon = { Icon(if (active) icon else inactiveIcons[destination], null,
+                            modifier = Modifier.size(23.dp)) },
+                        label = { Text(label, style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = cs.primary,
+                            selectedTextColor = cs.primary,
+                            unselectedIconColor = cs.onSurfaceVariant,
+                            unselectedTextColor = cs.onSurfaceVariant,
+                            indicatorColor = cs.primary.copy(alpha = 0.08f)
                         )
                     )
-                )
-                .border(1.dp, cs.onSurface.copy(alpha = 0.07f), shape)
-                .padding(6.dp)
-        ) {
-            val w = maxWidth / 5
-            val x = if (rtl) maxWidth - w * (pos + 1f) else w * pos
-            Box(
-                Modifier.offset(x = x).width(w).fillMaxHeight()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(cs.primary.copy(alpha = 0.09f))
-                    .border(1.dp, cs.primary.copy(alpha = 0.10f), RoundedCornerShape(24.dp))
-            )
-            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                NavItem(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, Icons.Outlined.Campaign, Store.tab == 0, Modifier.weight(1f)) {
-                    Store.selectedListId = null; Store.tab = 0
                 }
-                NavItem(T("Results", "النتائج"), Icons.Rounded.BarChart, Icons.Outlined.BarChart, Store.tab == 2, Modifier.weight(1f)) {
-                    Store.tab = 2
-                }
-                LiveNavItem(Store.tab == 1, Store.campActive(), Modifier.weight(1f)) { Store.tab = 1 }
-                NavItem(T("Log", "السجل"), Icons.Rounded.History, Icons.Outlined.History, Store.tab == 3, Modifier.weight(1f)) {
-                    Store.tab = 3
-                }
-                NavItem(T("Settings", "الإعدادات"), Icons.Rounded.Settings, Icons.Outlined.Settings, Store.tab == 4, Modifier.weight(1f)) {
-                    Store.openSettings()
-                }
+            }
             }
         }
     }
@@ -263,6 +264,7 @@ private fun AppNavBar() {
 @Composable
 fun Root(act: MainActivity) {
     val activity = LocalContext.current as Activity
+    LaunchedEffect(Unit) { AppUpdates.check(act) }
 
     val keep = Store.cfg.keepScreenOn && (Store.camp.status == CS.RUNNING || Store.camp.status == CS.WAITING)
     LaunchedEffect(keep) {
@@ -283,6 +285,7 @@ fun Root(act: MainActivity) {
     }
 
     val screenKey = if (Store.tab == 0 && Store.selectedListId != null) 10 else Store.tab
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     // The floating dock belongs to the five main destinations; the campaign detail page is full-screen.
     val showNav = screenKey in 0..4
 
@@ -294,22 +297,21 @@ fun Root(act: MainActivity) {
         Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad)) {
             Responsive {
                 AnimatedContent(
-                    targetState = screenKey,
+                    targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
-                        val forward = targetState >= initialState
-                        val dir = if (forward) 1 else -1
-                        (fadeIn(tween(260)) +
-                            slideInHorizontally(tween(360, easing = Motion.easeOut)) { it / 10 * dir } +
-                            scaleIn(tween(360, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
-                            (fadeOut(tween(140)) +
-                                slideOutHorizontally(tween(220)) { -it / 16 * dir } +
-                                scaleOut(tween(220), targetScale = 0.992f))
+                        val forward = targetState.first >= initialState.first
+                        val dir = (if (forward) 1 else -1) * (if (rtl) -1 else 1)
+                        (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) +
+                            slideInHorizontally(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) { it / 7 * dir } +
+                            scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.975f)) togetherWith
+                            (fadeOut(tween(Motion.NAV_EXIT_MS)) +
+                                slideOutHorizontally(tween(Motion.NAV_EXIT_MS)) { -it / 12 * dir })
                     },
                     label = "screen"
                 ) { k ->
-                    when (k) {
+                    when (k.first) {
                         0 -> ListsScreen()
-                        10 -> Store.selectedListId?.let { ListDetail(it, act) }
+                        10 -> k.second?.let { ListDetail(it, act) }
                         1 -> LiveScreen(act)
                         2 -> ResultsScreen()
                         3 -> LogScreen()
@@ -322,6 +324,7 @@ fun Root(act: MainActivity) {
             )
             Store.stageTarget?.let { (lid, eid) -> StageSheet(lid, eid) }
             if (License.showActivation) ActivationDialog(act)
+            UpdateHost(act)
         }
     }
 }

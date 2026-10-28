@@ -18,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +46,7 @@ private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
         Modifier.clip(shape).background(bg)
             .border(1.dp, if (selected) Color.Transparent else cs.outline.copy(alpha = 0.7f), shape)
             .clickable(onClick = onClick)
-            .heightIn(min = 36.dp).padding(horizontal = 14.dp),
+            .heightIn(min = 48.dp).padding(horizontal = 14.dp),
         Alignment.Center
     ) {
         Text(
@@ -116,12 +118,12 @@ private fun StageLegendRow(
 private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolean) {
     val cs = MaterialTheme.colorScheme
     val canStage = St.isAnswered(e.status)
-    val shape = RoundedCornerShape(
-        topStart = if (isFirst) Rd.l else 0.dp, topEnd = if (isFirst) Rd.l else 0.dp,
-        bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
-    )
     Column(
-        Modifier.fillMaxWidth().clip(shape).background(cs.surface)
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(Rd.m))
+            .background(cs.surface)
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
             .then(if (canStage) Modifier.clickable { Store.stageTarget = listId to e.id } else Modifier)
     ) {
         Row(
@@ -164,7 +166,6 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
                 Icons.Rounded.ChevronRight, null, tint = cs.outline, modifier = Modifier.size(18.dp)
             )
         }
-        if (!isLast) Hairline(startIndent = 68.dp)
     }
 }
 
@@ -175,7 +176,7 @@ fun ResultsScreen() {
         ?: Store.runListId?.takeIf { id -> Store.lists.any { it.id == id } }
         ?: Store.lists.firstOrNull()?.id
     val list = Store.lists.find { it.id == sel }
-    var f by remember { mutableIntStateOf(0) }
+    var f by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -200,7 +201,7 @@ fun ResultsScreen() {
             val rows = list.entries.filter {
                 when {
                     f == 0 -> it.status != St.PENDING && it.status != St.CALLING
-                    f == 1 -> St.isAnswered(it.status)
+                    f == 1 -> St.isConfirmedAnswered(it.status)
                     f == 2 -> it.status == St.NO_ANSWER
                     f == 3 -> it.status == St.FAILED
                     f >= 10 -> it.stage == f - 10
@@ -221,6 +222,12 @@ fun ResultsScreen() {
                 contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = Sp.l),
                 verticalArrangement = Arrangement.spacedBy(Sp.m)
             ) {
+                item { V7ResultsHeader(p) }
+                if (p.unverified > 0) item {
+                    Banner(Tk.INFO, T("${p.unverified} unverified calls", "${p.unverified} مكالمة غير مؤكدة"),
+                        T("These calls ended without a matching call-log result. They are not counted as answered.",
+                            "المكالمات دي انتهت بدون نتيجة مطابقة في سجل الهاتف، ومش محسوبة ضمن الردود المؤكدة."))
+                }
                 if (Store.lists.size > 1) item {
                     Row(
                         Modifier.horizontalScroll(rememberScrollState()),
@@ -251,7 +258,8 @@ fun ResultsScreen() {
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                         Text(
-                                            if (p.remaining == 0) T("Every contact has been called", "تم الاتصال بكل الجهات")
+                                            if (p.total == 0) T("Add contacts to begin", "أضف جهات اتصال للبدء")
+                                            else if (p.remaining == 0) T("Every contact has been called", "تم الاتصال بكل الجهات")
                                             else T("${p.remaining} contacts remaining", "${p.remaining} جهة متبقية"),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -293,7 +301,7 @@ fun ResultsScreen() {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     StageDonut(
                                         segments = Stg.all.map { s -> s to list.entries.count { it.stage == s } },
-                                        total = staged, size = 142.dp, stroke = 13.dp,
+                                        total = staged, size = if (isCompact() || LocalDensity.current.fontScale > 1.3f) 88.dp else 130.dp, stroke = 13.dp,
                                         selected = if (f >= 10) f - 10 else null
                                     )
                                     Spacer(Modifier.width(Sp.l))
@@ -301,8 +309,7 @@ fun ResultsScreen() {
                                         SectionLabel(T("Stages", "المراحل"))
                                         Text(T("Call outcomes", "نتائج المكالمات"), style = MaterialTheme.typography.titleMedium)
                                         Text(
-                                            T("$staged of $answered answered calls tagged",
-                                                "$staged من $answered مكالمة تم وسمها"),
+                                            T("$staged contacts have saved outcomes", "$staged جهة اتصال لها نتائج محفوظة"),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -390,7 +397,7 @@ private fun dayLabel(ms: Long): String {
     return when (diff) {
         0 -> T("Today", "اليوم")
         1 -> T("Yesterday", "أمس")
-        else -> SimpleDateFormat("EEEE, d MMM", Locale.US).format(Date(ms))
+        else -> SimpleDateFormat("EEEE, d MMM", if (Store.cfg.lang == 1) Locale("ar") else Locale.US).format(Date(ms))
     }
 }
 
@@ -407,11 +414,13 @@ private fun logIcon(s: Int): ImageVector = when (s) {
 private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
     val cs = MaterialTheme.colorScheme
     val color = statusColor(l.status)
-    val shape = RoundedCornerShape(
-        topStart = if (isFirst) Rd.l else 0.dp, topEnd = if (isFirst) Rd.l else 0.dp,
-        bottomStart = if (isLast) Rd.l else 0.dp, bottomEnd = if (isLast) Rd.l else 0.dp
-    )
-    Column(Modifier.fillMaxWidth().clip(shape).background(cs.surface)) {
+    Column(
+        Modifier.fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(Rd.m))
+            .background(cs.surface)
+            .border(1.dp, cs.outlineVariant, RoundedCornerShape(Rd.m))
+    ) {
         Row(
             Modifier.padding(start = Sp.l, end = Sp.l, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -450,14 +459,13 @@ private fun LogRow(l: LogItem, isFirst: Boolean, isLast: Boolean) {
                 )
             }
         }
-        if (!isLast) Hairline(startIndent = 66.dp)
     }
 }
 
 @Composable
 fun LogScreen() {
     val ctx = LocalContext.current
-    var f by remember { mutableIntStateOf(-1) }
+    var f by rememberSaveable { mutableIntStateOf(-1) }
     var confirm by remember { mutableStateOf(false) }
     val shown = Store.log.filter { f == -1 || it.status == f }
     val groups = remember(shown, Store.cfg.lang) { shown.groupBy { dayLabel(it.time) } }
@@ -483,6 +491,14 @@ fun LogScreen() {
         containerColor = Color.Transparent
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize()) {
+            Box(Modifier.padding(horizontal = Sp.xl)) {
+                V7HistoryHeader(
+                    total = Store.log.size,
+                    answered = Store.log.count { St.isConfirmedAnswered(it.status) },
+                    missed = Store.log.count { it.status == St.NO_ANSWER }
+                )
+            }
+            Spacer(Modifier.height(Sp.m))
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
                 horizontalArrangement = Arrangement.spacedBy(Sp.s)
@@ -490,7 +506,7 @@ fun LogScreen() {
                 listOf(
                     -1 to T("All", "الكل"), St.ANSWERED to T("Answered", "ردّوا"),
                     St.NO_ANSWER to T("No answer", "لم يردّوا"), St.FAILED to T("Failed", "فشل"),
-                    St.DONE to T("Completed", "انتهت")
+                    St.DONE to T("Unverified", "غير مؤكد")
                 ).forEach { (k, n) -> FilterPill(n, f == k) { f = k } }
             }
             if (shown.isEmpty()) {

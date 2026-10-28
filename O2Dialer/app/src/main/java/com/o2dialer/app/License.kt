@@ -162,7 +162,7 @@ object License {
             .put("called", p?.called ?: 0)
             .put("total", p?.total ?: 0)
             .put("calls_today", today.size)
-            .put("answered_today", today.count { St.isAnswered(it.status) })
+            .put("answered_today", today.count { St.isConfirmedAnswered(it.status) })
             .put("campaigns", Store.lists.size)
     }
 

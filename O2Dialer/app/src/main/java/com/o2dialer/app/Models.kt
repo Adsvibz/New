@@ -25,6 +25,7 @@ object St {
     const val NO_ANSWER = 3
     const val FAILED = 4
     const val DONE = 5
+    fun isConfirmedAnswered(s: Int) = s == ANSWERED
     fun isAnswered(s: Int) = s == ANSWERED || s == DONE
     fun label(s: Int): String = when (s) {
         PENDING -> T("Pending", "في الانتظار")
@@ -32,7 +33,8 @@ object St {
         ANSWERED -> T("Answered", "تم الرد")
         NO_ANSWER -> T("No answer", "لم يُرد")
         FAILED -> T("Failed", "فشل")
-        else -> T("Completed", "انتهت")
+        DONE -> T("Unverified", "الرد غير مؤكد")
+        else -> T("Unknown", "غير معروف")
     }
 }
 
@@ -109,8 +111,9 @@ data class LogItem(
 )
 
 data class Prog(val total: Int, val called: Int, val answered: Int, val noAnswer: Int, val failed: Int) {
-    val remaining: Int get() = total - called
-    val pct: Int get() = if (total == 0) 0 else called * 100 / total
+    val remaining: Int get() = (total - called).coerceAtLeast(0)
+    val unverified: Int get() = (called - answered - noAnswer - failed).coerceAtLeast(0)
+    val pct: Int get() = if (total <= 0) 0 else (called.toLong() * 100 / total).coerceIn(0L, 100L).toInt()
 }
 
 data class CampState(
@@ -124,7 +127,10 @@ data class CampState(
     val loops: Int = 1,
     val nextAt: Long = 0,
     val awaitingStage: Boolean = false,
-    val error: Boolean = false
+    val error: Boolean = false,
+    val completed: Boolean = false,
+    val queuedIds: List<String> = emptyList(),
+    val evaluating: Boolean = false
 )
 
 data class Cfg(
@@ -165,27 +171,27 @@ data class Cfg(
         fun fromJson(o: JSONObject): Cfg {
             val d = Cfg()
             return Cfg(
-                lang = o.optInt("lang", d.lang),
-                delaySec = o.optInt("delaySec", d.delaySec),
+                lang = o.optInt("lang", d.lang).coerceIn(0, 1),
+                delaySec = o.optInt("delaySec", d.delaySec).coerceIn(0, 120),
                 randomDelay = o.optBoolean("randomDelay", d.randomDelay),
-                delayMaxSec = o.optInt("delayMaxSec", d.delayMaxSec),
-                startCountdown = o.optInt("startCountdown", d.startCountdown),
-                maxCallSec = o.optInt("maxCallSec", d.maxCallSec),
-                retries = o.optInt("retries", d.retries),
-                loops = o.optInt("loops", d.loops),
+                delayMaxSec = o.optInt("delayMaxSec", d.delayMaxSec).coerceIn(1, 300),
+                startCountdown = o.optInt("startCountdown", d.startCountdown).coerceIn(0, 30),
+                maxCallSec = o.optInt("maxCallSec", d.maxCallSec).coerceIn(0, 600),
+                retries = o.optInt("retries", d.retries).coerceIn(0, 5),
+                loops = o.optInt("loops", d.loops).coerceIn(1, 20),
                 shuffle = o.optBoolean("shuffle", d.shuffle),
                 skipAnswered = o.optBoolean("skipAnswered", d.skipAnswered),
                 useCallLog = o.optBoolean("useCallLog", d.useCallLog),
                 countryCode = o.optString("countryCode", d.countryCode),
                 autoSpeaker = o.optBoolean("autoSpeaker", d.autoSpeaker),
                 askStage = o.optBoolean("askStage", d.askStage),
-                stageWaitSec = o.optInt("stageWaitSec", d.stageWaitSec),
+                stageWaitSec = o.optInt("stageWaitSec", d.stageWaitSec).coerceIn(0, 60),
                 quietEnabled = o.optBoolean("quietEnabled", d.quietEnabled),
-                quietFrom = o.optInt("quietFrom", d.quietFrom),
-                quietTo = o.optInt("quietTo", d.quietTo),
+                quietFrom = o.optInt("quietFrom", d.quietFrom).coerceIn(0, 23),
+                quietTo = o.optInt("quietTo", d.quietTo).coerceIn(0, 23),
                 keepScreenOn = o.optBoolean("keepScreenOn", d.keepScreenOn),
                 vibrateOnFinish = o.optBoolean("vibrateOnFinish", d.vibrateOnFinish),
-                themeMode = o.optInt("themeMode", d.themeMode),
+                themeMode = o.optInt("themeMode", d.themeMode).coerceIn(0, 2),
                 dynamicColor = o.optBoolean("dynamicColor", d.dynamicColor)
             )
         }
@@ -279,21 +285,24 @@ object Store {
     private val saveScope = CoroutineScope(SupervisorJob() + saveDispatcher)
     private var listsJob: Job? = null
     private var logJob: Job? = null
+    private val writeLock = Any()
+    private var listsRevision = 0L
+    private var logRevision = 0L
     @Volatile private var listsDirty = false
     @Volatile private var logDirty = false
 
     private fun saveLists() {
         val snap = lists.toList()                 // cheap copy on the main thread; entries are immutable
-        listsDirty = true
+        val revision = synchronized(writeLock) { listsDirty = true; ++listsRevision }
         listsJob?.cancel()
-        listsJob = saveScope.launch { delay(400); writeLists(snap) }
+        listsJob = saveScope.launch { delay(400); writeLists(snap, revision) }
     }
 
     private fun saveLog() {
         val snap = log.toList()
-        logDirty = true
+        val revision = synchronized(writeLock) { logDirty = true; ++logRevision }
         logJob?.cancel()
-        logJob = saveScope.launch { delay(400); writeLog(snap) }
+        logJob = saveScope.launch { delay(400); writeLog(snap, revision) }
     }
 
     /** Writes anything still pending right now. Called when the app goes to the background. */
@@ -301,11 +310,11 @@ object Store {
         val needLists = listsDirty || listsJob?.isActive == true
         val needLog = logDirty || logJob?.isActive == true
         listsJob?.cancel(); logJob?.cancel()
-        if (needLists) writeLists(lists.toList())
-        if (needLog) writeLog(log.toList())
+        if (needLists) writeLists(lists.toList(), synchronized(writeLock) { listsRevision })
+        if (needLog) writeLog(log.toList(), synchronized(writeLock) { logRevision })
     }
 
-    private fun writeLists(snap: List<CallList>) {
+    private fun writeLists(snap: List<CallList>, revision: Long) {
         val a = JSONArray()
         snap.forEach { l ->
             val ea = JSONArray()
@@ -316,18 +325,28 @@ object Store {
             }
             a.put(JSONObject().put("id", l.id).put("name", l.name).put("sim", l.simSlot).put("entries", ea))
         }
-        sp.edit().putString("lists", a.toString()).apply()
-        listsDirty = false
+        val json = a.toString()
+        synchronized(writeLock) {
+            if (revision == listsRevision) {
+                sp.edit().putString("lists", json).apply()
+                listsDirty = false
+            }
+        }
     }
 
-    private fun writeLog(snap: List<LogItem>) {
+    private fun writeLog(snap: List<LogItem>, revision: Long) {
         val a = JSONArray()
         snap.forEach {
             a.put(JSONObject().put("t", it.time).put("l", it.listName).put("n", it.name)
                 .put("p", it.number).put("s", it.status).put("d", it.duration).put("a", it.attempt))
         }
-        sp.edit().putString("log", a.toString()).apply()
-        logDirty = false
+        val json = a.toString()
+        synchronized(writeLock) {
+            if (revision == logRevision) {
+                sp.edit().putString("log", json).apply()
+                logDirty = false
+            }
+        }
     }
 
     fun addList(name: String, simSlot: Int): String {
@@ -335,7 +354,14 @@ object Store {
         lists.add(l); saveLists(); return l.id
     }
 
-    fun deleteList(id: String) { lists.removeAll { it.id == id }; saveLists() }
+    fun isRunningList(id: String) = campActive() && camp.listId == id
+
+    fun canEditEntry(listId: String, entryId: String): Boolean =
+        !isRunningList(listId) || lists.find { it.id == listId }?.entries?.find { it.id == entryId }?.status != St.CALLING
+
+    fun deleteList(id: String) {
+        if (isRunningList(id)) { notify(Tk.WARN, T("Stop the session before deleting this campaign", "أوقف الجلسة قبل حذف الحملة")); return }
+        lists.removeAll { it.id == id }; saveLists() }
 
     fun updateList(id: String, f: (CallList) -> CallList) {
         val i = lists.indexOfFirst { it.id == id }
@@ -345,11 +371,15 @@ object Store {
     fun updateEntry(listId: String, entryId: String, f: (Entry) -> Entry) =
         updateList(listId) { l -> l.copy(entries = l.entries.map { if (it.id == entryId) f(it) else it }) }
 
-    fun deleteEntry(listId: String, entryId: String) =
+    fun deleteEntry(listId: String, entryId: String) {
+        if (!canEditEntry(listId, entryId)) { notify(Tk.WARN, T("Wait for the current call to finish", "انتظر انتهاء المكالمة الحالية")); return }
         updateList(listId) { l -> l.copy(entries = l.entries.filter { it.id != entryId }) }
+    }
 
-    fun editEntry(listId: String, entryId: String, name: String, number: String) =
+    fun editEntry(listId: String, entryId: String, name: String, number: String) {
+        if (!canEditEntry(listId, entryId)) { notify(Tk.WARN, T("Wait for the current call to finish", "انتظر انتهاء المكالمة الحالية")); return }
         updateEntry(listId, entryId) { it.copy(name = name.trim(), number = smartNumber(number, defaultCc())) }
+    }
 
     fun setStage(listId: String, entryId: String, stage: Int, feedback: String) =
         updateEntry(listId, entryId) { it.copy(stage = stage, feedback = feedback) }
@@ -398,7 +428,7 @@ object Store {
         val called = l.entries.count { it.status != St.PENDING && it.status != St.CALLING }
         return Prog(
             total = l.entries.size, called = called,
-            answered = l.entries.count { St.isAnswered(it.status) },
+            answered = l.entries.count { St.isConfirmedAnswered(it.status) },
             noAnswer = l.entries.count { it.status == St.NO_ANSWER },
             failed = l.entries.count { it.status == St.FAILED }
         )

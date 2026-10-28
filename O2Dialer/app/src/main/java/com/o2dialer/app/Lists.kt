@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,202 +43,23 @@ private fun reportAdded(n: Int) {
     else Store.notify(Tk.INFO, T("No new numbers (duplicates or invalid)", "لا أرقام جديدة (مكررة أو غير صالحة)"))
 }
 
-private fun todayStart(): Long {
-    val c = Calendar.getInstance()
-    c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0)
-    c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0)
-    return c.timeInMillis
-}
-
-// ============================================================ daily brief
-@Composable
-private fun BriefMetric(value: Int, label: String, color: Color, modifier: Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        CountUp(
-            value, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp), color = color
-        )
-        Text(
-            label.uppercase(),
-            color = Cream.copy(alpha = 0.55f),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.5.sp, letterSpacing = 1.1.sp),
-            maxLines = 1
-        )
-    }
-}
-
-/**
- * The first thing you see: today's rhythm, a seven-day trace and the state of the workspace.
- */
-@Composable
-private fun OverviewCard() {
-    val start = remember { todayStart() }
-    val today = remember(Store.log.size, Store.log.firstOrNull()?.time) {
-        Store.log.filter { it.time >= start }
-    }
-    val answered = today.count { St.isAnswered(it.status) }
-    val rate = if (today.isEmpty()) 0 else answered * 100 / today.size
-    val contacts = Store.lists.sumOf { it.entries.size }
-    val week = remember(Store.log.size, Store.log.firstOrNull()?.time) {
-        (6 downTo 0).map { d ->
-            val from = start - d * 86_400_000L
-            val to = from + 86_400_000L
-            Store.log.count { it.time >= from && it.time < to }
-        }
-    }
-    val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(Rd.xl)
-    val date = remember(Store.cfg.lang) {
-        SimpleDateFormat(
-            "EEEE · d MMM",
-            if (Store.cfg.lang == 1) Locale("ar") else Locale.US
-        ).format(Date())
-    }
-    val mint = Color(0xFFA5DDC2)
-
-    Box(
-        Modifier.fillMaxWidth().clip(shape).background(inkSurface())
-    ) {
-        Aurora(
-            Modifier.matchParentSize(),
-            colors = listOf(Color(0xFF2F8A6A), Brass, Color(0xFF3F6F62)),
-            alpha = 0.30f
-        )
-        Box(
-            Modifier.matchParentSize().background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.10f), Color.Black.copy(alpha = 0.30f)))
-            )
-        )
-        Column(Modifier.padding(Sp.xl), verticalArrangement = Arrangement.spacedBy(Sp.l)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(16.dp).height(1.dp).background(Brass))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    T("TODAY", "اليوم"), color = Brass,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold, letterSpacing = 2.sp
-                    )
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    date, color = Cream.copy(alpha = 0.55f),
-                    style = MaterialTheme.typography.labelSmall, maxLines = 1
-                )
-            }
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        CountUp(
-                            rate, color = Cream,
-                            style = MaterialTheme.typography.displayLarge.copy(fontSize = 62.sp, lineHeight = 62.sp)
-                        )
-                        Text(
-                            "%", color = mint,
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.padding(start = 2.dp, bottom = 9.dp)
-                        )
-                    }
-                    Text(
-                        T("answer rate today", "نسبة الرد اليوم"),
-                        color = Cream.copy(alpha = 0.62f), style = MaterialTheme.typography.labelMedium
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Box(Modifier.width(104.dp).height(44.dp)) {
-                        Sparkline(week, height = 44.dp, color = mint)
-                    }
-                    Text(
-                        T("last 7 days", "آخر ٧ أيام"), color = Cream.copy(alpha = 0.52f),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-            Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.10f)))
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                BriefMetric(today.size, T("calls", "مكالمات"), Cream, Modifier.weight(1f))
-                BriefMetric(answered, T("answered", "ردّوا"), mint, Modifier.weight(1f))
-                BriefMetric(contacts, T("contacts", "جهات"), Cream, Modifier.weight(1f))
-                Row(
-                    Modifier.weight(1.2f), horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Dot(mint, 6.dp)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        T("${Store.lists.size} lists", "${Store.lists.size} قوائم"),
-                        color = Cream.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall, maxLines = 1
-                    )
-                }
-            }
-        }
-    }
-}
-
 // ============================================================ campaigns list
 @Composable
 fun ListsScreen() {
-    var creating by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<CallList?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    val editing = Store.lists.find { it.id == editingId }
     var deleting by remember { mutableStateOf<CallList?>(null) }
 
-    Scaffold(
-        topBar = {
-            BlendBar(
-                T("Campaigns", "الحملات"),
-                subtitle = if (Store.lists.isEmpty()) T("Your calling workspace", "مساحة الاتصال الخاصة بك")
-                else T("${Store.lists.size} campaigns · ${Store.lists.sumOf { it.entries.size }} contacts",
-                    "${Store.lists.size} حملة · ${Store.lists.sumOf { it.entries.size }} جهة اتصال")
-            )
-        },
-        floatingActionButton = {
-            if (Store.lists.isNotEmpty()) BrandFab(T("New campaign", "حملة جديدة"), Icons.Rounded.Add, { creating = true })
-        },
-        containerColor = Color.Transparent
-    ) { pad ->
-        if (Store.lists.isEmpty()) {
-            EmptyState(
-                Icons.Rounded.Campaign, T("No campaigns yet", "لا توجد حملات بعد"),
-                T("Create a campaign, add your contacts and start calling.", "أنشئ حملة وأضف جهات الاتصال وابدأ الاتصال."),
-                Modifier.padding(pad), actionText = T("Create campaign", "إنشاء حملة"), onAction = { creating = true }
-            )
-        } else {
-            LazyColumn(
-                Modifier.padding(pad), contentPadding = PaddingValues(Sp.xl, Sp.s, Sp.xl, 118.dp),
-                verticalArrangement = Arrangement.spacedBy(Sp.m)
-            ) {
-                item(key = "overview") { Enter(0) { OverviewCard() } }
-                item(key = "label") {
-                    Enter(1) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(top = Sp.l, bottom = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            SectionLabel(T("Your campaigns", "حملاتك"))
-                            Spacer(Modifier.weight(1f))
-                            Text(
-                                "${Store.lists.size}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                itemsIndexed(Store.lists, key = { _, l -> l.id }) { i, l ->
-                    val card: @Composable () -> Unit = {
-                        CampaignCard(l, onOpen = { Store.selectedListId = l.id }, onEdit = { editing = l }, onDelete = { deleting = l })
-                    }
-                    if (i < 5) Enter(i + 2) { card() } else card()
-                }
-            }
-        }
-    }
+    V7CampaignWorkspace(onCreate = { creating = true }, onEdit = { editingId = it.id }, onDelete = { deleting = it })
 
     if (creating) CampaignDialog(null, { creating = false }) { n, sim ->
         Store.selectedListId = Store.addList(n, sim); creating = false
         Store.notify(Tk.SUCCESS, T("Campaign created", "تم إنشاء الحملة"))
     }
     editing?.let { l ->
-        CampaignDialog(l, { editing = null }) { n, sim ->
-            Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editing = null
+        CampaignDialog(l, { editingId = null }) { n, sim ->
+            Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editingId = null
             Store.notify(Tk.SUCCESS, T("Campaign updated", "تم تحديث الحملة"))
         }
     }
@@ -248,131 +71,6 @@ fun ListsScreen() {
     }
 }
 
-@Composable
-fun CampaignCard(l: CallList, onOpen: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
-    val ctx = LocalContext.current
-    val p = Store.prog(l)
-    var menu by remember { mutableStateOf(false) }
-    val cs = MaterialTheme.colorScheme
-    val sim = when (l.simSlot) { 0 -> "SIM 1"; 1 -> "SIM 2"; else -> T("Default SIM", "الشريحة الافتراضية") }
-    val running = Store.campActive() && Store.camp.listId == l.id
-    val grey = cs.onSurfaceVariant
-    val st = when {
-        running -> Triple(T("Running", "قيد التشغيل"), Sem.success, Icons.Rounded.PlayArrow)
-        p.total == 0 -> Triple(T("Empty", "فارغة"), grey, Icons.Rounded.Info)
-        p.called == 0 -> Triple(T("Not started", "لم تبدأ"), grey, Icons.Rounded.Schedule)
-        p.remaining > 0 -> Triple(T("In progress", "جارية"), Sem.info, Icons.Rounded.Replay)
-        else -> Triple(T("Completed", "مكتملة"), Sem.success, Icons.Rounded.CheckCircle)
-    }
-    val ringColor = when {
-        p.remaining == 0 && p.total > 0 -> Sem.success
-        running -> Sem.success
-        else -> cs.primary
-    }
-
-    Panel(
-        Modifier.fillMaxWidth(), onClick = onOpen,
-        accent = if (running) Sem.success.copy(alpha = 0.6f) else null
-    ) {
-        Column(Modifier.padding(start = Sp.l, end = Sp.m, top = Sp.l, bottom = Sp.l)) {
-            Row(verticalAlignment = Alignment.Top) {
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Dot(st.second, 6.dp)
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            st.first.uppercase(),
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold, letterSpacing = 0.9.sp
-                            ),
-                            color = if (st.second == grey) grey else readable(st.second)
-                        )
-                        if (running) {
-                            Spacer(Modifier.width(8.dp))
-                            PulseDot(Sem.success, 6.dp)
-                        }
-                    }
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        l.name, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        "${p.total} " + T("contacts", "جهة اتصال") + "  ·  $sim",
-                        style = MaterialTheme.typography.labelMedium, color = grey,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Spacer(Modifier.width(Sp.s))
-                Box(contentAlignment = Alignment.Center) {
-                    ProgressRing(
-                        p.pct / 100f, 54.dp, 4.5.dp, ringColor, cs.outline.copy(alpha = 0.6f)
-                    ) {
-                        Text(
-                            "${p.pct}", style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold, fontSize = 11.sp
-                            ),
-                            color = cs.onSurface
-                        )
-                    }
-                }
-                IconButton(onClick = { menu = true }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Rounded.MoreHoriz, T("More options", "خيارات أخرى"), tint = grey, modifier = Modifier.size(19.dp))
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text(T("Edit campaign", "تعديل الحملة")) },
-                            leadingIcon = { Icon(Icons.Rounded.Edit, null) }, onClick = { menu = false; onEdit() })
-                        DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },
-                            leadingIcon = { Icon(Icons.Rounded.BarChart, null) },
-                            onClick = { menu = false; Store.resultsListId = l.id; Store.tab = 2 })
-                        DropdownMenuItem(text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
-                            leadingIcon = { Icon(Icons.Rounded.Refresh, null) },
-                            onClick = {
-                                menu = false; Store.resetForRestart(l.id, false)
-                                Store.notify(Tk.SUCCESS, T("Progress reset", "تمت إعادة الضبط"))
-                            })
-                        DropdownMenuItem(text = { Text(T("Remove duplicates", "حذف المكرر")) },
-                            leadingIcon = { Icon(Icons.Rounded.ContentPaste, null) },
-                            onClick = {
-                                menu = false
-                                val removed = Store.dedupe(l.id)
-                                Store.notify(Tk.SUCCESS, T("Removed $removed duplicates", "تم حذف $removed مكرر"))
-                            })
-                        DropdownMenuItem(text = { Text(T("Share report", "مشاركة التقرير")) },
-                            leadingIcon = { Icon(Icons.Rounded.Share, null) },
-                            onClick = { menu = false; shareText(ctx, Store.listReport(l)) })
-                        DropdownMenuItem(
-                            text = { Text(T("Delete", "حذف"), color = Sem.danger) },
-                            leadingIcon = { Icon(Icons.Rounded.Delete, null, tint = Sem.danger) },
-                            onClick = { menu = false; onDelete() }
-                        )
-                    }
-                }
-            }
-            Spacer(Modifier.height(Sp.m))
-            Hairline()
-            Spacer(Modifier.height(Sp.m))
-            Row(Modifier.fillMaxWidth().padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    if (p.total == 0) T("Add numbers to get started", "أضف أرقامًا للبدء")
-                    else T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                    style = MaterialTheme.typography.labelSmall, color = grey
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    if (p.remaining == 0 && p.total > 0) T("Complete", "مكتملة")
-                    else if (p.total > 0) T("${p.remaining} left", "${p.remaining} متبقي")
-                    else T("Open", "فتح"),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = if (p.remaining == 0 && p.total > 0) readable(Sem.success) else cs.primary
-                )
-                Spacer(Modifier.width(5.dp))
-                Icon(Icons.Rounded.ArrowForward, null, tint = grey, modifier = Modifier.size(14.dp))
-            }
-        }
-    }
-}
-
 // ============================================================ campaign contacts
 @Composable
 fun ListDetail(listId: String, act: MainActivity) {
@@ -380,22 +78,41 @@ fun ListDetail(listId: String, act: MainActivity) {
     if (list == null) { LaunchedEffect(Unit) { Store.selectedListId = null }; return }
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    var query by remember { mutableStateOf("") }
-    var dlg by remember { mutableStateOf("") }
+    var query by rememberSaveable(listId) { mutableStateOf("") }
+    var dlg by rememberSaveable(listId) { mutableStateOf("") }
     var importing by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<Entry?>(null) }
+    var editingEntryId by rememberSaveable(listId) { mutableStateOf<String?>(null) }
+    val editing = list.entries.find { it.id == editingEntryId }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             importing = true
             scope.launch {
-                val text = withContext(Dispatchers.IO) {
-                    runCatching { ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } }.getOrNull() ?: ""
-                }
-                val parsed = parseLines(text)
-                val n = Store.addEntries(listId, parsed)
-                importing = false
-                if (parsed.isEmpty()) Store.notify(Tk.ERROR, T("No valid numbers found in the file", "لم يتم العثور على أرقام صالحة في الملف"))
-                else reportAdded(n)
+                try {
+                    val parsed = withContext(Dispatchers.IO) {
+                        val text = ctx.contentResolver.openInputStream(uri)?.use { input ->
+                            input.bufferedReader().use { reader ->
+                                val buffer = CharArray(8192)
+                                val content = StringBuilder()
+                                while (true) {
+                                    val count = reader.read(buffer)
+                                    if (count < 0) break
+                                    require(content.length + count <= 5_000_000) { "File too large" }
+                                    content.append(buffer, 0, count)
+                                }
+                                content.toString()
+                            }
+                        } ?: error("Cannot open file")
+                        require(!text.contains('\u0000')) { "Not a text file" }
+                        parseLines(text)
+                    }
+                    if (!License.canImport) License.denyImport()
+                    else if (parsed.isEmpty()) Store.notify(Tk.ERROR, T("No valid numbers found in the file", "لم يتم العثور على أرقام صالحة في الملف"))
+                    else reportAdded(Store.addEntries(listId, parsed))
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Store.notify(Tk.ERROR, T("Could not import. Choose a readable CSV/TXT file under 5 million characters.", "تعذّر الاستيراد. اختار ملف CSV أو TXT قابل للقراءة وأقل من 5 مليون حرف."))
+                } finally { importing = false }
             }
         }
     }
@@ -410,7 +127,7 @@ fun ListDetail(listId: String, act: MainActivity) {
             ActionChip(Icons.Rounded.Add, T("Add number", "إضافة رقم")) { dlg = "add" }
             ActionChip(Icons.Rounded.ContentPaste, T("Paste", "لصق")) { if (License.canImport) dlg = "bulk" else License.denyImport() }
             ActionChip(Icons.Rounded.UploadFile, T("Import file", "استيراد ملف")) {
-                if (License.canImport) importer.launch(arrayOf("*/*")) else License.denyImport()
+                if (!importing) { if (License.canImport) importer.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) else License.denyImport() }
             }
             ActionChip(Icons.Rounded.Contacts, T("Contacts", "جهات الاتصال")) {
                 if (License.canImport) act.ensureContacts { dlg = "contacts" } else License.denyImport()
@@ -428,6 +145,7 @@ fun ListDetail(listId: String, act: MainActivity) {
         bottomBar = {
             if (list.entries.isNotEmpty()) {
                 val label = when {
+                    Store.isRunningList(listId) -> T("Return to live session", "العودة للجلسة المباشرة")
                     p.called == 0 -> T("Start campaign", "ابدأ الحملة")
                     p.remaining > 0 -> T("Resume · ${p.remaining} left", "استئناف · ${p.remaining} متبقي")
                     else -> T("Restart campaign", "إعادة تشغيل الحملة")
@@ -452,18 +170,19 @@ fun ListDetail(listId: String, act: MainActivity) {
     ) { pad ->
         if (list.entries.isEmpty()) {
             Column(
-                Modifier.padding(pad).fillMaxSize().padding(horizontal = Sp.xl),
+                Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
                 verticalArrangement = Arrangement.spacedBy(Sp.m)
             ) {
                 LicenseBanner()
                 PermissionBanner(act)
+                V7DetailHeader(list, p)
                 chips()
                 if (importing) LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
                 EmptyState(
                     Icons.Rounded.Groups, T("No contacts yet", "لا توجد أرقام"),
                     T("Add numbers manually, paste them, import a CSV/TXT file or pick from your contacts.",
                         "أضف الأرقام يدويًا أو بالصق أو من ملف CSV/TXT أو من جهات الاتصال."),
-                    Modifier.weight(1f)
+                    Modifier.heightIn(min = 240.dp)
                 )
             }
         } else {
@@ -477,7 +196,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                     LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
                     Spacer(Modifier.height(Sp.m))
                 }
-                item { SummaryPanel(list, p); Spacer(Modifier.height(Sp.m)) }
+                item { V7DetailHeader(list, p); Spacer(Modifier.height(Sp.m)) }
                 item { chips(); Spacer(Modifier.height(Sp.m)) }
                 item {
                     BTextField(
@@ -512,7 +231,8 @@ fun ListDetail(listId: String, act: MainActivity) {
                     EntryRow(
                         e, listId,
                         isFirst = i == 0, isLast = i == shown.lastIndex
-                    ) { editing = e }
+                    ) { if (Store.canEditEntry(listId, e.id)) editingEntryId = e.id
+                        else Store.notify(Tk.INFO, T("Wait for the current call to finish", "انتظر انتهاء المكالمة الحالية")) }
                 }
             }
         }
@@ -520,80 +240,22 @@ fun ListDetail(listId: String, act: MainActivity) {
 
     when (dlg) {
         "add" -> EntryDialog(null, { dlg = "" }) { n, num -> reportAdded(Store.addEntries(listId, listOf(n to num))); dlg = "" }
-        "bulk" -> BulkDialog({ dlg = "" }) { t -> reportAdded(Store.addEntries(listId, parseLines(t))); dlg = "" }
+        "bulk" -> BulkDialog({ dlg = "" }) { t ->
+            dlg = ""; importing = true
+            scope.launch {
+                try {
+                    val parsed = withContext(Dispatchers.Default) { parseLines(t) }
+                    if (License.canImport) reportAdded(Store.addEntries(listId, parsed)) else License.denyImport()
+                } finally { importing = false }
+            }
+        }
         "contacts" -> ContactsDialog({ dlg = "" }) { sel -> reportAdded(Store.addEntries(listId, sel)); dlg = "" }
     }
     editing?.let { e ->
-        EntryDialog(e, { editing = null }) { n, num ->
-            Store.editEntry(listId, e.id, n, num); editing = null
+        EntryDialog(e, { editingEntryId = null }) { n, num ->
+            Store.editEntry(listId, e.id, n, num); editingEntryId = null
             Store.notify(Tk.SUCCESS, T("Contact updated", "تم تحديث الجهة"))
         }
-    }
-}
-
-@Composable
-private fun SummaryPanel(list: CallList, p: Prog) {
-    val cs = MaterialTheme.colorScheme
-    val staged = list.entries.filter { it.stage != Stg.NONE }
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ProgressRing(
-                    p.pct / 100f, 82.dp, 7.dp,
-                    if (p.remaining == 0 && p.total > 0) Sem.success else cs.primary,
-                    cs.outline.copy(alpha = 0.6f)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CountUp(p.pct, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp))
-                        Text(
-                            "%", style = MaterialTheme.typography.labelSmall,
-                            color = cs.onSurfaceVariant
-                        )
-                    }
-                }
-                Spacer(Modifier.width(Sp.l))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text(T("Campaign progress", "تقدّم الحملة"), style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
-                    Text(
-                        T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        if (p.remaining > 0) T("${p.remaining} left", "${p.remaining} متبقي")
-                        else T("All contacts called", "تم الاتصال بكل الجهات"),
-                        style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                    )
-                }
-            }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                MiniStat(p.answered, T("answered", "ردّوا"), Sem.success, Modifier.weight(1f))
-                MiniStat(p.noAnswer, T("missed", "لم يردّوا"), Sem.warning, Modifier.weight(1f))
-                MiniStat(p.failed, T("failed", "فشل"), Sem.danger, Modifier.weight(1f))
-            }
-            if (staged.isNotEmpty()) {
-                val total = staged.size.toFloat()
-                Row(
-                    Modifier.fillMaxWidth().height(6.dp).clip(CircleShape)
-                        .background(cs.surfaceVariant.copy(alpha = 0.6f))
-                ) {
-                    Stg.all.forEach { s ->
-                        val n = staged.count { it.stage == s }
-                        if (n > 0) Box(Modifier.weight(n.toFloat() / total).fillMaxHeight().background(Stg.color(s)))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MiniStat(value: Int, label: String, color: Color, modifier: Modifier = Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Dot(color, 5.dp)
-        Spacer(Modifier.width(5.dp))
-        Text("$value", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = readable(color))
-        Spacer(Modifier.width(3.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
     }
 }
 

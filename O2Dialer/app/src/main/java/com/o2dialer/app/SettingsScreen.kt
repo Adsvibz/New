@@ -40,9 +40,9 @@ private fun SettingsFooter() {
     ) {
         Box(
             Modifier.size(40.dp).clip(RoundedCornerShape(13.dp))
-                .background(Brush.linearGradient(listOf(cs.primary, cs.secondary))),
+                .background(cs.surfaceVariant),
             Alignment.Center
-        ) { LogoMark(25.dp, color = cs.onPrimary) }
+        ) { LogoMark(25.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
             T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
@@ -55,41 +55,6 @@ private fun SettingsFooter() {
         )
     }
 }
-
-@Composable
-private fun SettingsHero() {
-    val c = Store.cfg
-    val cs = MaterialTheme.colorScheme
-    val theme = when (c.themeMode) {
-        1 -> T("Light", "فاتح")
-        2 -> T("Dark", "داكن")
-        else -> T("Auto", "تلقائي")
-    }
-    Panel(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(Sp.xl), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(62.dp).clip(RoundedCornerShape(20.dp))
-                    .background(Brush.linearGradient(listOf(cs.primary, lerpAccent(cs.primary, cs.secondary)))),
-                Alignment.Center
-            ) { LogoMark(38.dp, color = cs.onPrimary) }
-            Spacer(Modifier.width(Sp.l))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(APP_NAME, style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
-                    style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
-                )
-                Spacer(Modifier.height(3.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Pill(c.lang.let { if (it == 1) "AR" else "EN" }, cs.primary, Icons.Rounded.Language)
-                    Pill(theme, cs.secondary, Icons.Rounded.Palette)
-                }
-            }
-        }
-    }
-}
-
-private fun lerpAccent(a: Color, b: Color) = androidx.compose.ui.graphics.lerp(a, b, 0.32f)
 
 @Composable
 fun SettingsScreen() {
@@ -106,7 +71,6 @@ fun SettingsScreen() {
                 .padding(horizontal = Sp.xl, vertical = Sp.s),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
-            Enter(0) { SettingsHero() }
 
             SettingsSection(Icons.Rounded.Language, T("General", "عام"), startOpen = true) {
                 SectionLabel(T("Language", "اللغة"))
@@ -120,27 +84,25 @@ fun SettingsScreen() {
                     T("Material You · Android 12 and above", "Material You · أندرويد 12 فما فوق"),
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
-                Hint(
-                    T("Off keeps the O2 forest and ivory palette everywhere.", "إيقافه يحافظ على ألوان O2 الزمردية والعاجية في كل الشاشات.")
-                )
             }
 
             SettingsSection(Icons.Rounded.Timer, T("Timing", "التوقيت")) {
-                SliderRow(T("Delay between calls", "الانتظار بين المكالمات"), c.delaySec, 0, 120, "s") { v -> up { it.copy(delaySec = v) } }
+                SliderRow(T("Delay between calls", "الانتظار بين المكالمات"), c.delaySec, 0, 120, T("s", "ث")) { v -> up { it.copy(delaySec = v) } }
                 SwitchRow(T("Random delay", "انتظار عشوائي"), T("Picks a random wait between the two limits", "مدة عشوائية بين الحدّين"),
                     c.randomDelay) { v -> up { it.copy(randomDelay = v) } }
-                if (c.randomDelay) SliderRow(T("Maximum delay", "أقصى مدة انتظار"), c.delayMaxSec, 1, 300, "s") { v -> up { it.copy(delayMaxSec = v) } }
-                SliderRow(T("Countdown before start", "عدّاد قبل البدء"), c.startCountdown, 0, 30, "s", T("Instant", "فوري")) { v -> up { it.copy(startCountdown = v) } }
-                SliderRow(T("End each call after", "إنهاء المكالمة بعد"), c.maxCallSec, 0, 600, "s", T("Off", "معطّل")) { v -> up { it.copy(maxCallSec = v) } }
+                if (c.randomDelay) SliderRow(T("Maximum delay", "أقصى مدة انتظار"), c.delayMaxSec, 1, 300, T("s", "ث")) { v -> up { it.copy(delayMaxSec = v) } }
+                SliderRow(T("Countdown before start", "عدّاد قبل البدء"), c.startCountdown, 0, 30, T("s", "ث"), T("Instant", "فوري")) { v -> up { it.copy(startCountdown = v) } }
+                Hint(T("Automatic hang-up is not supported by every phone. The limit starts when dialing begins, not when the other person answers.", "الإنهاء التلقائي مش مدعوم على كل الأجهزة. المدة بتبدأ مع الاتصال، مش مع رد الطرف التاني."))
+                SliderRow(T("End each call after", "إنهاء المكالمة بعد"), c.maxCallSec, 0, 600, T("s", "ث"), T("Off", "معطّل")) { v -> up { it.copy(maxCallSec = v) } }
             }
 
             SettingsSection(Icons.Rounded.Tune, T("Campaign", "الحملة")) {
-                SliderRow(T("Retry unanswered", "إعادة المحاولة لمن لم يرد"), c.retries, 0, 5, "x", T("None", "بدون")) { v -> up { it.copy(retries = v) } }
+                SliderRow(T("Retry unanswered", "إعادة المحاولة لمن لم يرد"), c.retries, 0, 5, T("times", "مرات"), T("None", "بدون")) { v -> up { it.copy(retries = v) } }
                 SliderRow(T("Rounds (repeat the list)", "الجولات (تكرار القائمة)"), c.loops, 1, 20, "") { v -> up { it.copy(loops = v) } }
                 SwitchRow(T("Shuffle order", "ترتيب عشوائي"), null, c.shuffle) { v -> up { it.copy(shuffle = v) } }
                 SwitchRow(T("Skip answered numbers", "تخطّي من تم الرد عليهم"), T("On restart, keep answered contacts untouched", "عند إعادة التشغيل لا يُعاد الاتصال بمن ردّ"),
                     c.skipAnswered) { v -> up { it.copy(skipAnswered = v) } }
-                SwitchRow(T("Detect answers from call log", "اكتشاف الرد من سجل المكالمات"), T("Most accurate way to know who answered", "أدق طريقة لمعرفة من ردّ"),
+                SwitchRow(T("Detect answers from call log", "اكتشاف الرد من سجل المكالمات"), T("Requires call-log access. Unavailable results remain unverified.", "يحتاج صلاحية سجل المكالمات. النتائج غير المتاحة تظل غير مؤكدة."),
                     c.useCallLog) { v -> up { it.copy(useCallLog = v) } }
             }
 
@@ -172,6 +134,7 @@ fun SettingsScreen() {
                 if (c.quietEnabled) {
                     SliderRow(T("From", "من"), c.quietFrom, 0, 23, ":00") { v -> up { it.copy(quietFrom = v) } }
                     SliderRow(T("To", "إلى"), c.quietTo, 0, 23, ":00") { v -> up { it.copy(quietTo = v) } }
+                    if (c.quietFrom == c.quietTo) Hint(T("Identical hours block all calls. Choose different start and end hours.", "تساوي الوقتين بيمنع كل المكالمات. اختار وقت بداية ونهاية مختلفين."))
                 }
             }
 
@@ -183,6 +146,8 @@ fun SettingsScreen() {
             }
 
             LicenseSettingsSection()
+
+            UpdateSettingsSection()
 
             SettingsSection(Icons.Rounded.Security, T("Permissions & background", "الصلاحيات والتشغيل في الخلفية"), startOpen = true) {
                 val perms = listOf(
@@ -212,7 +177,8 @@ fun SettingsScreen() {
                     ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null)))
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
                 BButton(T("Exclude from battery saver", "استثناء من توفير البطارية"), {
-                    ctx.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                    runCatching { ctx.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+                        .onFailure { Store.notify(Tk.INFO, T("Open battery settings manually on this phone", "افتح إعدادات البطارية يدويًا على الجهاز")) }
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
             }
 

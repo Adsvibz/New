@@ -54,291 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-// ====================================================================== atoms
-@Composable
-private fun Waveform(color: Color, bars: Int = 5, height: Dp = 22.dp) {
-    val t = rememberInfiniteTransition(label = "waveform")
-    Row(
-        Modifier.height(height), horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        repeat(bars) { i ->
-            val v by t.animateFloat(
-                0.22f + (i % 3) * 0.14f, 1f,
-                infiniteRepeatable(tween(480 + i * 90, easing = LinearEasing), RepeatMode.Reverse),
-                label = "bar$i"
-            )
-            Box(
-                Modifier.width(3.dp).fillMaxHeight(v)
-                    .graphicsLayer { transformOrigin = TransformOrigin(0.5f, 1f) }
-                    .clip(CircleShape).background(color)
-            )
-        }
-    }
-}
-
-/** Concentric rings that expand and fade while a call is live. */
-@Composable
-private fun CallOrb(initials: String?, live: Boolean, size: Dp = 86.dp) {
-    val mint = Color(0xFFA5DDC2)
-    val t = rememberInfiniteTransition(label = "callOrb")
-    val p1 by t.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(2600, easing = LinearEasing)),
-        label = "ring1"
-    )
-    val p2 by t.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(2600, easing = LinearEasing), initialStartOffset = StartOffset(1300)),
-        label = "ring2"
-    )
-    Box(Modifier.size(size), Alignment.Center) {
-        if (live) {
-            Canvas(Modifier.fillMaxSize()) {
-                val r = this.size.minDimension / 2f
-                listOf(p1, p2).forEach { p ->
-                    drawCircle(
-                        color = mint.copy(alpha = (1f - p) * 0.35f),
-                        radius = r * (0.56f + 0.44f * p),
-                        style = Stroke(1.2.dp.toPx())
-                    )
-                }
-            }
-        }
-        Box(
-            Modifier.size(size * 0.68f)
-                .shadow(if (live) 20.dp else 8.dp, CircleShape, ambientColor = mint.copy(alpha = 0.35f))
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            if (live) mint else Color(0xFF24483C),
-                            if (live) lerpColor(mint, Brass, 0.45f) else Color(0xFF163026)
-                        )
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.20f), CircleShape),
-            Alignment.Center
-        ) {
-            val fg = if (live) Color(0xFF07130E) else Cream
-            if (initials != null) Text(
-                initials, color = fg,
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 23.sp)
-            )
-            else Icon(Icons.Rounded.Call, null, tint = fg, modifier = Modifier.size(25.dp))
-        }
-    }
-}
-
-private fun lerpColor(a: Color, b: Color, t: Float) = androidx.compose.ui.graphics.lerp(a, b, t)
-
-// ====================================================================== hero
-@Composable
-private fun CallHero(c: CampState, list: CallList, p: Prog, now: Long, compact: Boolean) {
-    val cs = MaterialTheme.colorScheme
-    val finished = c.status == CS.FINISHED
-    val calling = c.status == CS.RUNNING && c.currentNumber.isNotEmpty()
-    val paused = c.status == CS.PAUSED
-    val secs = if (c.nextAt > now) (c.nextAt - now + 999) / 1000 else 0L
-    val label = when {
-        finished -> if (c.error) T("Stopped", "توقفت") else T("Finished", "انتهت")
-        paused -> T("Paused", "متوقفة مؤقتًا")
-        c.status == CS.WAITING -> T("Waiting", "في الانتظار")
-        calling -> T("Calling now", "جارٍ الاتصال")
-        c.awaitingStage -> T("Your input", "دورك")
-        else -> T("Next call", "المكالمة التالية")
-    }
-    val statusTint = when {
-        finished && c.error -> Sem.danger
-        finished -> Sem.success
-        paused -> Brass
-        calling -> Sem.success
-        else -> Color(0xFFA5DDC2)
-    }
-    val next = list.entries.firstOrNull { it.status == St.PENDING }
-    val who: Pair<String, String>? = when {
-        calling -> c.currentName to c.currentNumber
-        !finished && next != null -> next.name to next.number
-        else -> null
-    }
-    val caption = when {
-        c.awaitingStage -> T("Continuing in", "المتابعة بعد")
-        else -> T("until the next call", "حتى المكالمة التالية")
-    }
-    val note = when {
-        finished -> T("${p.answered} answered · ${p.noAnswer} no answer · ${p.failed} failed",
-            "${p.answered} ردّوا · ${p.noAnswer} لم يردّوا · ${p.failed} فشل")
-        paused -> T("Your queue is waiting", "طابورك في الانتظار")
-        c.status == CS.WAITING -> c.message
-        c.awaitingStage && secs == 0L -> c.message
-        else -> ""
-    }
-    val shape = RoundedCornerShape(Rd.xl)
-
-    Box(
-        Modifier.fillMaxWidth().clip(shape).background(inkSurface())
-    ) {
-        Aurora(
-            Modifier.matchParentSize(),
-            colors = listOf(
-                if (calling) Color(0xFF2F8A6A) else Color(0xFF3C6B5B),
-                Brass,
-                Color(0xFF356A60)
-            ),
-            alpha = 0.34f
-        )
-        Box(
-            Modifier.matchParentSize().background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.12f), Color.Black.copy(alpha = 0.36f)))
-            )
-        )
-        Column(
-            Modifier.padding(Sp.xl),
-            verticalArrangement = Arrangement.spacedBy(Sp.l)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    Modifier.clip(RoundedCornerShape(50)).background(statusTint.copy(alpha = 0.13f))
-                        .border(1.dp, statusTint.copy(alpha = 0.22f), RoundedCornerShape(50))
-                        .padding(horizontal = 9.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (calling) PulseDot(Sem.success, 6.dp)
-                    else Dot(statusTint, 6.dp)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        label.uppercase(),
-                        color = Cream.copy(alpha = 0.85f),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold, letterSpacing = 1.sp, fontSize = 9.5.sp
-                        )
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                Text(
-                    c.listName, color = Cream.copy(alpha = 0.52f),
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 150.dp)
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CallOrb(
-                    initials = who?.first?.takeIf { it.isNotBlank() }?.let { initialsOf(it) },
-                    live = calling,
-                    size = if (compact) 74.dp else 84.dp
-                )
-                Spacer(Modifier.width(Sp.l))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    if (who != null) {
-                        Text(
-                            who.first.ifBlank { who.second },
-                            color = Cream,
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontSize = if (compact) 23.sp else 26.sp
-                            ),
-                            maxLines = 2, overflow = TextOverflow.Ellipsis
-                        )
-                        if (who.first.isNotBlank()) NumText(
-                            who.second, style = MaterialTheme.typography.bodySmall, color = Cream.copy(alpha = 0.55f)
-                        )
-                    } else {
-                        Text(
-                            c.message.ifBlank { label }, color = Cream,
-                            style = MaterialTheme.typography.headlineSmall,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column {
-                    if (secs > 0) {
-                        AnimatedContent(
-                            targetState = secs,
-                            transitionSpec = {
-                                (fadeIn(tween(230)) + slideInVertically(tween(280, easing = Motion.easeOut)) { -it / 3 }) togetherWith
-                                    fadeOut(tween(110))
-                            },
-                            label = "countdown"
-                        ) { s ->
-                            Text(
-                                "$s", color = Cream,
-                                style = MaterialTheme.typography.displayLarge.copy(
-                                    fontSize = if (compact) 58.sp else 66.sp, lineHeight = if (compact) 58.sp else 66.sp
-                                )
-                            )
-                        }
-                        Text(
-                            caption, style = MaterialTheme.typography.labelSmall,
-                            color = Cream.copy(alpha = 0.52f), maxLines = 1
-                        )
-                    } else if (calling) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Waveform(Sem.success)
-                            Text(
-                                T("On call", "في مكالمة"),
-                                color = Cream.copy(alpha = 0.7f), style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                        Text(
-                            c.currentNumber, style = MaterialTheme.typography.labelSmall,
-                            color = Cream.copy(alpha = 0.52f)
-                        )
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Icon(
-                                when {
-                                    finished && c.error -> Icons.Rounded.ErrorOutline
-                                    finished -> Icons.Rounded.CheckCircle
-                                    paused -> Icons.Rounded.PauseCircle
-                                    else -> Icons.Rounded.HourglassEmpty
-                                },
-                                null, tint = statusTint, modifier = Modifier.size(24.dp)
-                            )
-                            Text(
-                                label, color = Cream,
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                        }
-                        if (note.isNotEmpty()) Text(
-                            note, color = Cream.copy(alpha = 0.52f),
-                            style = MaterialTheme.typography.labelSmall, maxLines = 2
-                        )
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                if (secs > 0) {
-                    Text(
-                        "${p.pct}%", color = Cream.copy(alpha = 0.42f),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp)
-                    )
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelSmall
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        T("${p.remaining} left", "${p.remaining} متبقي"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelSmall
-                    )
-                }
-                BProgress(
-                    p.pct / 100f, height = 4.dp,
-                    color = if (finished && !c.error) Sem.success else Color(0xFFA5DDC2),
-                    track = Color.White.copy(alpha = 0.12f)
-                )
-            }
-        }
-    }
-}
-
 // ====================================================================== outcomes
 @Composable
 private fun Outcome(value: Int, label: String, color: Color, modifier: Modifier) {
@@ -376,6 +91,8 @@ private fun OutcomesPanel(p: Prog, remaining: Int) {
                 Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
                 Outcome(p.failed, T("failed", "فشل"), Sem.danger, Modifier.weight(1f))
             }
+            if (p.unverified > 0) Text(T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
+                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -383,27 +100,54 @@ private fun OutcomesPanel(p: Prog, remaining: Int) {
 // ====================================================================== controls
 @Composable
 private fun CallControls(paused: Boolean) {
+    var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = Sp.s),
-        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
+    Surface(
+        shape = RoundedCornerShape(Rd.l),
+        color = cs.surface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
     ) {
-        CircleAction(
-            if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-            if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
-            { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-            container = cs.primary, content = cs.onPrimary, outlined = false
-        )
-        CircleAction(
-            Icons.Rounded.CallEnd, T("End call", "إنهاء"),
-            { DialerService.send(ctx, DialerService.ACT_SKIP) }
-        )
-        CircleAction(
-            Icons.Rounded.Stop, T("Stop", "إيقاف"),
-            { DialerService.send(ctx, DialerService.ACT_STOP) },
-            container = cs.error.copy(alpha = 0.10f), content = readable(cs.error), outlined = false
-        )
+        Column(Modifier.fillMaxWidth().padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
+            Text(
+                T("SESSION CONTROLS", "التحكم في الجلسة"),
+                style = MaterialTheme.typography.labelSmall,
+                color = cs.onSurfaceVariant,
+                fontWeight = FontWeight.Bold
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircleAction(
+                    if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                    if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
+                    { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.primary, content = cs.onPrimary, outlined = false
+                )
+                CircleAction(
+                    Icons.Rounded.SkipNext,
+                    T("Skip call", "تخطي المكالمة"),
+                    { DialerService.send(ctx, DialerService.ACT_SKIP) },
+                    modifier = Modifier.weight(1f),
+                    container = cs.surfaceVariant, content = cs.onSurface, outlined = true,
+                    enabled = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating
+                )
+                CircleAction(
+                    Icons.Rounded.Stop,
+                    T("Stop session", "إنهاء الجلسة"),
+                    { confirmStop = true },
+                    modifier = Modifier.weight(1f),
+                    container = cs.errorContainer, content = cs.onErrorContainer, outlined = false
+                )
+            }
+        }
+    }
+    if (confirmStop) ConfirmDialog(T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
+        "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."), { confirmStop = false }) {
+        DialerService.send(ctx, DialerService.ACT_STOP); confirmStop = false
     }
 }
 
@@ -429,7 +173,7 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
 @Composable
 private fun RunSetupPanel() {
     val s = Store.cfg
-    val gap = if (s.randomDelay) "${s.delaySec}–${s.delayMaxSec}s" else "${s.delaySec}s"
+    val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + T("s", "ث") else "${s.delaySec}" + T("s", "ث")
     Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
@@ -445,8 +189,8 @@ private fun RunSetupPanel() {
             Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
             SetupItem(
                 if (s.autoSpeaker) Icons.Rounded.MicOff else Icons.Rounded.Mic,
-                if (s.autoSpeaker) T("Muted", "مكتوم") else T("Live", "يعمل"),
-                T("microphone", "المايك"), Modifier.weight(1f)
+                if (s.autoSpeaker) T("Auto mute", "كتم تلقائي") else T("Phone", "الهاتف"),
+                T("audio preference", "إعداد الصوت"), Modifier.weight(1f)
             )
         }
     }
@@ -454,7 +198,8 @@ private fun RunSetupPanel() {
 
 @Composable
 private fun UpNext(list: CallList, remaining: Int) {
-    val next = list.entries.filter { it.status == St.PENDING }.take(3)
+    val next = remember(Store.camp.queuedIds, list.entries) { queuedEntries(Store.camp, list).take(3) }
+    var removing by remember { mutableStateOf<Entry?>(null) }
     if (next.isEmpty()) return
     val cs = MaterialTheme.colorScheme
     Panel(Modifier.fillMaxWidth()) {
@@ -499,8 +244,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                     }
                     IconButton(
                         onClick = {
-                            Store.deleteEntry(list.id, e.id)
-                            Store.notify(Tk.INFO, T("Removed from the queue", "تم الحذف من القائمة"))
+                            removing = e
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
@@ -513,56 +257,21 @@ private fun UpNext(list: CallList, remaining: Int) {
             }
         }
     }
+    removing?.let { entry -> ConfirmDialog(T("Remove ${entry.name.ifBlank { entry.number }} from this campaign?", "حذف ${entry.name.ifBlank { entry.number }} من الحملة؟"), { removing = null }) {
+        Store.deleteEntry(list.id, entry.id); removing = null
+    } }
 }
 
 // ====================================================================== idle launcher
 @Composable
 private fun ReadyHero(selected: CallList?, p: Prog?) {
-    val shape = RoundedCornerShape(Rd.xl)
-    Box(Modifier.fillMaxWidth().clip(shape).background(inkSurface())) {
-        Aurora(
-            Modifier.matchParentSize(),
-            colors = listOf(Color(0xFF2F8A6A), Brass, Color(0xFF3F6F62)),
-            alpha = 0.30f
-        )
-        Box(
-            Modifier.matchParentSize().background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.10f), Color.Black.copy(alpha = 0.32f)))
-            )
-        )
+    Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(16.dp).height(1.dp).background(Brass))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    T("READY WHEN YOU ARE", "جاهز عندما تكون"),
-                    color = Brass,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp, fontSize = 9.sp
-                    )
-                )
-            }
-            Text(
-                T("Pick a list.\nLet the dialer work.", "اختر قائمة.\nواترك المتصل يعمل."),
-                color = Cream,
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp)
-            )
-            Text(
-                T("One call at a time, at the pace you set.", "مكالمة واحدة في كل مرة، بالإيقاع الذي تحدده."),
-                color = Cream.copy(alpha = 0.58f), style = MaterialTheme.typography.bodySmall
-            )
-            if (selected != null && p != null) {
-                Spacer(Modifier.height(Sp.xs))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Dot(Color(0xFFA5DDC2), 6.dp)
-                    Spacer(Modifier.width(7.dp))
-                    Text(
-                        T("${p.total} contacts · ${p.remaining} remaining", "${p.total} جهة · ${p.remaining} متبقي"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+            IconTile(Icons.Rounded.Call, size = 48.dp)
+            Text(T("Ready to call", "جاهز للاتصال"), style = MaterialTheme.typography.headlineMedium)
+            if (selected != null && p != null) Text(
+                T("${p.total} contacts · ${p.remaining} remaining", "${p.total} جهة اتصال · ${p.remaining} متبقي"),
+                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -683,21 +392,13 @@ private fun Launcher(act: MainActivity) {
 fun LiveScreen(act: MainActivity) {
     val c = Store.camp
     val active = Store.campActive()
-    val compact = isCompact()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(active) { while (active) { now = System.currentTimeMillis(); delay(500) } }
     val heroList = Store.lists.find { it.id == c.listId }
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
 
-    val subtitle = when {
-        c.status == CS.PAUSED -> T("Paused — your queue is waiting", "متوقفة مؤقتًا — الطابور في الانتظار")
-        active -> T("Running automatically, one call at a time", "تعمل تلقائيًا، مكالمة واحدة في كل مرة")
-        c.status == CS.FINISHED && heroList != null -> T("Campaign finished", "انتهت الحملة")
-        else -> T("Pick a campaign and let it run", "اختر حملة واتركها تعمل")
-    }
-
     Scaffold(
-        topBar = { BlendBar(T("Live dialer", "التشغيل المباشر"), subtitle = subtitle) },
+        topBar = { BlendBar(T("Dialer", "الاتصال")) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -710,17 +411,17 @@ fun LiveScreen(act: MainActivity) {
             AnimatedContent(
                 targetState = showHero,
                 transitionSpec = {
-                    (fadeIn(tween(360)) + scaleIn(tween(420, easing = Motion.easeOut), initialScale = 0.98f)) togetherWith
-                        (fadeOut(tween(160)) + scaleOut(tween(220), targetScale = 0.99f))
+                    (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) + scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
+                        (fadeOut(tween(Motion.NAV_EXIT_MS)) + scaleOut(tween(Motion.NAV_EXIT_MS), targetScale = 0.995f))
                 },
                 label = "liveState"
             ) { hero ->
                 Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
                     if (hero && heroList != null) {
                         val p = Store.prog(heroList)
-                        Enter(0) { CallHero(c, heroList, p, now, compact) }
+                        Enter(0) { V7LiveHero(c, heroList, p, now) }
                         if (c.status == CS.FINISHED) {
-                            Enter(1) { Banner(if (c.error) Tk.ERROR else Tk.SUCCESS, c.message) }
+                            Enter(1) { Banner(if (c.error) Tk.ERROR else if (c.completed) Tk.SUCCESS else Tk.INFO, c.message) }
                             Enter(2) { OutcomesPanel(p, p.remaining) }
                             if (!c.error) Enter(3) {
                                 BButton(
@@ -729,12 +430,14 @@ fun LiveScreen(act: MainActivity) {
                                     kind = BtnKind.Tonal, icon = Icons.Rounded.BarChart
                                 )
                             }
-                            Enter(4) { RunSetupPanel() }
+                            Enter(4) {
+                                BButton(T("Choose a campaign", "اختيار حملة"), { Store.camp = CampState() }, Modifier.fillMaxWidth(), kind = BtnKind.Outline)
+                            }
                         } else {
                             Enter(1) { OutcomesPanel(p, p.remaining) }
                             if (active) Enter(2) { CallControls(c.status == CS.PAUSED) }
                             if (active) Enter(3) { RunSetupPanel() }
-                            if (active && !Store.cfg.shuffle) Enter(4) { UpNext(heroList, p.remaining) }
+                            if (active) Enter(4) { UpNext(heroList, p.remaining) }
                         }
                     } else {
                         Launcher(act)
@@ -744,9 +447,4 @@ fun LiveScreen(act: MainActivity) {
             Spacer(Modifier.height(Sp.l))
         }
     }
-}
-
-private fun initialsOf(name: String): String {
-    val parts = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-    return parts.take(2).joinToString("") { it.first().uppercase() }.ifEmpty { "#" }
 }

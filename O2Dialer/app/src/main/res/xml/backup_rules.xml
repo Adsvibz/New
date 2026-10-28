@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Keep existing campaign/settings backups; device-bound activation must not migrate. -->
+    <exclude domain="sharedpref" path="o2license.xml" />
+</full-backup-content>
