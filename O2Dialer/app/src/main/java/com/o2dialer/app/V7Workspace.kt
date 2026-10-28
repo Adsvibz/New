@@ -814,7 +814,7 @@ private fun PrecisionCampaignDetailDialog(
                 val visible = list.entries.filter {
                     it.name.contains(q, true) || it.number.contains(q)
                 }
-                LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 360.dp)
+                LazyColumn(Modifier.heightIn(max = 360.dp)
                     .padding(horizontal = 18.dp)) {
                     items(visible.take(100), key = { it.id }) { entry ->
                         Row(Modifier.fillMaxWidth().padding(vertical = 10.dp),
