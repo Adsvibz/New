@@ -1,19 +1,20 @@
 package com.o2dialer.app
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,288 +22,667 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * O2Dialer 7.0 — real campaign workspace connected to Store.
- * Deliberately leaves all calling, storage and licensing services untouched.
+ * Native Compose interpretation of the supplied AI Studio Campaigns design.
+ * All data and actions remain connected to the existing Store, not sample/mock campaigns.
+ * The global bottom navigation, dialing services and detail screens are unchanged.
  */
+private val Ink = Color(0xFF111827)
+private val Muted = Color(0xFF8E95A2)
+private val Soft = Color(0xFFF4F5F7)
+private val Line = Color(0xFFEBECEF)
+private val ProgressBlue = Color(0xFF2563EB)
+private val Green = Color(0xFF047857)
+private val Amber = Color(0xFFB45309)
+
 @Composable
 fun V7CampaignWorkspace(
     onCreate: () -> Unit,
     onEdit: (CallList) -> Unit,
     onDelete: (CallList) -> Unit
 ) {
-    CampaignReferenceTheme {
-        CampaignWorkspaceContent(onCreate, onEdit, onDelete)
+    PrecisionCampaignTheme {
+        PrecisionCampaignContent(onCreate, onEdit, onDelete)
     }
 }
 
-/** Local styling from the supplied My TAI reference; other destinations retain build 165. */
 @Composable
-private fun CampaignReferenceTheme(content: @Composable () -> Unit) {
-    val base = MaterialTheme.colorScheme
-    val dark = isDarkTheme()
-    val font = remember(Store.cfg.lang) {
-        if (Store.cfg.lang == 1) FontFamily(Font(R.font.plex_arabic_regular), Font(R.font.plex_arabic_bold, FontWeight.Bold))
-        else FontFamily(Font(R.font.outfit_regular), Font(R.font.outfit_bold, FontWeight.Bold))
+private fun PrecisionCampaignTheme(content: @Composable () -> Unit) {
+    val family = remember(Store.cfg.lang) {
+        if (Store.cfg.lang == 1) {
+            FontFamily(Font(R.font.plex_arabic_regular), Font(R.font.plex_arabic_bold, FontWeight.Bold))
+        } else {
+            FontFamily(Font(R.font.outfit_regular), Font(R.font.outfit_bold, FontWeight.Bold))
+        }
     }
-    fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
-        fontFamily = font, fontSize = size.sp, lineHeight = (line * if (Store.cfg.lang == 1) 1.12f else 1f).sp,
+    fun type(size: Int, height: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
+        fontFamily = family, fontSize = size.sp,
+        lineHeight = (height * if (Store.cfg.lang == 1) 1.12f else 1f).sp,
         fontWeight = weight, platformStyle = PlatformTextStyle(includeFontPadding = false),
-        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None))
-    val type = MaterialTheme.typography.copy(
-        headlineMedium = style(22, 28, FontWeight.Bold), titleLarge = style(22, 28, FontWeight.Bold),
-        titleMedium = style(16, 22, FontWeight.Bold), titleSmall = style(15, 22, FontWeight.Bold),
-        bodyLarge = style(16, 24), bodyMedium = style(14, 21), bodySmall = style(13, 19),
-        labelLarge = style(15, 22, FontWeight.Bold), labelMedium = style(13, 18), labelSmall = style(12, 17))
-    val colors = if (dark) base.copy(surface = Color(0xFF1B1F27), surfaceVariant = Color(0xFF262C35),
-        outlineVariant = Color(0xFF353D49)) else base.copy(
-        primary = if (Store.cfg.dynamicColor) base.primary else Color(0xFF206DDC), onPrimary = Color.White,
-        primaryContainer = Color(0xFFEBF4FF), onPrimaryContainer = Color(0xFF174E9C),
-        surface = Color.White, surfaceVariant = Color(0xFFF8F8FA),
-        onSurface = Color(0xFF292D34), onSurfaceVariant = Color(0xFF667085),
-        outlineVariant = Color(0xFFE9EBF0), outline = Color(0xFF9AA3B2))
-    MaterialTheme(colorScheme = colors, typography = type, content = content)
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
+    )
+    val typography = MaterialTheme.typography.copy(
+        headlineMedium = type(24, 30, FontWeight.Bold),
+        titleLarge = type(20, 26, FontWeight.Bold),
+        titleMedium = type(15, 21, FontWeight.Bold),
+        titleSmall = type(13, 19, FontWeight.Bold),
+        bodyLarge = type(14, 21),
+        bodyMedium = type(13, 19),
+        bodySmall = type(12, 18),
+        labelLarge = type(13, 19, FontWeight.Bold),
+        labelMedium = type(12, 17),
+        labelSmall = type(11, 16)
+    )
+    val cs = MaterialTheme.colorScheme.copy(
+        primary = Ink, onPrimary = Color.White, primaryContainer = Soft,
+        onPrimaryContainer = Ink, surface = Color.White, onSurface = Ink,
+        surfaceVariant = Soft, onSurfaceVariant = Muted,
+        outline = Color(0xFFD1D5DB), outlineVariant = Line,
+        background = Color.White, onBackground = Ink
+    )
+    MaterialTheme(colorScheme = cs, typography = typography, content = content)
+}
+
+/** There is no scheduled campaign field in CallList; 'Ready' means not yet called. */
+private fun statusOf(list: CallList): String {
+    val p = Store.prog(list)
+    return when {
+        Store.isRunningList(list.id) && Store.camp.status == CS.PAUSED -> "paused"
+        p.total > 0 && p.remaining == 0 -> "completed"
+        Store.isRunningList(list.id) || p.called > 0 -> "active"
+        else -> "ready"
+    }
+}
+
+private fun activityTime(list: CallList): Long =
+    list.entries.maxOfOrNull { it.calledAt } ?: 0L
+
+private fun relativeActivity(time: Long): String {
+    if (time <= 0L) return ""
+    val elapsed = ((System.currentTimeMillis() - time) / 60000L).coerceAtLeast(0L)
+    return when {
+        elapsed < 1L -> "now"
+        elapsed < 60L -> elapsed.toString() + "m ago"
+        elapsed < 1440L -> (elapsed / 60L).toString() + "h ago"
+        else -> (elapsed / 1440L).toString() + "d ago"
+    }
 }
 
 @Composable
-private fun CampaignWorkspaceContent(onCreate: () -> Unit, onEdit: (CallList) -> Unit, onDelete: (CallList) -> Unit) {
+private fun PrecisionCampaignContent(
+    onCreate: () -> Unit,
+    onEdit: (CallList) -> Unit,
+    onDelete: (CallList) -> Unit
+) {
     val lists = Store.lists.toList()
     val total = lists.sumOf { Store.prog(it).total }
     val called = lists.sumOf { Store.prog(it).called }
-    val answered = lists.sumOf { Store.prog(it).answered }
-    var search by rememberSaveable { mutableStateOf("") }
-    val shown = lists.filter { it.name.contains(search.trim(), ignoreCase = true) }
-    val completion = if (total > 0) (called.toFloat() / total).coerceIn(0f, 1f) else 0f
-    val responseRate = if (called > 0) (answered.toLong() * 100 / called).coerceIn(0L, 100L) else 0L
-    val cs = MaterialTheme.colorScheme
-    val searchInteraction = remember { MutableInteractionSource() }
-    val searchFocused by searchInteraction.collectIsFocusedAsState()
+    val pending = (total - called).coerceAtLeast(0)
+    val activeCount = lists.count { statusOf(it) == "active" }
+    val completion = if (total > 0) called.toFloat() / total else 0f
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableStateOf("all") }
+    var sort by rememberSaveable { mutableStateOf("recent") }
+    var reversed by rememberSaveable { mutableStateOf(false) }
+    var sortMenu by remember { mutableStateOf(false) }
+    var selecting by rememberSaveable { mutableStateOf(false) }
+    val selected = remember { mutableStateListOf<String>() }
+    var confirmBulk by remember { mutableStateOf(false) }
+    var renameTarget by remember { mutableStateOf<CallList?>(null) }
+    var renameValue by remember { mutableStateOf("") }
+
+    val shown = lists.filter {
+        it.name.contains(query.trim(), ignoreCase = true) &&
+            (filter == "all" || statusOf(it) == filter)
+    }.let { matches ->
+        val ordered = when (sort) {
+            "name" -> matches.sortedBy { it.name.lowercase() }
+            "contacts" -> matches.sortedByDescending { Store.prog(it).total }
+            "progress" -> matches.sortedByDescending { Store.prog(it).pct }
+            else -> matches.sortedByDescending { activityTime(it) }
+        }
+        if (reversed) ordered.reversed() else ordered
+    }
+    val counts = mapOf(
+        "all" to lists.size,
+        "active" to lists.count { statusOf(it) == "active" },
+        "completed" to lists.count { statusOf(it) == "completed" },
+        "paused" to lists.count { statusOf(it) == "paused" },
+        "ready" to lists.count { statusOf(it) == "ready" }
+    )
+    fun toggle(id: String) {
+        selecting = true
+        if (id in selected) selected.remove(id) else selected.add(id)
+    }
+    val fontScale = LocalDensity.current.fontScale
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        modifier = Modifier.fillMaxSize().background(Color.White).statusBarsPadding(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(color = cs.primaryContainer, shape = RoundedCornerShape(12.dp)) {
-                    Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.FolderOpen, null, tint = cs.primary, modifier = Modifier.size(20.dp))
-                    }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("O2DIALER 7.0", style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold, color = Muted, modifier = Modifier.weight(1f))
+                TextButton(onClick = {
+                    Store.updateCfg { it.copy(lang = if (it.lang == 1) 0 else 1) }
+                }, contentPadding = PaddingValues(horizontal = 6.dp), modifier = Modifier.height(32.dp)) {
+                    Icon(Icons.Rounded.Translate, null, modifier = Modifier.size(16.dp), tint = Muted)
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (Store.cfg.lang == 1) "English" else "العربية",
+                        style = MaterialTheme.typography.labelSmall, color = Muted)
                 }
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium, color = cs.onSurface)
-                    Text(T("${lists.size} campaigns · $total contacts", "${lists.size} حملات · $total جهة اتصال"),
-                        style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(14.dp))
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val narrow = maxWidth < 340.dp || fontScale > 1.25f
+                if (narrow) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium)
+                        Text(T(lists.size.toString() + " campaigns · " + total + " contacts",
+                            lists.size.toString() + " حملات · " + total + " جهة اتصال"),
+                            color = Muted, style = MaterialTheme.typography.bodySmall)
+                        HeaderControls(onCreate, selecting, onSelect = {
+                            selecting = !selecting
+                            if (!selecting) selected.clear()
+                        })
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.weight(1f))
+                            HeaderControls(onCreate, selecting, onSelect = {
+                                selecting = !selecting
+                                if (!selecting) selected.clear()
+                            })
+                        }
+                        Text(T(lists.size.toString() + " campaigns · " + total + " contacts",
+                            lists.size.toString() + " حملات · " + total + " جهة اتصال"),
+                            style = MaterialTheme.typography.bodySmall, color = Muted)
+                    }
                 }
             }
         }
-        if (lists.isNotEmpty()) item {
-            Surface(shape = RoundedCornerShape(20.dp), color = cs.surface,
-                border = BorderStroke(1.dp, cs.outlineVariant)) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(T("Overview", "نظرة عامة"), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                        NumText("${(completion * 100).toInt()}%", style = MaterialTheme.typography.labelLarge, color = cs.primary)
+        item { Spacer(Modifier.height(19.dp)) }
+        item {
+            Column(Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color(0xFFF7F8FA))
+                .border(1.dp, Color(0xFFE7E9ED), RoundedCornerShape(14.dp))
+                .padding(horizontal = 13.dp, vertical = 12.dp)) {
+                Row(Modifier.fillMaxWidth()) {
+                    Metric(T("Campaigns", "الحملات"), lists.size.toString(),
+                        if (activeCount > 0) T(activeCount.toString() + " active", activeCount.toString() + " نشطة") else "",
+                        Modifier.weight(1f))
+                    Spacer(Modifier.width(12.dp))
+                    Metric(T("Contacts", "جهات الاتصال"), total.toString(), "", Modifier.weight(1f))
+                }
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
+                Spacer(Modifier.height(10.dp))
+                Row(Modifier.fillMaxWidth()) {
+                    Metric(T("Completed", "تم الاتصال"), called.toString(),
+                        if (total > 0) (completion * 100).toInt().toString() + "%" else "",
+                        Modifier.weight(1f), secondaryColor = Green)
+                    Spacer(Modifier.width(12.dp))
+                    Metric(T("Pending", "المتبقي"), pending.toString(), "", Modifier.weight(1f))
+                }
+                Spacer(Modifier.height(10.dp))
+                HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
+                Spacer(Modifier.height(10.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(T("Overall Progress", "إجمالي التقدم"), color = Muted,
+                        style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+                    Box(Modifier.width(94.dp).height(5.dp).clip(CircleShape)
+                        .background(Color(0xFFE8EAF0))) {
+                        Box(Modifier.fillMaxHeight().fillMaxWidth(completion.coerceIn(0f, 1f))
+                            .background(ProgressBlue))
                     }
-                    BoxWithConstraints(Modifier.fillMaxWidth()) {
-                        val metrics = listOf("$called" to T("Called", "تم الاتصال"),
-                            "$answered" to T("Answered", "تم الرد"), "$responseRate%" to T("Answer rate", "نسبة الرد"))
-                        val columns = (maxWidth.value / (88f * LocalDensity.current.fontScale.coerceAtLeast(1f))).toInt().coerceIn(1, 3)
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            metrics.chunked(columns).forEach { row ->
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    row.forEach { (value, label) -> V7HeroMetric(value, label) }
-                                }
+                    Spacer(Modifier.width(8.dp))
+                    Text((completion * 100).toInt().toString() + "%",
+                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        item { Spacer(Modifier.height(16.dp)) }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                val interaction = remember { MutableInteractionSource() }
+                val focused by interaction.collectIsFocusedAsState()
+                Row(
+                    Modifier.weight(1f).heightIn(min = 38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (focused) Color(0xFFECEEF2) else Soft)
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.Search, null, tint = Muted, modifier = Modifier.size(17.dp))
+                    Spacer(Modifier.width(9.dp))
+                    BasicTextField(
+                        value = query, onValueChange = { query = it }, singleLine = true,
+                        interactionSource = interaction,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = Ink),
+                        modifier = Modifier.weight(1f),
+                        decorationBox = { inner ->
+                            Box {
+                                if (query.isEmpty()) Text(T("Search campaigns", "بحث عن حملة"),
+                                    color = Muted, style = MaterialTheme.typography.bodyMedium)
+                                inner()
                             }
                         }
+                    )
+                    if (query.isNotBlank()) {
+                        IconButton(onClick = { query = "" }, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Rounded.Close, T("Clear", "مسح"), tint = Muted,
+                                modifier = Modifier.size(16.dp))
+                        }
                     }
-                    LinearProgressIndicator(progress = { completion }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-                        color = cs.primary, trackColor = cs.surfaceVariant)
+                }
+                Box {
+                    IconButton(onClick = { sortMenu = true },
+                        modifier = Modifier.size(38.dp).clip(RoundedCornerShape(10.dp))
+                            .background(Soft)) {
+                        Icon(Icons.Rounded.Tune, T("Sort", "ترتيب"), tint = Muted,
+                            modifier = Modifier.size(18.dp))
+                    }
+                    DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                        listOf(
+                            "recent" to T("Recent activity", "آخر نشاط"),
+                            "name" to T("Name", "الاسم"),
+                            "progress" to T("Progress", "التقدم"),
+                            "contacts" to T("Contacts", "جهات الاتصال")
+                        ).forEach { (key, title) ->
+                            DropdownMenuItem(text = { Text(title, style = MaterialTheme.typography.bodyMedium) },
+                                trailingIcon = if (sort == key) { { Icon(
+                                    if (reversed) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward,
+                                    null, modifier = Modifier.size(16.dp)) } } else null,
+                                onClick = {
+                                    reversed = if (sort == key) !reversed else key == "name"
+                                    sort = key
+                                    sortMenu = false
+                                })
+                        }
+                    }
                 }
             }
         }
+        item { Spacer(Modifier.height(11.dp)) }
         item {
-            Button(onClick = onCreate, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                shape = RoundedCornerShape(14.dp), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = cs.primary, contentColor = cs.onPrimary)) {
-                Icon(Icons.Rounded.Add, null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(T("New campaign", "حملة جديدة"), style = MaterialTheme.typography.labelLarge)
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                listOf(
+                    "all" to T("All", "الكل"),
+                    "active" to T("Active", "نشطة"),
+                    "completed" to T("Completed", "مكتملة"),
+                    "paused" to T("Paused", "متوقفة"),
+                    "ready" to T("Ready", "جاهزة")
+                ).forEach { (key, label) ->
+                    val selectedChip = key == filter
+                    Surface(
+                        onClick = { filter = key },
+                        color = if (selectedChip) Color(0xFF17191D) else Color.White,
+                        shape = RoundedCornerShape(7.dp)
+                    ) {
+                        Row(Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Text(label, style = MaterialTheme.typography.labelSmall,
+                                fontWeight = if (selectedChip) FontWeight.Bold else FontWeight.Medium,
+                                color = if (selectedChip) Color.White else Muted)
+                            Spacer(Modifier.width(4.dp))
+                            Text((counts[key] ?: 0).toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (selectedChip) Color.White.copy(alpha = 0.78f) else Muted)
+                        }
+                    }
+                }
             }
         }
+        item { Spacer(Modifier.height(17.dp)) }
+
+        if (selecting) {
+            item {
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(11.dp))
+                    .background(Ink).padding(horizontal = 13.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(T(selected.size.toString() + " selected", "تم تحديد " + selected.size),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White, modifier = Modifier.weight(1f))
+                    TextButton(onClick = {
+                        val ids = shown.map { it.id }
+                        if (ids.all { it in selected }) selected.removeAll(ids.toSet())
+                        else ids.forEach { if (it !in selected) selected.add(it) }
+                    }) {
+                        Text(T("Select all", "تحديد الكل"), color = Color.White,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                    IconButton(onClick = { if (selected.isNotEmpty()) confirmBulk = true },
+                        enabled = selected.isNotEmpty(), modifier = Modifier.size(34.dp)) {
+                        Icon(Icons.Rounded.DeleteOutline, T("Delete selected", "حذف المحدد"),
+                            tint = Color(0xFFFCA5A5), modifier = Modifier.size(19.dp))
+                    }
+                    IconButton(onClick = { selecting = false; selected.clear() }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Rounded.Close, T("Cancel", "إلغاء"), tint = Color.White,
+                            modifier = Modifier.size(19.dp))
+                    }
+                }
+                Spacer(Modifier.height(13.dp))
+            }
+        }
+
         if (Store.campActive()) {
             item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().clickable { Store.tab = 1 },
-                    color = cs.surface, shape = RoundedCornerShape(18.dp),
-                    border = BorderStroke(1.dp, cs.outlineVariant)
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                        .background(Soft)
+                        .combinedClickable(onClick = { Store.tab = 1 }, onLongClick = { Store.tab = 1 })
+                        .padding(12.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.PhoneInTalk, null, tint = cs.primary)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                if (Store.camp.status == CS.PAUSED)
-                                    T("Session paused", "الحملة متوقفة مؤقتًا")
-                                else if (Store.camp.status == CS.WAITING)
-                                    T("Waiting for next call", "بانتظار المكالمة التالية")
-                                else T("Session in progress", "حملة قيد التشغيل"),
-                                color = cs.primary, fontWeight = FontWeight.Bold
-                            )
-                            Text(Store.camp.listName, style = MaterialTheme.typography.bodySmall,
-                                color = cs.primary, maxLines = 1)
-                        }
-                        Icon(Icons.Rounded.ChevronRight, null, tint = cs.primary)
-                    }
+                    Icon(Icons.Rounded.PhoneInTalk, null, tint = Ink, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(9.dp))
+                    Text(Store.camp.listName, modifier = Modifier.weight(1f),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium, color = Ink)
+                    Text(T("Open session", "افتح الجلسة"), color = ProgressBlue,
+                        style = MaterialTheme.typography.labelSmall)
                 }
-            }
-        }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(T("Your campaigns", "حملاتك"), fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                    Text("${lists.size}", color = cs.onSurfaceVariant)
-                }
-                TextField(value = search, onValueChange = { search = it }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth().border(1.dp, if (searchFocused) cs.primary else cs.outlineVariant, RoundedCornerShape(14.dp))
-                        .semantics { contentDescription = T("Search campaigns", "بحث عن حملة") },
-                    interactionSource = searchInteraction,
-                    shape = RoundedCornerShape(14.dp), textStyle = MaterialTheme.typography.bodyLarge,
-                    placeholder = { Text(T("Search campaigns", "بحث عن حملة")) },
-                    leadingIcon = { Icon(Icons.Rounded.Search, null, modifier = Modifier.size(21.dp)) },
-                    trailingIcon = if (search.isNotBlank()) { { IconButton(onClick = { search = "" }) {
-                        Icon(Icons.Rounded.Close, T("Clear search", "مسح البحث"))
-                    } } } else null,
-                    colors = TextFieldDefaults.colors(focusedContainerColor = cs.surfaceVariant,
-                        unfocusedContainerColor = cs.surfaceVariant,
-                        focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
-                        focusedTextColor = cs.onSurface, unfocusedTextColor = cs.onSurface,
-                        focusedPlaceholderColor = cs.onSurfaceVariant, unfocusedPlaceholderColor = cs.onSurfaceVariant))
+                Spacer(Modifier.height(12.dp))
             }
         }
         if (shown.isEmpty()) {
             item {
-                Surface(color = cs.surface, shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Rounded.FolderOpen, null, tint = cs.primary, modifier = Modifier.size(36.dp))
-                        Spacer(Modifier.height(12.dp))
-                        Text(if (lists.isEmpty()) T("Your first campaign starts here", "ابدأ حملتك الأولى هنا")
-                            else T("No matching campaigns", "لا توجد حملات مطابقة"),
-                            fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(5.dp))
-                        Text(if (lists.isEmpty()) T("Create a campaign to add contacts.", "أنشئ حملة لإضافة جهات اتصال.")
-                            else T("Try a different name.", "جرّب اسم تاني."),
-                            color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Column(Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Rounded.FolderOpen, null, tint = Muted, modifier = Modifier.size(30.dp))
+                    Text(if (lists.isEmpty()) T("No campaigns yet", "لا توجد حملات بعد")
+                        else T("No matching campaigns", "لا توجد حملات مطابقة"),
+                        fontWeight = FontWeight.Bold, color = Ink)
+                    Text(if (lists.isEmpty()) T("Create your first campaign to begin", "أنشئ حملتك الأولى للبدء")
+                        else T("Try changing the search or filter", "جرّب تغيير البحث أو الفلتر"),
+                        style = MaterialTheme.typography.bodySmall, color = Muted,
+                        textAlign = TextAlign.Center)
+                    if (lists.isEmpty()) {
+                        Button(onClick = onCreate, colors = ButtonDefaults.buttonColors(containerColor = Ink)) {
+                            Icon(Icons.Rounded.Add, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(5.dp))
+                            Text(T("New Campaign", "حملة جديدة"))
+                        }
                     }
                 }
             }
         } else {
-            items(shown, key = { it.id }) { item ->
-                V7CampaignRow(item, onOpen = { Store.selectedListId = item.id },
-                    onEdit = { onEdit(item) }, onDelete = { onDelete(item) })
+            items(shown, key = { it.id }) { list ->
+                PrecisionCampaignCard(
+                    list = list,
+                    selected = list.id in selected,
+                    selecting = selecting,
+                    onToggle = { toggle(list.id) },
+                    onOpen = { Store.selectedListId = list.id },
+                    onEdit = { onEdit(list) },
+                    onDelete = { onDelete(list) },
+                    onRename = { renameTarget = list; renameValue = list.name }
+                )
+                Spacer(Modifier.height(12.dp))
             }
+        }
+    }
+
+    if (confirmBulk) {
+        val deletableIds = selected.filter { !Store.isRunningList(it) }
+        AlertDialog(
+            onDismissRequest = { confirmBulk = false },
+            title = { Text(T("Delete selected campaigns?", "حذف الحملات المحددة؟")) },
+            text = { Text(T(
+                "Delete " + deletableIds.size + " campaigns and all their contacts? Running campaigns will be kept.",
+                "حذف " + deletableIds.size + " حملات وكل جهات اتصالها؟ الحملات قيد التشغيل هتفضل محفوظة."
+            )) },
+            confirmButton = {
+                TextButton(onClick = {
+                    deletableIds.forEach { Store.deleteList(it) }
+                    selected.clear()
+                    selecting = false
+                    confirmBulk = false
+                    Store.notify(Tk.INFO, T("Campaigns deleted", "تم حذف الحملات"))
+                }) { Text(T("Delete", "حذف"), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { confirmBulk = false }) { Text(T("Cancel", "إلغاء")) } }
+        )
+    }
+    renameTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { renameTarget = null },
+            title = { Text(T("Rename campaign", "تغيير اسم الحملة")) },
+            text = {
+                OutlinedTextField(
+                    value = renameValue, onValueChange = { renameValue = it },
+                    label = { Text(T("Campaign name", "اسم الحملة")) },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(enabled = renameValue.isNotBlank() && !Store.isRunningList(target.id),
+                    onClick = {
+                        Store.updateList(target.id) { it.copy(name = renameValue.trim()) }
+                        renameTarget = null
+                        Store.notify(Tk.SUCCESS, T("Campaign renamed", "تم تغيير اسم الحملة"))
+                    }) { Text(T("Save", "حفظ")) }
+            },
+            dismissButton = { TextButton(onClick = { renameTarget = null }) { Text(T("Cancel", "إلغاء")) } }
+        )
+    }
+}
+
+@Composable
+private fun HeaderControls(onCreate: () -> Unit, selecting: Boolean, onSelect: () -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(
+            onClick = onSelect, modifier = Modifier.size(36.dp)
+                .border(1.dp, Line, RoundedCornerShape(10.dp))
+                .background(if (selecting) Soft else Color.White)
+        ) {
+            Icon(if (selecting) Icons.Rounded.CheckBox else Icons.Rounded.CheckBoxOutlineBlank,
+                T("Select campaigns", "تحديد الحملات"), tint = Ink, modifier = Modifier.size(17.dp))
+        }
+        Button(
+            onClick = onCreate, shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF17191D)),
+            modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 12.dp)
+        ) {
+            Icon(Icons.Rounded.Add, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(5.dp))
+            Text(T("New Campaign", "حملة جديدة"),
+                style = MaterialTheme.typography.labelSmall, color = Color.White,
+                fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
 
 @Composable
-private fun RowScope.V7HeroMetric(value: String, caption: String) {
-    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        NumText(value, color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleLarge)
-        Text(caption, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
+private fun Metric(
+    label: String, number: String, extra: String, modifier: Modifier = Modifier,
+    secondaryColor: Color = Muted
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label.uppercase(), color = Muted, style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold, maxLines = 2)
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(number, color = Ink, style = MaterialTheme.typography.titleLarge,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (extra.isNotEmpty()) {
+                Spacer(Modifier.width(5.dp))
+                Text(extra, style = MaterialTheme.typography.labelSmall,
+                    color = secondaryColor, maxLines = 1)
+            }
+        }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun V7CampaignRow(
+private fun PrecisionCampaignCard(
     list: CallList,
+    selected: Boolean,
+    selecting: Boolean,
+    onToggle: () -> Unit,
     onOpen: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onRename: () -> Unit
 ) {
-    val cs = MaterialTheme.colorScheme
     val p = Store.prog(list)
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    val active = Store.isRunningList(list.id)
-    var reset by remember { mutableStateOf(false) }
+    val status = statusOf(list)
+    val running = Store.isRunningList(list.id)
+    val ctx = LocalContext.current
     var menu by remember { mutableStateOf(false) }
-    Surface(
-        modifier = Modifier.fillMaxWidth(), onClick = onOpen,
-        shape = RoundedCornerShape(18.dp), color = cs.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
-    ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = cs.surfaceVariant, shape = RoundedCornerShape(12.dp)) {
-                    Icon(Icons.Rounded.FolderCopy, null, tint = cs.primary,
-                        modifier = Modifier.padding(10.dp).size(20.dp))
-                }
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(list.name, color = cs.onSurface, style = MaterialTheme.typography.titleMedium,
-                        maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text(T("${p.total} contacts", "${p.total} جهة اتصال"),
-                        color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                }
-                Box {
-                    IconButton(onClick = { menu = true }) {
-                        Icon(Icons.Rounded.MoreVert, T("Actions", "الخيارات"))
-                    }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(enabled = !active, text = { Text(T("Edit", "تعديل")) },
-                            onClick = { menu = false; onEdit() })
-                        DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },
-                            onClick = { menu = false; Store.resultsListId = list.id; Store.tab = 2 })
-                        DropdownMenuItem(text = { Text(T("Share report", "مشاركة التقرير")) },
-                            onClick = { menu = false; shareText(ctx, Store.listReport(list)) })
-                        DropdownMenuItem(enabled = !active, text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
-                            onClick = { menu = false; reset = true })
-                        DropdownMenuItem(enabled = !active, text = { Text(T("Remove duplicates", "حذف المكرر")) },
-                            onClick = { menu = false; val count = Store.dedupe(list.id)
-                                Store.notify(Tk.SUCCESS, T("Removed $count duplicates", "تم حذف $count رقم مكرر")) })
-                        DropdownMenuItem(enabled = !active, text = { Text(T("Delete", "حذف"), color = cs.error) },
-                            onClick = { menu = false; onDelete() })
-                    }
-                }
-            }
-            if (active) Pill(sessionLabel(Store.camp), cs.primary)
-            BProgress(progress = p.pct / 100f,
-                modifier = Modifier.fillMaxWidth().height(5.dp).clip(CircleShape),
-                color = cs.primary, track = cs.surfaceVariant)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                    style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant,
-                    modifier = Modifier.weight(1f))
-                Text("${p.pct}%", color = cs.primary, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(5.dp))
-                Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, tint = cs.primary, modifier = Modifier.size(17.dp))
-            }
-        }
+    var reset by remember { mutableStateOf(false) }
+    val last = relativeActivity(activityTime(list))
+    val statusLabel = when (status) {
+        "active" -> T("Active", "نشطة")
+        "paused" -> T("Paused", "متوقفة")
+        "completed" -> T("Completed", "مكتملة")
+        else -> T("Ready", "جاهزة")
     }
-    if (reset) ConfirmDialog(T("Reset call progress? Contacts, stages and notes will be kept.", "إعادة ضبط تقدم الاتصال؟ جهات الاتصال والتصنيفات والملاحظات هتفضل محفوظة."), { reset = false }) {
-        if (!Store.isRunningList(list.id)) Store.resetForRestart(list.id, false)
-        reset = false
+    val statusColor = when (status) {
+        "active" -> Green
+        "paused" -> Amber
+        "completed" -> Color(0xFF52525B)
+        else -> Color(0xFF1D4ED8)
+    }
+    val statusSurface = when (status) {
+        "active" -> Color(0xFFECFDF5)
+        "paused" -> Color(0xFFFFF7ED)
+        "completed" -> Soft
+        else -> Color(0xFFEFF6FF)
     }
 
+    Column(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(15.dp))
+            .background(if (selected) Color(0xFFF7F8FA) else Color.White)
+            .border(1.dp, if (selected) Ink else Line, RoundedCornerShape(15.dp))
+            .combinedClickable(onClick = { if (selecting) onToggle() else onOpen() },
+                onLongClick = onToggle)
+            .padding(horizontal = 14.dp, vertical = 13.dp)
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (selecting) {
+                Box(
+                    Modifier.size(19.dp)
+                        .clip(RoundedCornerShape(5.dp))
+                        .background(if (selected) Ink else Color.White)
+                        .border(1.dp, if (selected) Ink else Color(0xFFD1D5DB), RoundedCornerShape(5.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (selected) Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                }
+                Spacer(Modifier.width(9.dp))
+            }
+            Text(list.name, style = MaterialTheme.typography.titleMedium, color = Ink,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            Spacer(Modifier.width(7.dp))
+            Surface(shape = RoundedCornerShape(5.dp), color = statusSurface) {
+                Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
+            }
+            Spacer(Modifier.weight(1f))
+            if (running) {
+                IconButton(onClick = { Store.tab = 1 }, modifier = Modifier.size(31.dp)) {
+                    Icon(if (Store.camp.status == CS.PAUSED) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                        T("Manage session", "إدارة الجلسة"), tint = Color(0xFF6B7280),
+                        modifier = Modifier.size(19.dp))
+                }
+            }
+            Box {
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(30.dp)) {
+                    Icon(Icons.Rounded.MoreVert, T("Campaign actions", "خيارات الحملة"),
+                        tint = Color(0xFF6B7280), modifier = Modifier.size(18.dp))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text(T("Open campaign", "فتح الحملة")) },
+                        onClick = { menu = false; onOpen() },
+                        leadingIcon = { Icon(Icons.Rounded.OpenInNew, null) })
+                    DropdownMenuItem(enabled = !running, text = { Text(T("Edit", "تعديل")) },
+                        onClick = { menu = false; onEdit() },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, null) })
+                    DropdownMenuItem(enabled = !running, text = { Text(T("Rename", "تغيير الاسم")) },
+                        onClick = { menu = false; onRename() },
+                        leadingIcon = { Icon(Icons.Rounded.DriveFileRenameOutline, null) })
+                    DropdownMenuItem(text = { Text(T("View results", "عرض النتائج")) },
+                        onClick = { menu = false; Store.resultsListId = list.id; Store.tab = 2 },
+                        leadingIcon = { Icon(Icons.Rounded.BarChart, null) })
+                    DropdownMenuItem(text = { Text(T("Share report", "مشاركة التقرير")) },
+                        onClick = { menu = false; shareText(ctx, Store.listReport(list)) },
+                        leadingIcon = { Icon(Icons.Rounded.Share, null) })
+                    HorizontalDivider()
+                    DropdownMenuItem(enabled = !running, text = { Text(T("Remove duplicates", "حذف المكرر")) },
+                        onClick = {
+                            menu = false
+                            val count = Store.dedupe(list.id)
+                            Store.notify(Tk.SUCCESS, T("Removed " + count + " duplicates", "تم حذف " + count + " رقم مكرر"))
+                        }, leadingIcon = { Icon(Icons.Rounded.GroupRemove, null) })
+                    DropdownMenuItem(enabled = !running, text = { Text(T("Reset progress", "إعادة ضبط التقدم")) },
+                        onClick = { menu = false; reset = true },
+                        leadingIcon = { Icon(Icons.Rounded.Refresh, null) })
+                    DropdownMenuItem(enabled = !running, text = { Text(T("Delete", "حذف"), color = MaterialTheme.colorScheme.error) },
+                        onClick = { menu = false; onDelete() },
+                        leadingIcon = { Icon(Icons.Rounded.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) })
+                }
+            }
+        }
+
+        val simText = if (list.simSlot >= 0) T("SIM " + (list.simSlot + 1), "شريحة " + (list.simSlot + 1))
+            else T("Default SIM", "الشريحة الافتراضية")
+        Text(simText, style = MaterialTheme.typography.labelSmall, color = Muted,
+            modifier = Modifier.padding(top = 2.dp), maxLines = 1)
+
+        Spacer(Modifier.height(16.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(T(p.called.toString() + " / " + p.total + " (" + p.remaining + " remaining)",
+                p.called.toString() + " / " + p.total + " (" + p.remaining + " متبقي)"),
+                style = MaterialTheme.typography.bodySmall, color = Color(0xFF5E6570),
+                modifier = Modifier.weight(1f))
+            Text(p.pct.toString() + "%", style = MaterialTheme.typography.labelLarge,
+                color = Ink, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(8.dp))
+        Box(Modifier.fillMaxWidth().height(4.dp).clip(CircleShape)
+            .background(Color(0xFFF0F2F5))) {
+            Box(Modifier.fillMaxHeight().fillMaxWidth((p.pct / 100f).coerceIn(0f, 1f))
+                .background(if (status == "paused") Amber else ProgressBlue))
+        }
+        Spacer(Modifier.height(11.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(T(p.total.toString() + " contacts", p.total.toString() + " جهة اتصال"),
+                color = Muted, style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.weight(1f))
+            Text(if (last.isNotEmpty()) last else statusLabel,
+                color = Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+        }
+    }
+
+    if (reset) {
+        ConfirmDialog(T("Reset call progress? Contacts, stages and notes will be kept.",
+            "إعادة ضبط تقدم الاتصال؟ جهات الاتصال والتصنيفات والملاحظات هتفضل محفوظة."),
+            { reset = false }) {
+            if (!Store.isRunningList(list.id)) Store.resetForRestart(list.id, false)
+            reset = false
+        }
+    }
 }
