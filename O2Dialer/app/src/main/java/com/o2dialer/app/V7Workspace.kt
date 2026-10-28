@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -146,6 +147,7 @@ private fun PrecisionCampaignContent(
     var confirmBulk by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<CallList?>(null) }
     var renameValue by remember { mutableStateOf("") }
+    var detailId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val shown = lists.filter {
         it.name.contains(query.trim(), ignoreCase = true) &&
@@ -434,7 +436,7 @@ private fun PrecisionCampaignContent(
                     selected = list.id in selected,
                     selecting = selecting,
                     onToggle = { toggle(list.id) },
-                    onOpen = { Store.selectedListId = list.id },
+                    onOpen = { detailId = list.id },
                     onEdit = { onEdit(list) },
                     onDelete = { onDelete(list) },
                     onRename = { renameTarget = list; renameValue = list.name }
@@ -442,6 +444,15 @@ private fun PrecisionCampaignContent(
                 Spacer(Modifier.height(12.dp))
             }
         }
+    }
+
+    lists.firstOrNull { it.id == detailId }?.let { detail ->
+        PrecisionCampaignDetailDialog(
+            list = detail,
+            onClose = { detailId = null },
+            onEdit = { detailId = null; onEdit(detail) },
+            onOpenContacts = { detailId = null; Store.selectedListId = detail.id }
+        )
     }
 
     if (confirmBulk) {
@@ -725,5 +736,172 @@ private fun PrecisionCampaignCard(
             if (!Store.isRunningList(list.id)) Store.resetForRestart(list.id, false)
             reset = false
         }
+    }
+}
+
+/**
+ * AI Studio detail overlay (native and Store-backed).
+ * Contacts and performance read live data; opening the full native campaign
+ * keeps original call actions, import flows and entry editing available.
+ */
+@Composable
+private fun PrecisionCampaignDetailDialog(
+    list: CallList,
+    onClose: () -> Unit,
+    onEdit: () -> Unit,
+    onOpenContacts: () -> Unit
+) {
+    val p = Store.prog(list)
+    var tab by rememberSaveable(list.id) { mutableStateOf("contacts") }
+    var q by rememberSaveable(list.id) { mutableStateOf("") }
+    val cs = MaterialTheme.colorScheme
+    Dialog(onDismissRequest = onClose) {
+        Column(
+            Modifier.fillMaxWidth().heightIn(max = 650.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .border(1.dp, Line, RoundedCornerShape(16.dp))
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(start = 18.dp, end = 12.dp, top = 13.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(list.name, fontSize = 17.sp, color = Ink, fontWeight = FontWeight.SemiBold,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 8.dp)) {
+                    Icon(Icons.Rounded.Edit, null, tint = Ink, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(T("Edit", "تعديل"), color = Ink, fontSize = 12.sp)
+                }
+                IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Rounded.Close, T("Close", "إغلاق"), tint = Muted,
+                        modifier = Modifier.size(16.dp))
+                }
+            }
+            HorizontalDivider(color = Line)
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFF7F8FA)).padding(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("contacts" to T("Contacts", "جهات الاتصال"),
+                        "performance" to T("Performance", "الأداء")).forEach { (key, name) ->
+                        Surface(onClick = { tab = key }, modifier = Modifier.weight(1f),
+                            color = if (key == tab) Color.White else Color.Transparent,
+                            shape = RoundedCornerShape(6.dp)) {
+                            Text(name + if (key == "contacts") " (${p.total})" else "",
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 3.dp),
+                                textAlign = TextAlign.Center, color = if (tab == key) Ink else Muted,
+                                fontSize = 11.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                        }
+                    }
+                }
+            }
+            HorizontalDivider(color = Line)
+            if (tab == "contacts") {
+                OutlinedTextField(q, { q = it }, modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 11.dp),
+                    placeholder = { Text(T("Search contacts", "بحث في جهات الاتصال"),
+                        color = Muted, fontSize = 12.sp) },
+                    leadingIcon = { Icon(Icons.Rounded.Search, null, tint = Muted,
+                        modifier = Modifier.size(18.dp)) },
+                    singleLine = true, textStyle = MaterialTheme.typography.bodySmall,
+                    shape = RoundedCornerShape(9.dp))
+                val visible = list.entries.filter {
+                    it.name.contains(q, true) || it.number.contains(q)
+                }
+                LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 360.dp)
+                    .padding(horizontal = 18.dp)) {
+                    items(visible.take(100), key = { it.id }) { entry ->
+                        Row(Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(entry.name.ifBlank { entry.number }, color = Ink,
+                                    style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                                if (entry.name.isNotBlank()) {
+                                    Text(entry.number, color = Muted, fontSize = 11.sp, maxLines = 1)
+                                }
+                            }
+                            Text(
+                                if (entry.status == St.PENDING) T("Pending", "معلق")
+                                else if (St.isConfirmedAnswered(entry.status)) T("Answered", "تم الرد")
+                                else T("Called", "تم الاتصال"),
+                                color = Muted, fontSize = 11.sp
+                            )
+                        }
+                        HorizontalDivider(color = Line)
+                    }
+                    if (visible.size > 100) {
+                        item { Text(T("Open campaign to see all contacts", "افتح الحملة لعرض باقي الأرقام"),
+                            fontSize = 11.sp, color = Muted,
+                            modifier = Modifier.padding(vertical = 12.dp)) }
+                    }
+                }
+            } else {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFF7F8FA)).border(1.dp, Line, RoundedCornerShape(10.dp))
+                        .padding(13.dp)) {
+                        Row(Modifier.fillMaxWidth()) {
+                            Text(T("Calling Progress", "تقدم المكالمات"), fontSize = 12.sp,
+                                color = Ink, modifier = Modifier.weight(1f))
+                            Text("${p.called}/${p.total} (${p.pct}%)", fontSize = 12.sp,
+                                color = Ink, fontWeight = FontWeight.SemiBold)
+                        }
+                        Spacer(Modifier.height(9.dp))
+                        LinearProgressIndicator(progress = { p.pct / 100f },
+                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                            color = ProgressBlue, trackColor = Line)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        DialogMetric(T("Answered Rate", "نسبة الرد"),
+                            if (p.called > 0) "${p.answered * 100 / p.called}%" else "0%",
+                            "${p.answered} " + T("answered", "تم الرد"), Modifier.weight(1f))
+                        DialogMetric(T("Failed Rate", "نسبة الفشل"),
+                            if (p.called > 0) "${p.failed * 100 / p.called}%" else "0%",
+                            "${p.failed} " + T("failed", "فشل"), Modifier.weight(1f))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                        val durations = list.entries.filter { it.duration > 0 }
+                        val avg = if (durations.isNotEmpty()) durations.sumOf { it.duration.toLong() } / durations.size else 0L
+                        DialogMetric(T("Average Duration", "متوسط المدة"), "${avg}s",
+                            T("Connected calls", "المكالمات المتصلة"), Modifier.weight(1f))
+                        DialogMetric(T("SIM", "الشريحة"),
+                            if (list.simSlot >= 0) "SIM ${list.simSlot + 1}" else T("Default", "افتراضية"),
+                            T("Calling source", "مصدر الاتصال"), Modifier.weight(1f))
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider(color = Line)
+            Button(
+                onClick = onOpenContacts, modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 12.dp).heightIn(min = 42.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Ink)
+            ) {
+                Text(T("Open full campaign", "فتح الحملة بالكامل"), color = Color.White,
+                    style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialogMetric(label: String, value: String, hint: String, modifier: Modifier = Modifier) {
+    Column(modifier.clip(RoundedCornerShape(10.dp))
+        .background(Color(0xFFF7F8FA))
+        .border(1.dp, Line, RoundedCornerShape(10.dp))
+        .padding(11.dp)) {
+        Text(label.uppercase(), fontSize = 10.sp, color = Muted,
+            maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(6.dp))
+        Text(value, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+        Spacer(Modifier.height(3.dp))
+        Text(hint, fontSize = 10.sp, color = Muted, maxLines = 1)
     }
 }
