@@ -16,6 +16,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -75,19 +78,129 @@ fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
 fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
     var name by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
     var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
-    BSheet(
-        title = if (initial == null) T("New campaign", "حملة جديدة") else T("Campaign settings", "إعدادات الحملة"),
-        onDismiss = onDismiss,
-        actions = {
-            BButton(if (initial == null) T("Create campaign", "إنشاء الحملة") else T("Save changes", "حفظ التعديلات"),
-                { onSave(name.trim(), sim) }, Modifier.fillMaxWidth(), enabled = name.isNotBlank())
+    val sims = remember(Store.permTick, Store.cfg.lang) { simLabels(androidx.compose.ui.platform.LocalContext.current) }
+    val ink = Color(0xFF111827)
+    val muted = Color(0xFF777E89)
+    val border = Color(0xFFE9EBEF)
+    PrecisionCampaignTheme {
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            containerColor = Color.White,
+            shape = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = 0.40f)
+        ) {
+            Column(Modifier.fillMaxWidth().imePadding()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 13.dp, top = 14.dp, bottom = 13.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (initial == null) T("Create Campaign", "إنشاء حملة")
+                            else T("Edit Campaign", "تعديل الحملة"),
+                            color = ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            T("Configure your campaign settings", "اضبط إعدادات الحملة"),
+                            color = muted, fontSize = 12.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(31.dp)) {
+                        Icon(Icons.Rounded.Close, T("Close", "إغلاق"),
+                            tint = muted, modifier = Modifier.size(17.dp))
+                    }
+                }
+                HorizontalDivider(color = border)
+                Column(
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(T("Campaign Name *", "اسم الحملة *"), fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium, color = ink)
+                        BasicTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 39.dp),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = ink),
+                            decorationBox = { inner ->
+                                Row(
+                                    Modifier.fillMaxWidth().heightIn(min = 39.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFF7F8FA))
+                                        .border(1.dp, border, RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(Modifier.weight(1f)) {
+                                        if (name.isEmpty()) Text(
+                                            T("e.g. Q4 Customer Outreach Wave 1", "مثال: متابعة العملاء"),
+                                            color = muted, fontSize = 12.sp, maxLines = 1
+                                        )
+                                        inner()
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Text(T("SIM Card", "الشريحة"), color = ink, fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium)
+                        Text(T("Choose the outgoing SIM for this campaign.",
+                            "اختار شريحة الاتصال المستخدمة في الحملة."),
+                            color = muted, fontSize = 11.sp)
+                        val options = listOf(-1 to T("Default", "افتراضية")) +
+                            sims.mapIndexed { i, label -> i to label }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            options.forEach { (slot, label) ->
+                                val active = sim == slot
+                                Column(
+                                    Modifier.weight(1f).heightIn(min = 65.dp)
+                                        .clip(RoundedCornerShape(9.dp))
+                                        .background(if (active) Color(0xFFF3F4F6) else Color.White)
+                                        .border(1.dp, if (active) ink else border, RoundedCornerShape(9.dp))
+                                        .clickable { sim = slot }
+                                        .padding(9.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(Icons.Rounded.SimCard, null,
+                                        tint = if (active) ink else muted,
+                                        modifier = Modifier.size(17.dp))
+                                    Text(label, color = if (active) ink else muted,
+                                        fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                                        maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                }
+                            }
+                        }
+                    }
+                    Text(
+                        T("You can import CSV, paste numbers or choose phone contacts after creating the campaign.",
+                            "بعد إنشاء الحملة، تقدر تستورد CSV أو تلصق أرقام أو تختار جهات الاتصال."),
+                        color = muted, fontSize = 11.sp
+                    )
+                    HorizontalDivider(color = border)
+                    Button(
+                        onClick = { if (name.isNotBlank()) onSave(name.trim(), sim) },
+                        enabled = name.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 43.dp),
+                        shape = RoundedCornerShape(9.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ink, contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            if (initial == null) T("Create Campaign", "إنشاء الحملة")
+                            else T("Save Changes", "حفظ التعديلات"),
+                            fontSize = 13.sp, fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
         }
-    ) {
-        BTextField(name, { name = it }, label = T("Campaign name", "اسم الحملة"),
-            placeholder = T("e.g. New enquiries", "مثال: عملاء جدد"))
-        Spacer(Modifier.height(2.dp))
-        SectionLabel(T("SIM card", "الشريحة"))
-        SimPicker(sim) { sim = it }
     }
 }
 
