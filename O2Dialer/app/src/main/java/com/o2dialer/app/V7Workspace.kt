@@ -65,8 +65,8 @@ private fun CampaignReferenceTheme(content: @Composable () -> Unit) {
         fontWeight = weight, platformStyle = PlatformTextStyle(includeFontPadding = false),
         lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None))
     val type = MaterialTheme.typography.copy(
-        headlineMedium = style(28, 36, FontWeight.Bold), titleLarge = style(22, 28, FontWeight.Bold),
-        titleMedium = style(17, 24, FontWeight.Bold), titleSmall = style(15, 22, FontWeight.Bold),
+        headlineMedium = style(22, 28, FontWeight.Bold), titleLarge = style(22, 28, FontWeight.Bold),
+        titleMedium = style(16, 22, FontWeight.Bold), titleSmall = style(15, 22, FontWeight.Bold),
         bodyLarge = style(16, 24), bodyMedium = style(14, 21), bodySmall = style(13, 19),
         labelLarge = style(15, 22, FontWeight.Bold), labelMedium = style(13, 18), labelSmall = style(12, 17))
     val colors = if (dark) base.copy(surface = Color(0xFF1B1F27), surfaceVariant = Color(0xFF262C35),
@@ -95,21 +95,21 @@ private fun CampaignWorkspaceContent(onCreate: () -> Unit, onEdit: (CallList) ->
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Surface(color = cs.primaryContainer, shape = RoundedCornerShape(16.dp)) {
-                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.FolderOpen, null, tint = cs.primary, modifier = Modifier.size(24.dp))
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Surface(color = cs.primaryContainer, shape = RoundedCornerShape(12.dp)) {
+                    Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.FolderOpen, null, tint = cs.primary, modifier = Modifier.size(20.dp))
                     }
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium, color = cs.onSurface)
                     Text(T("${lists.size} campaigns · $total contacts", "${lists.size} حملات · $total جهة اتصال"),
-                        style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant)
+                        style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant)
                 }
             }
         }
