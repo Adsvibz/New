@@ -231,7 +231,7 @@ private fun PrecisionCampaignContent(
                 .clip(RoundedCornerShape(13.dp))
                 .background(Color(0xFFF7F8FA))
                 .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(13.dp))
-                .padding(horizontal = 12.dp, vertical = 13.dp)) {
+                .padding(horizontal = 12.dp, vertical = 17.dp)) {
                 Row(Modifier.fillMaxWidth()) {
                     StatCell(T("Campaigns", "الحملات"), displayNumber(lists.size),
                         if (activeCount > 0) T("($activeCount active)", "($activeCount نشطة)") else "",
@@ -239,7 +239,7 @@ private fun PrecisionCampaignContent(
                     Spacer(Modifier.width(12.dp))
                     StatCell(T("Contacts", "جهات الاتصال"), displayNumber(total), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth()) {
                     StatCell(T("Completed", "تم الاتصال"), displayNumber(called),
                         if (total > 0) (completion * 100).toInt().toString() + "%" else "",
@@ -247,7 +247,7 @@ private fun PrecisionCampaignContent(
                     Spacer(Modifier.width(12.dp))
                     StatCell(T("Pending", "المتبقي"), displayNumber(pending), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(T("Overall Progress", "إجمالي التقدم"), color = Muted, fontSize = 11.sp,
                         modifier = Modifier.weight(1f))
@@ -269,7 +269,7 @@ private fun PrecisionCampaignContent(
                 val interaction = remember { MutableInteractionSource() }
                 val focused by interaction.collectIsFocusedAsState()
                 Row(
-                    Modifier.weight(1f).heightIn(min = 38.dp)
+                    Modifier.weight(1f).heightIn(min = 36.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(if (focused) Color(0xFFECEEF2) else Soft)
                         .padding(horizontal = 12.dp),
@@ -299,7 +299,7 @@ private fun PrecisionCampaignContent(
                 }
                 Box {
                     IconButton(onClick = { sortMenu = true },
-                        modifier = Modifier.size(38.dp).clip(RoundedCornerShape(10.dp))
+                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
                             .background(Soft)) {
                         Icon(Icons.Rounded.Tune, T("Sort", "ترتيب"), tint = Muted,
                             modifier = Modifier.size(18.dp))
@@ -342,7 +342,7 @@ private fun PrecisionCampaignContent(
                         color = if (selectedChip) Color(0xFF17191D) else Color.White,
                         shape = RoundedCornerShape(7.dp)
                     ) {
-                        Row(Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                        Row(Modifier.padding(horizontal = 11.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically) {
                             Text(label, style = MaterialTheme.typography.labelSmall,
                                 fontWeight = if (selectedChip) FontWeight.Bold else FontWeight.Medium,
@@ -356,7 +356,7 @@ private fun PrecisionCampaignContent(
                 }
             }
         }
-        item { Spacer(Modifier.height(17.dp)) }
+        item { Spacer(Modifier.height(24.dp)) }
 
         if (selecting) {
             item {
@@ -705,9 +705,9 @@ private fun PrecisionCampaignCard(
             }
         }
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(10.dp))
         HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(T("${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} remaining)",
@@ -721,7 +721,7 @@ private fun PrecisionCampaignCard(
             Box(Modifier.fillMaxHeight().fillMaxWidth((p.pct / 100f).coerceIn(0f, 1f))
                 .background(if (status == "paused") Color(0xFFF59E0B) else ProgressBlue))
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(9.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(T("${displayNumber(p.total)} contacts", "${displayNumber(p.total)} جهة اتصال"),
                 color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
