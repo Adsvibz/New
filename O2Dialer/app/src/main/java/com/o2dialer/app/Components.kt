@@ -78,7 +78,8 @@ fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
 fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
     var name by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
     var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
-    val sims = remember(Store.permTick, Store.cfg.lang) { simLabels(androidx.compose.ui.platform.LocalContext.current) }
+    val ctx = LocalContext.current
+    val sims = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
     val ink = Color(0xFF111827)
     val muted = Color(0xFF777E89)
     val border = Color(0xFFE9EBEF)
