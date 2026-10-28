@@ -176,7 +176,7 @@ private fun PrecisionCampaignContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White).statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
 
@@ -193,7 +193,7 @@ private fun PrecisionCampaignContent(
                 Spacer(Modifier.width(9.dp))
                 Icon(Icons.Rounded.Smartphone, null, tint = Muted, modifier = Modifier.size(15.dp))
             }
-            Spacer(Modifier.height(11.dp))
+            Spacer(Modifier.height(0.dp))
             BoxWithConstraints(Modifier.fillMaxWidth()) {
                 val narrow = maxWidth < 337.dp || fontScale > 1.3f
                 if (narrow) {
@@ -231,7 +231,7 @@ private fun PrecisionCampaignContent(
                 .clip(RoundedCornerShape(13.dp))
                 .background(Color(0xFFF7F8FA))
                 .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(13.dp))
-                .padding(horizontal = 12.dp, vertical = 17.dp)) {
+                .padding(horizontal = 12.dp, vertical = 14.dp)) {
                 Row(Modifier.fillMaxWidth()) {
                     StatCell(T("Campaigns", "الحملات"), displayNumber(lists.size),
                         if (activeCount > 0) T("($activeCount active)", "($activeCount نشطة)") else "",
@@ -239,7 +239,7 @@ private fun PrecisionCampaignContent(
                     Spacer(Modifier.width(12.dp))
                     StatCell(T("Contacts", "جهات الاتصال"), displayNumber(total), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth()) {
                     StatCell(T("Completed", "تم الاتصال"), displayNumber(called),
                         if (total > 0) (completion * 100).toInt().toString() + "%" else "",
@@ -247,7 +247,7 @@ private fun PrecisionCampaignContent(
                     Spacer(Modifier.width(12.dp))
                     StatCell(T("Pending", "المتبقي"), displayNumber(pending), "", Modifier.weight(1f))
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(T("Overall Progress", "إجمالي التقدم"), color = Muted, fontSize = 11.sp,
                         modifier = Modifier.weight(1f))
@@ -325,7 +325,7 @@ private fun PrecisionCampaignContent(
                 }
             }
         }
-        item { Spacer(Modifier.height(11.dp)) }
+        item { Spacer(Modifier.height(3.dp)) }
         item {
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -356,7 +356,7 @@ private fun PrecisionCampaignContent(
                 }
             }
         }
-        item { Spacer(Modifier.height(24.dp)) }
+        item { Spacer(Modifier.height(7.dp)) }
 
         if (selecting) {
             item {
@@ -542,7 +542,7 @@ private fun StatCell(
                 Text(extra, fontSize = 10.sp, color = secondaryColor, maxLines = 1)
             }
         }
-        Spacer(Modifier.height(7.dp))
+        Spacer(Modifier.height(4.dp))
         HorizontalDivider(color = Color(0xFFE7E9ED), thickness = 1.dp)
     }
 }
@@ -613,18 +613,17 @@ private fun PrecisionCampaignCard(
                 }
                 Spacer(Modifier.width(8.dp))
             }
-            Text(list.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Ink,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            Text(list.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Ink,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(8.dp))
             Surface(shape = RoundedCornerShape(5.dp), color = statusSurface) {
                 Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
             }
-            Spacer(Modifier.weight(1f))
             if (status == "active" || status == "paused") {
                 IconButton(
                     onClick = { if (running) Store.tab = 1 else onOpen() },
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(26.dp)
                 ) {
                     Icon(
                         if (status == "paused") Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
@@ -634,7 +633,7 @@ private fun PrecisionCampaignCard(
                 }
             }
             Box {
-                IconButton(onClick = { menu = true }, modifier = Modifier.size(30.dp)) {
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(26.dp)) {
                     Icon(Icons.Rounded.MoreVert, T("Campaign actions", "خيارات الحملة"),
                         tint = Color(0xFF838996), modifier = Modifier.size(17.dp))
                 }
@@ -706,9 +705,9 @@ private fun PrecisionCampaignCard(
             }
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(7.dp))
         HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(T("${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} remaining)",
@@ -722,7 +721,7 @@ private fun PrecisionCampaignCard(
             Box(Modifier.fillMaxHeight().fillMaxWidth((visualPercent / 100f).coerceIn(0f, 1f))
                 .background(if (status == "paused") Color(0xFFF59E0B) else ProgressBlue))
         }
-        Spacer(Modifier.height(9.dp))
+        Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(T("${displayNumber(p.total)} contacts", "${displayNumber(p.total)} جهة اتصال"),
                 color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
