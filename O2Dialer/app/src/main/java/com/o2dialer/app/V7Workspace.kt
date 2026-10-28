@@ -560,6 +560,7 @@ private fun PrecisionCampaignCard(
     onRename: () -> Unit
 ) {
     val p = Store.prog(list)
+    val visualPercent = if (p.total > 0) ((p.called.toDouble() * 100.0 / p.total) + 0.5).toInt().coerceIn(0, 100) else 0
     val status = statusOf(list)
     val running = Store.isRunningList(list.id)
     val ctx = LocalContext.current
@@ -713,12 +714,12 @@ private fun PrecisionCampaignCard(
             Text(T("${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} remaining)",
                 "${displayNumber(p.called)} / ${displayNumber(p.total)} (${displayNumber(p.remaining)} متبقي)"),
                 fontSize = 12.sp, color = Color(0xFF6B7280), modifier = Modifier.weight(1f))
-            Text("${p.pct}%", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+            Text("${visualPercent}%", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Ink)
         }
         Spacer(Modifier.height(8.dp))
         Box(Modifier.fillMaxWidth().height(5.dp).clip(CircleShape)
             .background(Color(0xFFF0F2F5))) {
-            Box(Modifier.fillMaxHeight().fillMaxWidth((p.pct / 100f).coerceIn(0f, 1f))
+            Box(Modifier.fillMaxHeight().fillMaxWidth((visualPercent / 100f).coerceIn(0f, 1f))
                 .background(if (status == "paused") Color(0xFFF59E0B) else ProgressBlue))
         }
         Spacer(Modifier.height(9.dp))
