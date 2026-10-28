@@ -193,7 +193,7 @@ private fun PrecisionCampaignContent(
                 Spacer(Modifier.width(9.dp))
                 Icon(Icons.Rounded.Smartphone, null, tint = Muted, modifier = Modifier.size(15.dp))
             }
-            Spacer(Modifier.height(0.dp))
+            Spacer(Modifier.height(12.dp))
             BoxWithConstraints(Modifier.fillMaxWidth()) {
                 val narrow = maxWidth < 337.dp || fontScale > 1.3f
                 if (narrow) {
@@ -212,10 +212,12 @@ private fun PrecisionCampaignContent(
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                             Text(T("Campaigns", "الحملات"), style = MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier.weight(1f))
-                            HeaderControls(onCreate, selecting, onSelect = {
-                                selecting = !selecting
-                                if (!selecting) selected.clear()
-                            })
+                            Box(Modifier.offset(y = 15.dp)) {
+                                HeaderControls(onCreate, selecting, onSelect = {
+                                    selecting = !selecting
+                                    if (!selecting) selected.clear()
+                                })
+                            }
                         }
                         Spacer(Modifier.height(6.dp))
                         Text(T("${lists.size} campaigns · ${displayNumber(total)} contacts",
@@ -503,10 +505,11 @@ private fun PrecisionCampaignContent(
 @Composable
 private fun HeaderControls(onCreate: () -> Unit, selecting: Boolean, onSelect: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(
-            onClick = onSelect, modifier = Modifier.size(36.dp)
+        Box(
+            modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
                 .border(1.dp, Line, RoundedCornerShape(10.dp))
                 .background(if (selecting) Soft else Color.White)
+                .clickable(onClick = onSelect), contentAlignment = Alignment.Center
         ) {
             Icon(if (selecting) Icons.Rounded.CheckBox else Icons.Rounded.CheckBoxOutlineBlank,
                 T("Select campaigns", "تحديد الحملات"), tint = Ink, modifier = Modifier.size(17.dp))
@@ -514,7 +517,7 @@ private fun HeaderControls(onCreate: () -> Unit, selecting: Boolean, onSelect: (
         Button(
             onClick = onCreate, shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF17191D)),
-            modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 12.dp)
+            modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             Icon(Icons.Rounded.Add, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(5.dp))
@@ -613,12 +616,14 @@ private fun PrecisionCampaignCard(
                 }
                 Spacer(Modifier.width(8.dp))
             }
-            Text(list.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Ink,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            Spacer(Modifier.width(8.dp))
-            Surface(shape = RoundedCornerShape(5.dp), color = statusSurface) {
-                Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Text(list.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Ink,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                Spacer(Modifier.width(7.dp))
+                Surface(shape = RoundedCornerShape(5.dp), color = statusSurface) {
+                    Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
+                }
             }
             if (status == "active" || status == "paused") {
                 IconButton(
