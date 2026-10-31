@@ -1,0 +1,1979 @@
+# O2DIALER 7.0
+# COMPLETE PRODUCT, UI/UX & INTERACTIVE DESIGN MASTER SPECIFICATION
+
+## YOUR ROLE AND RESPONSIBILITY
+
+Act as a world-class multidisciplinary product design team consisting of:
+
+- Principal Product Designer
+- Senior Mobile UX Architect
+- Senior Visual Interface Designer
+- Design Systems Architect
+- Interaction and Motion Designer
+- Android Application UX Specialist
+- Accessibility and Internationalization Specialist
+- Senior Frontend Prototyping Engineer
+
+Your mission is to design the **ENTIRE O2Dialer 7.0 application**, not just one screen.
+
+The result must be a fully coherent, exceptionally elegant, production-quality mobile application experience with complete interactive flows, reusable components, consistent visual identity, and meticulous attention to detail.
+
+This project will later be implemented as a real native Android application.
+
+**Do not produce disconnected mockups, a static presentation, or only a few sample screens.**
+
+Produce one complete, connected, interactive application prototype.
+
+---
+
+# PART 1 — PRODUCT UNDERSTANDING
+
+## 1.1 What is O2Dialer?
+
+O2Dialer is a powerful yet simple Android productivity application designed to automate and organize repetitive outbound phone calling.
+
+Its core purpose is to help users efficiently contact large groups of people while maintaining complete visibility and control over their calling campaigns.
+
+The typical user is a salesperson, real estate agent, telemarketer, customer service representative, recruitment specialist, business development professional, or another person making a high volume of telephone calls.
+
+Instead of manually opening the phone app, selecting a phone number, making a call, returning to a spreadsheet, and choosing the next number, users organize their contacts into campaigns.
+
+O2Dialer guides and automates the sequence of outgoing calls through the Android telephone system.
+
+Users manage the campaign, track progress, pause or resume calling, record results, and follow up with contacts.
+
+### Core product promise
+
+**Organize. Call. Track. Follow up.**
+
+O2Dialer should make complex outbound calling workflows feel remarkably simple.
+
+## 1.2 What O2Dialer is NOT
+
+O2Dialer is not:
+
+- A VoIP calling platform.
+- A cloud contact center.
+- A social messaging application.
+- A predictive dialer with a remote dialing server.
+- A CRM with fictional backend integrations.
+- An AI-generated lead database.
+- A call recording application.
+- A scheduling platform with calendar-based campaign automation.
+
+Do not invent these features.
+
+The current application makes calls using Android's native telephony functionality and the device's available SIM accounts.
+
+Some operations depend on Android permissions, phone manufacturer restrictions, and the current telephony state.
+
+The design must reflect these realities.
+
+## 1.3 Core product philosophy
+
+The application should feel:
+
+**Precise. Calm. Powerful. Intelligent. Professional. Effortless.**
+
+Every screen must reduce cognitive load.
+
+Prioritize fast task completion, clear information architecture, strong visual hierarchy, and excellent usability.
+
+The user may perform hundreds of calls per day.
+
+The interface must prioritize functional efficiency, not decoration.
+
+---
+
+# PART 2 — DESIGN DIRECTION
+
+## 2.1 Design identity
+
+Product name: **O2Dialer**
+
+Version: **7.0**
+
+Design direction: **Precision**
+
+Personality:
+
+- Premium
+- Minimal
+- Modern
+- Confident
+- Neutral
+- Professional
+- Refined
+- Highly organized
+- Extremely readable
+
+Visual quality benchmark: exceptionally polished productivity products such as Linear and the best native Apple interfaces.
+
+These are quality benchmarks, not permission to copy their branding or layouts.
+
+## 2.2 Existing design continuity
+
+If the current AI Studio project already contains the approved Campaigns and Campaign Details screens, use them as the primary visual foundation.
+
+Extract their:
+
+- Color tokens
+- Typography
+- Border radii
+- Spacing rules
+- Card treatments
+- Input styles
+- Button styles
+- Icon sizes
+- Navigation language
+- Animation behavior
+
+Preserve their established identity while extending it consistently across the remaining product.
+
+Do not create a second unrelated visual style.
+
+All screens must look as if they were designed together.
+
+## 2.3 Preferred visual language
+
+The interface should rely on:
+
+- Pure white and softly tinted neutral surfaces.
+- Near-black typography for primary information.
+- Cool neutral gray for secondary information.
+- Fine, low-contrast borders.
+- Carefully controlled blue accents.
+- Subtle semantic colors for call status.
+- Generous but efficient spacing.
+- Compact, exceptionally legible type.
+- Delicate visual layering.
+- Clean rectangular or softly rounded controls.
+
+Reference palette, unless the existing approved design uses more accurate established tokens:
+
+| Token | Reference |
+|---|---|
+| Main background | #FFFFFF |
+| Primary text | #111827 |
+| Secondary text | #8E95A2 |
+| Secondary background | #F7F8FA |
+| Quiet surfaces | #F4F5F7 |
+| Borders | #E5E7EB |
+| Primary action | #17191D |
+| Accent blue | #2563EB |
+| Success | #047857 |
+| Warning | #B45309 |
+| Error | #B42318 |
+
+Use semantic colors sparingly.
+
+Do not make cards, status labels, and statistics unnecessarily colorful.
+
+## 2.4 Typography
+
+Prefer an elegant, contemporary sans-serif type family such as **Outfit** for English, with **IBM Plex Sans Arabic** or an equally refined Arabic companion.
+
+The type system must provide:
+
+- Compact page titles.
+- Confident section headings.
+- Medium-weight campaign and contact names.
+- Highly readable body text.
+- Subtle metadata.
+- Consistent numerical typography.
+- Proper truncation and responsive behavior.
+- Appropriate Arabic metrics and line height.
+
+Suggested mobile sizes:
+
+| Role | Approximate size |
+|---|---|
+| Main screen heading | 23–25px |
+| Section title | 16–18px |
+| Card title | 14–16px |
+| Standard body | 13–14px |
+| Supporting body | 12–13px |
+| Metadata | 10–12px |
+| Important metric | 20–26px |
+| Active contact name | 24–30px |
+
+Treat these as starting points. Refine according to the approved visual reference and actual screen composition.
+
+Never use enormous headings merely to make the UI feel modern.
+
+## 2.5 Spacing and shape system
+
+Create a consistent spacing scale:
+
+4 / 8 / 12 / 16 / 20 / 24 / 32px.
+
+Use:
+
+- Consistent horizontal screen margins.
+- Fine card borders, generally 1px.
+- Restrained corner radii, generally 8–16px.
+- Compact status chips.
+- Consistent button heights.
+- Carefully balanced icon sizes.
+- Precise text-to-icon alignment.
+
+The layout must never feel shifted to one side or waste excessive space on the right.
+
+## 2.6 Strict visual prohibitions
+
+Avoid:
+
+- Neon colors.
+- Random gradients.
+- Glassmorphism everywhere.
+- Excessive shadows.
+- Oversized circular buttons.
+- Bulky, deeply rounded cards.
+- Unnecessary illustrations.
+- Unnecessary avatars.
+- Decorative charts without useful information.
+- Oversized navigation bars.
+- Large empty gaps.
+- Inconsistent components between screens.
+- Dense clusters of tiny unlabeled icons.
+- Floating controls touching the screen edges.
+- Different design languages for separate screens.
+
+**Elegance must come from proportions, hierarchy, spacing, and typography.**
+
+---
+
+# PART 3 — INFORMATION ARCHITECTURE
+
+## 3.1 Primary navigation
+
+The product has five principal destinations:
+
+1. **Dialer**
+2. **Results**
+3. **Campaigns**
+4. **History**
+5. **Settings**
+
+The selected visual reference may place Campaigns centrally in the navigation.
+
+Use one consistently designed navigation component throughout the application.
+
+The Campaigns screen, Campaign Details, Dialer, Results, History, and Settings must all follow the same navigational logic.
+
+## 3.2 Navigation expectations
+
+The navigation should:
+
+- Feel lightweight and premium.
+- Maintain consistent dimensions across all screens.
+- Have clear selected and unselected states.
+- Use refined icons.
+- Avoid oversized selected-state backgrounds.
+- Respect Android gesture navigation and safe areas.
+- Animate subtly when switching tabs.
+- Never cover important content.
+
+Full-screen editing experiences and certain modal flows may hide the navigation when appropriate.
+
+Back navigation must always behave predictably.
+
+## 3.3 Complete application screen inventory
+
+Design every one of these experiences:
+
+**Primary screens**
+
+1. Onboarding / Welcome
+2. Campaigns Overview
+3. Campaign Details
+4. Live Dialer
+5. Results
+6. History
+7. Settings
+
+**Secondary screens and interactions**
+
+8. Create Campaign
+9. Edit Campaign
+10. Add Contact
+11. Edit Contact
+12. Paste Numbers
+13. Import CSV/TXT
+14. Select Phone Contacts
+15. Campaign Multi-Selection
+16. Campaign Actions Menu
+17. Contact Actions Menu
+18. Call Result / Stage Classification
+19. Feedback and Notes
+20. Campaign Performance Details
+21. Campaign Report Sharing
+22. Call History Filtering
+23. Empty States
+24. Permission Requests
+25. Device Activation
+26. App Update Available
+27. Download Progress
+28. Installation Confirmation Guidance
+29. Destructive Action Confirmations
+30. Success, Warning, and Error Notifications
+
+These should form one coherent product experience rather than thirty disconnected designs.
+
+---
+
+# PART 4 — CAMPAIGNS OVERVIEW
+
+## 4.1 Purpose
+
+Campaigns is the central workspace for organizing outbound calling lists.
+
+Users can create multiple campaigns, monitor progress, find campaigns, edit them, and enter their details.
+
+## 4.2 Main layout
+
+Design a clean, highly polished Campaigns screen containing:
+
+**Top area**
+
+- Subtle O2Dialer identity.
+- Compact "Campaigns" heading.
+- Supporting campaign and contact counts.
+- Convenient New Campaign action.
+- Multi-select entry point.
+- Optional existing language control where consistent with the approved design.
+
+**Overview panel**
+
+Four essential metrics:
+
+- Campaigns
+- Contacts
+- Completed Calls
+- Pending Calls
+
+Include one understated overall progress indicator.
+
+**Search and filters**
+
+- Search campaigns by name.
+- Sort by name, activity, progress, or contact count.
+- Filter by supported campaign states.
+
+**Campaigns list**
+
+Compact campaign rows or cards with information clearly prioritized.
+
+## 4.3 Campaign status model
+
+The real application supports the following meaningful presentation states:
+
+- Ready: the campaign exists but has not yet progressed.
+- Active: the campaign has ongoing or previously started calling progress.
+- Paused: the current calling session is paused.
+- Completed: the campaign has no remaining uncalled contacts.
+- Running: a live calling session is operating.
+
+Use precise state labels and do not imply that every previously contacted campaign is currently placing calls.
+
+A scheduled-campaign system is not currently part of the backend. Do not pretend that scheduling works.
+
+## 4.4 Campaign card anatomy
+
+Each card should include:
+
+- Campaign name.
+- Status indicator.
+- SIM information.
+- Total contacts.
+- Called contacts.
+- Remaining contacts.
+- Progress percentage.
+- Compact progress bar.
+- Recent real calling activity, if available.
+- Overflow menu.
+
+Long campaign names must truncate intelligently rather than break the layout.
+
+Cards must remain easy to distinguish without using strong, competing colors.
+
+## 4.5 Campaign actions
+
+Provide working prototype interactions for:
+
+- Open Campaign Details.
+- Edit Campaign.
+- Rename Campaign.
+- View Results.
+- Share Report.
+- Remove Duplicates.
+- Reset Call Progress.
+- Delete Campaign.
+
+Some actions must be disabled or restricted when the campaign is actively running.
+
+Communicate this clearly.
+
+## 4.6 Multi-selection
+
+Users must be able to long-press a campaign to enter selection mode.
+
+Selection mode should support:
+
+- Select one campaign.
+- Select multiple campaigns.
+- Select all visible campaigns.
+- Deselect campaigns.
+- Cancel selection.
+- Delete selected campaigns with confirmation.
+
+Active running campaigns must not be deleted while the session is operating.
+
+Provide a clear message explaining why a running campaign cannot be removed.
+
+## 4.7 Empty states
+
+Design:
+
+- No campaigns created.
+- No search matches.
+- No campaigns in the selected filter.
+- No contacts across any campaigns.
+
+The empty interface must provide one logical next action.
+
+---
+
+# PART 5 — CREATE AND EDIT CAMPAIGN
+
+## 5.1 Purpose
+
+Allow users to quickly create or modify a campaign.
+
+## 5.2 Inputs
+
+Required:
+
+**Campaign Name**
+
+Optional setting:
+
+**Outgoing SIM**
+
+Support the device's available SIM accounts and a Default SIM choice.
+
+Do not invent additional campaign configuration fields unless explicitly identified as a future feature.
+
+## 5.3 Create Campaign form
+
+Create a premium, compact bottom sheet or modal with:
+
+- Title: Create Campaign.
+- Short supporting description.
+- Campaign Name field.
+- SIM selector.
+- Create Campaign button.
+- Cancel or close action.
+
+The campaign name must not be blank.
+
+The primary button should be disabled until the input is valid.
+
+## 5.4 Edit Campaign
+
+The same design system must be reused for editing.
+
+Prefill:
+
+- Current campaign name.
+- Existing SIM choice.
+
+Use Save Changes as the primary action.
+
+The Edit option must be directly accessible inside Campaign Details.
+
+Do not force the user to return to Campaigns Overview merely to edit a campaign.
+
+---
+
+# PART 6 — CAMPAIGN DETAILS
+
+## 6.1 Purpose
+
+Campaign Details is the workspace for managing all contacts and progress belonging to one specific campaign.
+
+This is one of the application's most important screens.
+
+## 6.2 Header
+
+Include:
+
+- Back to Campaigns.
+- Full campaign title, handled responsively.
+- Contact count.
+- SIM information.
+- Campaign status.
+- Edit Campaign action.
+- Compact secondary actions.
+
+## 6.3 Overview statistics
+
+Display real campaign statistics:
+
+- Total Contacts
+- Called
+- Remaining
+- Answered
+- Completion Percentage
+
+Use the same metric styles as Campaigns Overview.
+
+Avoid introducing a competing dashboard design.
+
+## 6.4 Contact management toolbar
+
+Provide four main options:
+
+**Add Number**
+
+Manually enter a phone number and an optional contact name.
+
+**Paste Numbers**
+
+Paste multiple numbers into a multiline input.
+
+Allow formats such as:
+
+Sarah Mitchell, +12025550142
+James Wilson, +12025550168
++201001234567
+
+**Import File**
+
+Import contacts from CSV or TXT files.
+
+The native application supports readable CSV/TXT content with file-size safeguards.
+
+**Phone Contacts**
+
+Select one or multiple entries from the phone's contact list after Android permission is granted.
+
+The toolbar must be compact enough not to overwhelm the page.
+
+## 6.5 Contact list
+
+Each contact row should display:
+
+- Name, if provided.
+- Phone number.
+- Call status.
+- Call duration, when available.
+- Call stage or classification, when present.
+- Relevant action controls.
+
+Example:
+
+Sarah Mitchell  
++1 (202) 555-0142  
+Answered · 02:34 · Potential
+
+Contact actions:
+
+- Edit name.
+- Edit phone number.
+- Delete contact.
+- View or edit saved stage.
+- Open WhatsApp follow-up when relevant.
+
+Contact deletion requires confirmation.
+
+The currently dialed contact must not be edited or deleted while the telephone operation is in progress.
+
+## 6.6 Contact statuses
+
+Represent these accurately:
+
+- Pending
+- Calling
+- Answered
+- No Answer
+- Failed
+- Unverified
+
+**Unverified is not the same as Answered.**
+
+The app may not be able to determine a confirmed call result on every phone.
+
+Avoid misleading success indicators.
+
+## 6.7 Search
+
+Search contacts by:
+
+- Name.
+- Phone number.
+
+The search should be live, responsive, and easy to clear.
+
+Design no-results states.
+
+## 6.8 Campaign calling action
+
+Provide a prominent but refined primary action at the bottom:
+
+- Start Campaign
+- Resume Campaign
+- Return to Live Session
+- Restart Campaign
+
+The label must depend on actual campaign progress and session state.
+
+Do not always display Start Campaign regardless of state.
+
+## 6.9 Contact lists at scale
+
+The application may contain hundreds or thousands of contacts.
+
+Design for:
+
+- Efficient scrolling.
+- Virtualized lists.
+- Long contact names.
+- International phone numbers.
+- Rapid search.
+- Stable row heights.
+- Accessible touch targets.
+- Persistent and clearly understandable actions.
+
+---
+
+# PART 7 — LIVE DIALER / SESSION CONTROL
+
+## 7.1 Purpose
+
+The Live Dialer is the operational center for launching and controlling automated calling sessions.
+
+This screen must offer exceptional clarity under real-world working conditions.
+
+## 7.2 Fundamental calling lifecycle
+
+The user:
+
+1. Chooses a campaign.
+2. Starts or resumes it.
+3. Waits through any configured start countdown.
+4. The app initiates a native Android telephone call.
+5. The telephone system reports calling activity.
+6. After a call ends, the app processes the outcome.
+7. The user may classify the result and add notes.
+8. The app waits for the configured delay.
+9. The next eligible contact is processed.
+10. The cycle continues until paused, stopped, completed, or interrupted.
+
+Design this entire lifecycle.
+
+## 7.3 Pre-session / Ready state
+
+Show:
+
+- Ready to Call heading.
+- Campaign selector.
+- Selected campaign name.
+- Total contacts.
+- Remaining contacts.
+- Current campaign progress.
+- SIM choice or configured calling source.
+- Start Campaign or Resume Campaign CTA.
+
+A previously completed campaign can be restarted.
+
+A previously started but incomplete campaign can be resumed.
+
+If the chosen campaign is empty, show a clear Add Contacts action.
+
+## 7.4 Session statuses
+
+The interface must represent:
+
+**Idle**
+
+No campaign is actively operating.
+
+**Starting**
+
+A start countdown is running.
+
+**Running**
+
+The automated session is active.
+
+**Calling**
+
+An outgoing call is currently being attempted.
+
+**Waiting**
+
+The system is waiting before the next operation or for the phone to become available.
+
+**Paused**
+
+The automated queue is paused.
+
+**Awaiting Result**
+
+The app is waiting for a call classification or user feedback.
+
+**Finished**
+
+The session has ended successfully.
+
+**Stopped**
+
+The user deliberately ended the session.
+
+**Error**
+
+The session cannot continue because of an operational problem.
+
+These must have visually coherent, differentiated states.
+
+## 7.5 Main calling hero
+
+This is the primary focal area.
+
+Example:
+
+LIVE SESSION
+
+Enterprise VIP Outbound Q4
+
+CURRENT CONTACT
+
+Sarah Mitchell
+
++1 (202) 555-0142
+
+Calling…
+
+The current name should have a premium, clear typographic hierarchy.
+
+Supporting information should be subdued.
+
+Display a real elapsed or countdown timer only when its meaning is properly defined and data is available.
+
+Do not fake an ongoing telephone connection.
+
+## 7.6 Calling progress
+
+Show:
+
+- Campaign total.
+- Contacts processed.
+- Remaining.
+- Progress percentage.
+
+Also provide compact outcome statistics:
+
+- Answered.
+- No Answer.
+- Failed.
+- Unverified, when relevant.
+
+Avoid showing the same statistics in multiple large sections.
+
+## 7.7 Session controls
+
+Three key actions:
+
+**Pause / Resume**
+
+Pause the automated calling queue and resume when requested.
+
+Important: pausing the automation does not necessarily terminate a call already in progress.
+
+**Skip Call**
+
+Skip the current contact where the underlying dialer allows it.
+
+**Stop Session**
+
+Stop the automation.
+
+This is a destructive operational action and must require confirmation.
+
+The existing calling progress must be preserved.
+
+Design an exceptionally elegant Session Controls component with balanced, compact controls.
+
+Do not use giant colored circular buttons.
+
+## 7.8 Waiting between calls
+
+Display:
+
+- Next call countdown.
+- Next contact name or number.
+- Status message.
+- Current session state.
+
+Example:
+
+Next call in 00:05
+
+James Wilson
+
+The countdown should be subtle but easy to read.
+
+If calling is restricted by permitted hours or the phone is busy, communicate the actual reason rather than displaying an arbitrary countdown.
+
+## 7.9 Upcoming queue
+
+Display the next three eligible contacts by default.
+
+Example:
+
+UP NEXT — 136 remaining
+
+01 James Wilson  
+02 Emily Carter  
+03 Michael Brown
+
+Each row may show the name and phone number.
+
+Provide removal from the queue only through supported underlying functionality.
+
+Include a confirmation where required.
+
+## 7.10 Session setup summary
+
+Provide compact access to:
+
+- Delay between calls.
+- Number of retries.
+- Audio preference.
+- Other existing session settings.
+
+Do not duplicate the entire Settings page here.
+
+## 7.11 Session completion
+
+When calling finishes, show:
+
+- Clear completion state.
+- Contacts processed.
+- Answered.
+- No Answer.
+- Failed.
+- Remaining.
+- View Results.
+- Choose Another Campaign.
+
+If the session was stopped or ended with an error, show the correct message rather than falsely celebrating completion.
+
+---
+
+# PART 8 — CALL RESULT CLASSIFICATION
+
+## 8.1 Purpose
+
+The application allows users to classify the outcome of an answered call and save follow-up notes.
+
+This is especially valuable for sales workflows.
+
+## 8.2 Actual classification categories
+
+Design exactly these five core stage categories:
+
+1. **Potential**
+2. **Not Interested**
+3. **Call Back**
+4. **WhatsApp**
+5. **Voicemail**
+
+These classifications must be visually distinctive without introducing an overly colorful interface.
+
+## 8.3 Stage selection sheet
+
+After an eligible call, show an elegant contextual bottom sheet containing:
+
+- Contact name.
+- Phone number.
+- Call duration, if known.
+- The five classification choices.
+- Feedback field when appropriate.
+- Save or Skip action.
+
+For Potential, Call Back, and WhatsApp, support entering relevant notes or feedback.
+
+The campaign may wait for user feedback before proceeding.
+
+## 8.4 Feedback
+
+Feedback is a multiline text field containing notes such as:
+
+"Interested in a three-bedroom apartment. Follow up on Thursday."
+
+Notes must be saved to the corresponding contact.
+
+Existing classifications and notes must be editable later.
+
+## 8.5 WhatsApp follow-up
+
+When appropriate, provide a WhatsApp action that opens an external WhatsApp conversation using the contact's phone number.
+
+This is a follow-up shortcut, not a mass-messaging engine.
+
+Do not imply that O2Dialer silently sends WhatsApp messages.
+
+---
+
+# PART 9 — RESULTS AND PERFORMANCE
+
+## 9.1 Purpose
+
+Help users understand what happened in their calling campaigns.
+
+The Results screen should be informative without becoming a complex enterprise analytics dashboard.
+
+## 9.2 Campaign selector
+
+Users can choose which campaign's results they want to inspect.
+
+Support switching between campaigns quickly.
+
+## 9.3 Overview
+
+Display:
+
+- Total Contacts.
+- Called.
+- Remaining.
+- Campaign Completion Percentage.
+- Answered.
+- No Answer.
+- Failed.
+- Unverified when applicable.
+
+Use precise numerical formatting and meaningful hierarchy.
+
+## 9.4 Outcome breakdown
+
+Create a clean, refined statistics section.
+
+Metrics should be directly actionable when appropriate.
+
+For example, tapping No Answer filters the results to contacts who did not answer.
+
+## 9.5 Stage distribution
+
+Show the distribution of:
+
+- Potential
+- Not Interested
+- Call Back
+- WhatsApp
+- Voicemail
+
+A subtle, accurate donut visualization or compact bar chart is acceptable.
+
+The chart must:
+
+- Use actual counts.
+- Show a clear legend.
+- Permit filtering.
+- Show an appropriate empty state.
+- Avoid false proportions.
+- Remain readable with screen readers.
+
+Do not create charts merely for decoration.
+
+## 9.6 Results contact list
+
+Each result entry should show:
+
+- Contact name.
+- Phone number.
+- Calling outcome.
+- Call duration, when available.
+- Call time.
+- Stage.
+- Saved notes.
+- Relevant follow-up action.
+
+Provide filters for outcome and stage.
+
+## 9.7 Share report
+
+Support exporting or sharing an existing campaign report.
+
+The real app generates CSV-formatted content with:
+
+- Name
+- Number
+- Status
+- Duration
+- Called At
+- Stage
+- Feedback
+
+Design the interaction clearly, without inventing unavailable cloud dashboards or PDF reporting.
+
+---
+
+# PART 10 — CALL HISTORY
+
+## 10.1 Purpose
+
+Provide a chronological record of telephone calls made through campaigns.
+
+History must be particularly easy to scan.
+
+## 10.2 Screen header
+
+Display:
+
+**Call History**
+
+Supporting total call count.
+
+Offer:
+
+- Share Log.
+- Clear Log.
+
+Clearing the log must require confirmation.
+
+## 10.3 History overview
+
+Show compact statistics:
+
+- Total calls.
+- Answered.
+- No Answer.
+
+## 10.4 Filtering
+
+Include:
+
+- All
+- Answered
+- No Answer
+- Failed
+- Unverified
+
+## 10.5 Date grouping
+
+Group entries by date:
+
+- Today
+- Yesterday
+- Older dates with readable headings.
+
+## 10.6 Call row
+
+Each row should show:
+
+- Contact name.
+- Phone number.
+- Campaign name.
+- Time.
+- Calling status.
+- Duration, when available.
+- Attempt number, when relevant.
+
+Use status colors sparingly.
+
+Maintain beautiful alignment between the contact information and the timestamp.
+
+## 10.7 History report
+
+The existing application can share call-log data containing:
+
+- Time
+- Campaign
+- Contact Name
+- Phone Number
+- Status
+- Duration
+- Attempt
+
+Design a straightforward sharing experience.
+
+The application keeps a bounded local call history, so the interface must not imply unlimited historical storage.
+
+---
+
+# PART 11 — SETTINGS
+
+Design the Settings experience as a premium, highly organized utility interface.
+
+Use clear categories, progressive disclosure, elegant toggles, segmented controls, number inputs, and sliders.
+
+Avoid an enormous unstructured page filled with unrelated switches.
+
+All settings must correspond to existing O2Dialer functionality.
+
+## 11.1 General
+
+**Language**
+
+- English
+- Arabic
+
+**Appearance**
+
+- System / Auto
+- Light
+- Dark
+
+**System Colors**
+
+- Optional Material You dynamic colors on supported Android versions.
+
+## 11.2 Calling Timing
+
+**Delay Between Calls**
+
+Range: 0–120 seconds.
+
+**Random Delay**
+
+Toggle.
+
+**Maximum Random Delay**
+
+Range: 1–300 seconds when random delay is enabled.
+
+**Countdown Before Start**
+
+Range: 0–30 seconds.
+
+**End Each Call After**
+
+Range: 0–600 seconds.
+
+Zero disables the time limit.
+
+Show a helpful note explaining that automatic call termination depends on Android device capabilities.
+
+## 11.3 Campaign Behavior
+
+**Retry Unanswered**
+
+0–5 retries.
+
+**Campaign Rounds**
+
+1–20 rounds.
+
+**Shuffle Contact Order**
+
+On / Off.
+
+**Skip Previously Answered Contacts**
+
+On / Off.
+
+**Detect Answers from Call Log**
+
+On / Off.
+
+Explain that certain result classifications require call-log access and may otherwise remain unverified.
+
+## 11.4 Audio During Calls
+
+**Automatic Speaker and Microphone Mute**
+
+On / Off.
+
+Explain that some phone manufacturers restrict audio control.
+
+Do not present unsupported audio control as guaranteed.
+
+## 11.5 Call Results and Stages
+
+**Ask for Call Result**
+
+On / Off.
+
+**Wait for Stage Selection**
+
+0–60 seconds.
+
+Provide an understandable explanation of how result classification affects the calling flow.
+
+## 11.6 Phone Numbers
+
+**Default Country Code**
+
+Example: 20 for Egypt.
+
+Explain that supported phone number normalization can automatically correct common local number formats.
+
+## 11.7 Allowed Calling Hours
+
+**Restrict Calls to Specific Hours**
+
+On / Off.
+
+When enabled:
+
+- From: hour 0–23.
+- To: hour 0–23.
+
+The application must clearly communicate when calling is outside the configured window.
+
+If the start and end hours are identical, display a warning.
+
+## 11.8 Screen and Notifications
+
+**Keep Screen On During Calling**
+
+On / Off.
+
+**Vibrate When Campaign Ends**
+
+On / Off.
+
+## 11.9 Permissions
+
+Show permission statuses for:
+
+- Calling.
+- Phone State.
+- Call Log.
+- Ending Calls.
+- Phone Contacts.
+
+Display whether access is granted or missing.
+
+Provide access to Android's application settings.
+
+Offer guidance for battery optimization or background operation restrictions.
+
+Never simulate granting a real operating-system permission.
+
+## 11.10 Device Activation
+
+The existing app supports an optional device-license system.
+
+When licensing is enabled, design:
+
+- Device Not Activated.
+- Enter Activation Code.
+- Checking Activation.
+- Activated.
+- Deactivated or Suspended.
+- Activation Error.
+- Retry Verification.
+
+Keep the experience clear and professional.
+
+Do not show activation barriers when the licensing system is not enabled.
+
+## 11.11 Application Updates
+
+O2Dialer already supports checking for signed application updates from a verified GitHub release feed.
+
+Design:
+
+- Installed Version.
+- Check for Updates.
+- Checking State.
+- Update Available.
+- Download Update.
+- Download Progress.
+- Verifying Update.
+- Ready to Install.
+- Android Installation Permission Guidance.
+- Update Error.
+- Up-to-Date State.
+
+The user must explicitly approve installation through Android's installer.
+
+Do not claim silent installation.
+
+Updates must preserve the user's local campaigns and settings when an in-place installation is compatible.
+
+## 11.12 Application Information
+
+Provide a tasteful footer containing:
+
+- O2Dialer name and mark.
+- Version 7.0.
+- Relevant product information.
+
+Keep this small and unobtrusive.
+
+---
+
+# PART 12 — FIRST-RUN ONBOARDING
+
+Design a compact, beautiful three-step onboarding experience.
+
+### Step 1 — Your Campaigns
+
+Explain how to:
+
+- Create campaigns.
+- Add contacts.
+- Paste phone numbers.
+- Import files.
+
+### Step 2 — Your Calling Workflow
+
+Explain:
+
+- Choosing a SIM.
+- Configuring call timing.
+- Starting campaigns.
+- Pausing and resuming.
+
+### Step 3 — Results and Follow-Ups
+
+Explain:
+
+- Classifying call outcomes.
+- Saving feedback.
+- Monitoring results.
+- Using WhatsApp follow-up.
+
+Include:
+
+- Continue.
+- Back.
+- Skip Introduction.
+- Open My Workspace.
+- Progress indicator.
+- Language selection.
+
+Keep onboarding short and polished.
+
+Do not require all Android permissions before the user reaches a feature that needs them.
+
+---
+
+# PART 13 — SYSTEM FEEDBACK AND EDGE CASES
+
+The prototype must handle real usage scenarios.
+
+## 13.1 Permissions denied
+
+Show a clear message explaining:
+
+- Which permission is needed.
+- Why it is needed.
+- What functionality is unavailable.
+- What action the user can take.
+
+## 13.2 Phone is busy
+
+If a call is already active, the auto dialer must not present a second call as actively proceeding.
+
+Show an understandable waiting state.
+
+## 13.3 Call result unavailable
+
+Show Unverified rather than falsely recording Answered.
+
+## 13.4 Campaign paused
+
+Maintain visible progress and clearly indicate what is paused.
+
+## 13.5 Campaign stopped
+
+Confirm stopping.
+
+Preserve progress.
+
+## 13.6 Empty campaign
+
+Provide a clear action to add numbers.
+
+## 13.7 Duplicate numbers
+
+Display helpful feedback when duplicates are detected or removed.
+
+## 13.8 Invalid imported content
+
+Display a meaningful validation message.
+
+Do not silently pretend the import succeeded.
+
+## 13.9 Editing restrictions
+
+Prevent deletion or editing of the contact being actively dialed if the backend restricts it.
+
+## 13.10 Error handling
+
+Design reusable feedback for:
+
+- Network unavailable for activation or updates.
+- Required permissions missing.
+- Failed import.
+- Invalid phone number.
+- Empty required fields.
+- Unsupported phone operation.
+- License activation error.
+- Update download failure.
+- Update verification failure.
+
+All errors must be informative, concise, and non-alarming.
+
+---
+
+# PART 14 — INTERNATIONALIZATION AND ACCESSIBILITY
+
+## 14.1 Language support
+
+The product supports:
+
+- English.
+- Arabic.
+
+Create complete bilingual UI examples.
+
+## 14.2 Arabic RTL
+
+Arabic must be a true right-to-left experience.
+
+Mirror:
+
+- Navigational alignment.
+- Layout direction.
+- Appropriate directional icons.
+- Form alignment.
+- Row arrangements.
+- Text alignment.
+
+Keep phone numbers, numeric identifiers, international dialing prefixes, and relevant technical values readable in their natural left-to-right order.
+
+Avoid awkward mixing of Arabic and English that breaks the visual hierarchy.
+
+## 14.3 Responsive behavior
+
+Design for:
+
+- 320–359dp compact devices.
+- 360–399dp standard devices.
+- 400–479dp larger phones.
+- Wide phones.
+- Tablet layouts where practical.
+
+No important element should overflow, overlap, or become inaccessible.
+
+Account for:
+
+- Android status bar.
+- Navigation gesture area.
+- Keyboard opening.
+- Display cutouts.
+- Large fonts.
+- Text wrapping.
+- Scrolling.
+- Bottom sheets.
+
+## 14.4 Accessibility
+
+Target:
+
+- Accessible touch areas of approximately 44–48dp.
+- Adequate contrast.
+- Meaningful labels for icons.
+- Readable numerical statuses.
+- Screen reader semantics.
+- Predictable focus.
+- Clear validation messages.
+- Reduced-motion support.
+
+Never communicate important call status through color alone.
+
+---
+
+# PART 15 — MOTION AND INTERACTION SYSTEM
+
+Create one cohesive motion language throughout the app.
+
+Suggested behaviors:
+
+- Tab transitions: 180–280ms.
+- Press feedback: subtle scale or color feedback.
+- Bottom sheet opening: soft movement and fade.
+- Status changes: understated transition.
+- Progress updates: smooth but not distracting.
+- Selection states: immediate and precise.
+- List expansion: controlled animation.
+- Call status changes: calm and informative.
+
+Motion must communicate state and hierarchy.
+
+Avoid:
+
+- Bouncy, exaggerated transitions.
+- Continuous decorative movement.
+- Glowing call effects.
+- Large zoom transitions.
+- Slow interactions.
+- Random animation variations between screens.
+
+Support reduced motion.
+
+---
+
+# PART 16 — REAL APPLICATION DATA MODEL
+
+Use realistic data structures compatible with O2Dialer's existing backend.
+
+This is extremely important for implementation handoff.
+
+## 16.1 Campaign
+
+```typescript
+type Campaign = {
+  id: string;
+  name: string;
+  simSlot: number; // -1 means Default SIM
+  entries: ContactEntry[];
+};
+```
+
+Do not assume there is a real scheduledAt field, remote campaign owner, or cloud campaign ID.
+
+## 16.2 Contact
+
+```typescript
+type ContactEntry = {
+  id: string;
+  name: string;
+  number: string;
+  status: "pending" | "calling" | "answered"
+        | "no_answer" | "failed" | "unverified";
+  attempts: number;
+  durationSeconds: number;
+  calledAt: number | null;
+  stage: "none" | "potential" | "not_interested"
+       | "call_back" | "whatsapp" | "voicemail";
+  feedback: string;
+};
+```
+
+## 16.3 Campaign progress
+
+```typescript
+type CampaignProgress = {
+  total: number;
+  called: number;
+  answered: number;
+  noAnswer: number;
+  failed: number;
+  unverified: number;
+  remaining: number;
+  percentage: number;
+};
+```
+
+Derive these values from actual contacts.
+
+Never hardcode percentages in the actual visual logic.
+
+## 16.4 Live session
+
+```typescript
+type LiveSession = {
+  status: "idle" | "running" | "paused"
+        | "waiting" | "finished";
+  campaignId: string | null;
+  campaignName: string;
+  currentContactName: string;
+  currentPhoneNumber: string;
+  message: string;
+  currentRound: number;
+  totalRounds: number;
+  nextCallAt: number | null;
+  awaitingStage: boolean;
+  evaluatingCall: boolean;
+  completed: boolean;
+  error: boolean;
+  queuedContactIds: string[];
+};
+```
+
+## 16.5 History item
+
+```typescript
+type CallHistoryItem = {
+  time: number;
+  campaignName: string;
+  contactName: string;
+  phoneNumber: string;
+  status: ContactEntry["status"];
+  durationSeconds: number;
+  attemptNumber: number;
+};
+```
+
+The prototype should use centralized mock data compatible with these structures.
+
+Never fill different screens with inconsistent, unrelated numbers.
+
+If a campaign displays 420 contacts and 284 completed calls, those values must remain consistent in Campaigns, Details, Dialer, Results, and History.
+
+---
+
+# PART 17 — UX QUALITY REQUIREMENTS
+
+The application must feel exceptionally fast and efficient.
+
+### Principle 1: One obvious primary action
+
+Every screen should clearly communicate what the user can do next.
+
+### Principle 2: Progressive disclosure
+
+Secondary actions belong in menus, sheets, or expandable sections.
+
+### Principle 3: Minimize repetitive steps
+
+Common workflows should require as few taps as possible.
+
+### Principle 4: Preserve user context
+
+Returning from a detail view should not unnecessarily reset filters, search, or navigation state.
+
+### Principle 5: Always explain operational state
+
+The user must always know whether the campaign is ready, calling, paused, waiting, or finished.
+
+### Principle 6: Destructive actions require clarity
+
+Confirm campaign deletion, contact deletion, history clearing, and session stopping.
+
+### Principle 7: Preserve continuity
+
+Keep the same campaign data and progress throughout the interface.
+
+### Principle 8: Prioritize information density without clutter
+
+The product is a work tool. It should show useful information without feeling crowded.
+
+---
+
+# PART 18 — REQUIRED DESIGN COMPONENT LIBRARY
+
+Create a reusable design system with components for:
+
+- App header.
+- Bottom navigation.
+- Page title.
+- Metric cell.
+- Statistics group.
+- Campaign card.
+- Contact row.
+- History row.
+- Result row.
+- Status badge.
+- Stage badge.
+- Progress bar.
+- Search field.
+- Filter chips.
+- Segmented control.
+- Primary button.
+- Secondary button.
+- Destructive button.
+- Icon button.
+- Overflow menu.
+- Text input.
+- Multiline input.
+- Number input.
+- Toggle row.
+- Slider row.
+- SIM selector.
+- Confirmation dialog.
+- Bottom sheet.
+- Empty state.
+- Warning banner.
+- Success notification.
+- Error notification.
+- Loading state.
+- Download progress.
+- Campaign selection state.
+- Live session status.
+- Queue item.
+- Chart legend.
+- Call result classification tile.
+
+Each reusable component must have consistent dimensions, states, colors, typography, and behavior.
+
+Create variants for disabled, active, selected, loading, and error states wherever relevant.
+
+---
+
+# PART 19 — COMPLETE INTERACTIVE PROTOTYPE
+
+This is not a request for static images.
+
+Build a real, working interactive design prototype inside the existing AI Studio project.
+
+### Essential flow A — Campaign creation
+
+Campaigns → New Campaign → Enter Name → Choose SIM → Create → Open Details → Add Contacts.
+
+### Essential flow B — Bulk import
+
+Campaign Details → Paste Numbers or Import → Review / Validate → Add to Campaign → Updated Contact Count.
+
+### Essential flow C — Calling
+
+Campaign Details → Start → Live Session → Calling → Call Outcome → Waiting → Next Call.
+
+### Essential flow D — Pause and resume
+
+Live Session → Pause → Paused State → Resume → Continue Queue.
+
+### Essential flow E — Stop
+
+Live Session → Stop → Confirmation → Stop Session → Saved Progress → Resume Later.
+
+### Essential flow F — Follow-up
+
+Results → Select Contact → Choose Stage → Add Feedback → Save → WhatsApp Follow-up.
+
+### Essential flow G — Campaign editing
+
+Campaign Details → Edit Campaign → Change Name or SIM → Save → Updated Details.
+
+### Essential flow H — Multiple campaign selection
+
+Campaigns → Long Press → Select More → Delete → Confirm → Updated List.
+
+### Essential flow I — Analytics
+
+Results → Choose Campaign → Filter Outcome → View Stage Distribution → Open Result.
+
+### Essential flow J — Updates
+
+Settings → App Updates → Check → Available → Download → Verify → Ready to Install.
+
+For prototype purposes, simulate Android-only actions accurately.
+
+Use explicit mock adapters or simulation states for phone calling, contact permissions, installation, and file import.
+
+Do not imply that a web prototype can directly execute Android-specific system operations.
+
+---
+
+# PART 20 — COMPLETE SCREEN STATE COVERAGE
+
+Design and implement the following states inside the prototype:
+
+### Campaigns
+- Populated
+- Empty
+- Search results
+- No matches
+- Filtered
+- Multi-selection
+- Bulk deletion confirmation
+
+### Campaign Details
+- Populated
+- Empty
+- Search
+- No matches
+- Active campaign
+- Completed campaign
+- Contact editing
+- Campaign editing
+
+### Dialer
+- Idle
+- Ready
+- Countdown
+- Calling
+- Waiting
+- Awaiting result
+- Paused
+- Resumed
+- Finished
+- Stopped
+- Error
+
+### Results
+- Populated
+- Empty
+- Answered filter
+- No-answer filter
+- Failed filter
+- Stage filter
+- Unverified outcome
+- Results sharing
+
+### History
+- Populated
+- Empty
+- Filtered
+- Share
+- Clear confirmation
+
+### Settings
+- Default
+- Modified setting
+- Permission missing
+- Permission granted
+- Licensing enabled
+- Licensing disabled
+- Update available
+- Download in progress
+- Download failed
+- Latest version installed
+
+### General
+- First-run onboarding
+- Loading
+- Success
+- Validation error
+- Confirmation
+- Offline-dependent action
+- Compact phone
+- Larger phone
+- Arabic RTL
+- Dark appearance
+
+Every state must feel intentionally designed.
+
+---
+
+# PART 21 — TECHNICAL HANDOFF REQUIREMENTS
+
+The final design will be handed to another developer or AI coding agent and converted into a native Android application using Kotlin and Jetpack Compose.
+
+Therefore, design decisions must be explicit and reproducible.
+
+## 21.1 Deliver actual source
+
+If generating code, prefer a clean React/TypeScript component-based interactive prototype with centralized design tokens and reusable UI components.
+
+The prototype technology is only a design delivery medium.
+
+The real product will remain native Android.
+
+## 21.2 Avoid implementation ambiguity
+
+Do not use vague instructions such as:
+
+"Add some spacing."
+
+Instead, establish exact design tokens and reuse them.
+
+Do not leave buttons visually present but nonfunctional inside the prototype.
+
+Do not create separate copies of the same component with conflicting styling.
+
+## 21.3 Deliver a developer handoff specification
+
+Include:
+
+1. Full screen inventory.
+2. Navigation map.
+3. Components inventory.
+4. Typography tokens.
+5. Color tokens.
+6. Spacing tokens.
+7. Radius and border specifications.
+8. Icon names or SVG assets.
+9. Button variants.
+10. Input variants.
+11. Motion timings.
+12. Responsive rules.
+13. Light and dark theme rules.
+14. Arabic RTL behavior.
+15. Interactive state transitions.
+16. Data schema.
+17. Screen-to-feature mapping.
+18. Sample data.
+19. Error and empty states.
+20. Android-specific implementation notes.
+
+## 21.4 Export requirements
+
+Deliver the complete project as an exportable ZIP containing:
+
+- All source code.
+- All reusable components.
+- All routes and screens.
+- Shared design tokens.
+- Local assets.
+- Interaction logic.
+- Representative sample data.
+- Package configuration.
+- A clear README.
+- The complete handoff specification.
+
+Avoid hidden external resources, inaccessible dependencies, or missing assets.
+
+The project must be straightforward for another engineer to inspect and translate into native Android UI.
+
+---
+
+# PART 22 — STRICT ACCEPTANCE CRITERIA
+
+The design is NOT complete unless:
+
+- All five primary screens exist.
+- Every important secondary sheet exists.
+- All main navigation works.
+- The app uses one consistent visual identity.
+- Campaign creation and editing are interactive.
+- Contact management is interactive.
+- Campaign progress stays consistent across screens.
+- Live calling states are represented.
+- Session controls react correctly in the prototype.
+- Stage classification and feedback work.
+- Results filters work.
+- History filters work.
+- Settings controls work in the prototype.
+- Arabic RTL layouts are supported.
+- Responsive mobile layouts work.
+- Empty and error states are designed.
+- The UI is not cluttered.
+- No important text is clipped.
+- No buttons overlap.
+- No excessive spacing appears.
+- No two screens look like different applications.
+- All components are reusable.
+- No invented backend capabilities are represented as existing.
+- The complete source project can be exported.
+
+---
+
+# FINAL EXECUTION INSTRUCTIONS
+
+You are not designing a concept or creating a visual mood board.
+
+You are building the **complete premium product design of O2Dialer 7.0**.
+
+Study the existing approved screens and use them as the starting point for the entire application.
+
+Complete every remaining screen and interaction in the same design project.
+
+Maintain the highest possible visual consistency across the application.
+
+Do not redesign completed screens unnecessarily.
+
+Do not introduce an unrelated design language.
+
+Do not compromise usability for decoration.
+
+Do not change the core purpose of the product.
+
+Do not invent features that cannot be implemented by the existing Android backend.
+
+Ensure that the interface is realistic, complete, responsive, and interactive.
+
+Your final result must be visually exceptional, technically coherent, and precise enough for another engineer to reproduce its appearance and behavior in native Jetpack Compose.
+
+**Design every screen. Connect every flow. Reuse every design token. Validate every visual state. Deliver the entire exportable project.**
+
+The intended outcome is an application that feels like a polished, premium, professionally designed commercial product — with a consistent experience from onboarding through campaign creation, automated calling, results, history, settings, and updating.
+
+**O2Dialer 7.0 — Precision in Every Call.**

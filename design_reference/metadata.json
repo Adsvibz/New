@@ -1,0 +1,6 @@
+{
+  "name": "O2Dialer 7.0 — Precision Campaign Dialer",
+  "description": "High-craft native Android sequential outbound campaign dialer, live call session controller, and stage classification workspace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
