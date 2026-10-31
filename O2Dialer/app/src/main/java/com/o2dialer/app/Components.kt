@@ -51,7 +51,7 @@ import kotlin.math.roundToInt
 fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
     val ctx = LocalContext.current
     val labels = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
-    val names = listOf(T("Default SIM", "الشريحة الافتراضية")) + labels
+    val names = listOf(L(R.string.ui_default_sim_bf6ca60e)) + labels
     val cs = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
         .background(cs.surfaceVariant.copy(alpha = 0.35f)).selectableGroup()) {
@@ -75,133 +75,18 @@ fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
 
 // ============================================================ forms (bottom sheets)
 @Composable
-fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
+fun CampaignDialog(initial: CallList?,onDismiss:()->Unit,onSave:(String,Int)->Unit) {
     var name by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
     var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
-    val ctx = LocalContext.current
-    val sims = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
-    val ink = Color(0xFF111827)
-    val muted = Color(0xFF777E89)
-    val border = Color(0xFFE9EBEF)
-    PrecisionCampaignTheme {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            containerColor = Color.White,
-            shape = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
-            dragHandle = null,
-            scrimColor = Color.Black.copy(alpha = 0.40f)
-        ) {
-            Column(Modifier.fillMaxWidth().imePadding()) {
-                Row(
-                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 13.dp, top = 14.dp, bottom = 13.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            if (initial == null) T("Create Campaign", "إنشاء حملة")
-                            else T("Edit Campaign", "تعديل الحملة"),
-                            color = ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(3.dp))
-                        Text(
-                            T("Configure your campaign settings", "اضبط إعدادات الحملة"),
-                            color = muted, fontSize = 12.sp
-                        )
-                    }
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(31.dp)) {
-                        Icon(Icons.Rounded.Close, T("Close", "إغلاق"),
-                            tint = muted, modifier = Modifier.size(17.dp))
-                    }
-                }
-                HorizontalDivider(color = border)
-                Column(
-                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 18.dp),
-                    verticalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(T("Campaign Name *", "اسم الحملة *"), fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium, color = ink)
-                        BasicTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 39.dp),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = ink),
-                            decorationBox = { inner ->
-                                Row(
-                                    Modifier.fillMaxWidth().heightIn(min = 39.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFFF7F8FA))
-                                        .border(1.dp, border, RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(Modifier.weight(1f)) {
-                                        if (name.isEmpty()) Text(
-                                            T("e.g. Q4 Customer Outreach Wave 1", "مثال: متابعة العملاء"),
-                                            color = muted, fontSize = 12.sp, maxLines = 1
-                                        )
-                                        inner()
-                                    }
-                                }
-                            }
-                        )
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Text(T("SIM Card", "الشريحة"), color = ink, fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium)
-                        Text(T("Choose the outgoing SIM for this campaign.",
-                            "اختار شريحة الاتصال المستخدمة في الحملة."),
-                            color = muted, fontSize = 11.sp)
-                        val options = listOf(-1 to T("Default", "افتراضية")) +
-                            sims.mapIndexed { i, label -> i to label }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            options.forEach { (slot, label) ->
-                                val active = sim == slot
-                                Column(
-                                    Modifier.weight(1f).heightIn(min = 65.dp)
-                                        .clip(RoundedCornerShape(9.dp))
-                                        .background(if (active) Color(0xFFF3F4F6) else Color.White)
-                                        .border(1.dp, if (active) ink else border, RoundedCornerShape(9.dp))
-                                        .clickable { sim = slot }
-                                        .padding(9.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(Icons.Rounded.SimCard, null,
-                                        tint = if (active) ink else muted,
-                                        modifier = Modifier.size(17.dp))
-                                    Text(label, color = if (active) ink else muted,
-                                        fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                                        maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                }
-                            }
-                        }
-                    }
-                    Text(
-                        T("You can import CSV, paste numbers or choose phone contacts after creating the campaign.",
-                            "بعد إنشاء الحملة، تقدر تستورد CSV أو تلصق أرقام أو تختار جهات الاتصال."),
-                        color = muted, fontSize = 11.sp
-                    )
-                    HorizontalDivider(color = border)
-                    Button(
-                        onClick = { if (name.isNotBlank()) onSave(name.trim(), sim) },
-                        enabled = name.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 43.dp),
-                        shape = RoundedCornerShape(9.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ink, contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            if (initial == null) T("Create Campaign", "إنشاء الحملة")
-                            else T("Save Changes", "حفظ التعديلات"),
-                            fontSize = 13.sp, fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-        }
+    BSheet(if(initial==null) L(R.string.ui_new_campaign_d690aa07) else L(R.string.ui_edit_campaign_7f55beab),onDismiss,
+        subtitle=L(R.string.ui_configure_your_campaign_settings_cd0a9725),actions={
+            BButton(if(initial==null) L(R.string.ui_create_campaign_cb28c9a7) else L(R.string.ui_save_changes_176a0511),
+                { if(name.isNotBlank()) onSave(name.trim(),sim) },Modifier.fillMaxWidth(),enabled=name.isNotBlank())
+        }) {
+        BTextField(name,{name=it},label=L(R.string.ui_campaign_name_387f69a0),placeholder=L(R.string.ui_e_g_customer_outreach_566af42f))
+        SectionLabel(L(R.string.ui_outgoing_sim_70f1a44a))
+        SimPicker(sim) { sim=it }
+        Text(L(R.string.ui_add_contacts_after_creating_the_campai_dcae00a2),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -210,15 +95,15 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
     var n by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
     var p by rememberSaveable(initial?.id) { mutableStateOf(initial?.number ?: "") }
     BSheet(
-        title = if (initial == null) T("Add number", "إضافة رقم") else T("Edit contact", "تعديل جهة الاتصال"),
-        subtitle = T("Country code is added automatically.", "كود الدولة يضاف تلقائيًا."),
+        title = if (initial == null) L(R.string.ui_add_number_077dc68a) else L(R.string.ui_edit_contact_45dfbdc5),
+        subtitle = L(R.string.ui_country_code_is_added_automatically_9f763623),
         onDismiss = onDismiss,
         actions = {
-            BButton(T("Save", "حفظ"), { onSave(n, p) }, Modifier.fillMaxWidth(), enabled = cleanNumber(p).length >= 3)
+            BButton(L(R.string.ui_save_ab3669ed), { onSave(n, p) }, Modifier.fillMaxWidth(), enabled = cleanNumber(p).length >= 3)
         }
     ) {
-        BTextField(n, { n = it }, label = T("Name (optional)", "الاسم (اختياري)"), leading = Icons.Rounded.Person)
-        BTextField(p, { p = it }, label = T("Phone number", "رقم الموبايل"), leading = Icons.Rounded.Phone,
+        BTextField(n, { n = it }, label = L(R.string.ui_name_optional_208ff3cc), leading = com.o2dialer.app.ui.components.O2Icons.Person)
+        BTextField(p, { p = it }, label = L(R.string.ui_phone_number_87ef05e2), leading = com.o2dialer.app.ui.components.O2Icons.Phone,
             keyboardType = KeyboardType.Phone)
     }
 }
@@ -226,19 +111,19 @@ fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String)
 @Composable
 fun BulkDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
     var t by rememberSaveable { mutableStateOf("") }
-    BSheet(title = T("Paste numbers", "لصق أرقام"), onDismiss = onDismiss,
-        subtitle = T("One number per line. Names are optional.", "رقم في كل سطر. الأسماء اختيارية."),
-        actions = { BButton(T("Add to campaign", "إضافة للحملة"), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank()) }) {
+    BSheet(title = L(R.string.ui_paste_numbers_04f4cd8a), onDismiss = onDismiss,
+        subtitle = L(R.string.ui_one_number_per_line_names_are_optional_53288457),
+        actions = { BButton(L(R.string.ui_add_to_campaign_704a5fc1), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank()) }) {
         BTextField(
             t, { t = it }, singleLine = false, minLines = 5,
-            placeholder = T("Maya Nelson, +201001234567\n+201119876543", "مي نبيل, +201001234567\n+201119876543")
+            placeholder = L(R.string.ui_maya_nelson_201001234567_201119876543_0883e68e)
         )
     }
 }
 
 @Composable
 fun ConfirmDialog(text: String, onDismiss: () -> Unit, destructive: Boolean = true, onOk: () -> Unit) {
-    BDialog(title = T("Confirm action", "تأكيد الإجراء"), onDismiss = onDismiss, confirmText = T("Confirm", "تأكيد"), onConfirm = onOk, destructive = destructive) {
+    BDialog(title = L(R.string.ui_confirm_action_65bba871), onDismiss = onDismiss, confirmText = L(R.string.ui_confirm_61bbd2bb), onConfirm = onOk, destructive = destructive) {
         Text(text, style = MaterialTheme.typography.bodyLarge)
     }
 }
@@ -254,27 +139,27 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
     val all = loaded
     val shown = all?.filter { q.isBlank() || it.first.contains(q, true) || it.second.contains(q) } ?: emptyList()
     BSheet(
-        title = T("Contacts", "جهات الاتصال") + if (sel.isNotEmpty()) " · ${sel.size}" else "",
+        title = L(R.string.ui_contacts_2fd3de50) + if (sel.isNotEmpty()) " · ${sel.size}" else "",
         onDismiss = onDismiss,
-        subtitle = T("Pick the people to call.", "اختر الأشخاص المطلوب الاتصال بهم."),
+        subtitle = L(R.string.ui_pick_the_people_to_call_1ff09d30),
         scrollable = false,
         actions = {
-            BButton(if (sel.isEmpty()) T("Add contacts", "إضافة جهات الاتصال") else T("Add ${sel.size} contacts", "إضافة ${sel.size}"),
+            BButton(if (sel.isEmpty()) L(R.string.ui_add_contacts_578816f9) else L(R.string.ui_add_contacts_90b0e76b, sel.size),
                 { onAdd((all ?: emptyList()).filter { it.second in sel }) }, Modifier.fillMaxWidth(), enabled = sel.isNotEmpty())
         }
     ) {
-        BTextField(q, { q = it }, placeholder = T("Search", "بحث"), leading = Icons.Rounded.Search)
+        BTextField(q, { q = it }, placeholder = L(R.string.ui_search_67b32d1c), leading = com.o2dialer.app.ui.components.O2Icons.Search)
         if (all == null) {
             repeat(4) { Skeleton(Modifier.fillMaxWidth().height(44.dp)) }
         } else if (all.isEmpty()) {
-            Text(T("No contacts found", "لا توجد جهات اتصال"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(L(R.string.ui_no_contacts_found_f9e393b9), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
                 TextButton(onClick = { sel.clear(); sel.addAll(shown.map { it.second }) }) {
-                    Text(T("Select all", "تحديد الكل"), style = MaterialTheme.typography.labelLarge)
+                    Text(L(R.string.ui_select_all_e5bcdab4), style = MaterialTheme.typography.labelLarge)
                 }
                 TextButton(onClick = { sel.clear() }) {
-                    Text(T("Clear", "مسح"), style = MaterialTheme.typography.labelLarge)
+                    Text(L(R.string.ui_clear_aeaec2c6), style = MaterialTheme.typography.labelLarge)
                 }
             }
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
@@ -307,9 +192,9 @@ fun PermissionBanner(act: MainActivity) {
     }
     if (!ok) {
         Banner(
-            Tk.WARN, T("Permissions needed", "صلاحيات مطلوبة"),
-            T("$APP_NAME needs calling and phone-state access to run campaigns.", "$APP_NAME يحتاج صلاحية الاتصال وحالة الهاتف لتشغيل الحملات."),
-            actionText = T("Grant", "منح")
+            Tk.WARN, L(R.string.ui_permissions_needed_6584b9d4),
+            L(R.string.ui_needs_calling_and_phone_state_access_t_7339d8d3, APP_NAME),
+            actionText = L(R.string.ui_grant_55c1f9be)
         ) { act.requestCallPermissions() }
     }
 }
@@ -352,16 +237,16 @@ fun StageSheet(listId: String, entryId: String) {
     }
 
     BSheet(
-        title = T("How did the call go?", "إزاي كانت المكالمة؟"),
+        title = L(R.string.ui_how_did_the_call_go_8d647362),
         onDismiss = close,
         actions = {
-            if (Stg.needsFeedback(selected)) BButton(T("Save feedback", "حفظ الملاحظات"), {
+            if (Stg.needsFeedback(selected)) BButton(L(R.string.ui_save_feedback_4d07fefe), {
                 Store.setStage(listId, entryId, selected, fb.trim())
                 release()
                 Store.stageTarget = null
-                Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
+                Store.notify(Tk.SUCCESS, L(R.string.ui_saved_65225f27))
             }, Modifier.fillMaxWidth())
-            else BButton(T("Skip", "تخطي"), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
+            else BButton(L(R.string.ui_skip_1b19bc56), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
         }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -393,7 +278,7 @@ fun StageSheet(listId: String, entryId: String) {
                         } else {
                             release()
                             Store.stageTarget = null
-                            Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
+                            Store.notify(Tk.SUCCESS, L(R.string.ui_saved_65225f27))
                         }
                     }
                 }
@@ -402,8 +287,8 @@ fun StageSheet(listId: String, entryId: String) {
         }
         if (Stg.needsFeedback(selected)) {
             BTextField(
-                fb, { fb = it }, singleLine = false, minLines = 3, label = T("Feedback", "ملاحظات"),
-                placeholder = T("What did they say?", "قال إيه العميل؟")
+                fb, { fb = it }, singleLine = false, minLines = 3, label = L(R.string.ui_feedback_824805e1),
+                placeholder = L(R.string.ui_what_did_they_say_11cdeda1)
             )
         }
     }
@@ -412,7 +297,7 @@ fun StageSheet(listId: String, entryId: String) {
 // ============================================================ settings widgets
 @Composable
 fun SettingsSection(
-    icon: ImageVector, title: String, startOpen: Boolean = false,
+    icon: ImageVector, title: String, startOpen: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var open by rememberSaveable(title) { mutableStateOf(startOpen) }
@@ -429,8 +314,8 @@ fun SettingsSection(
                 Spacer(Modifier.width(Sp.m))
                 Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 Icon(
-                    Icons.Rounded.KeyboardArrowDown,
-                    if (open) T("Collapse", "طيّ") else T("Expand", "توسيع"),
+                    com.o2dialer.app.ui.components.O2Icons.Chevron,
+                    if (open) L(R.string.ui_collapse_3004788e) else L(R.string.ui_expand_0a80d040),
                     tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(turn)
                 )
             }

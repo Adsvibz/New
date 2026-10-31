@@ -161,8 +161,8 @@ fun BButton(
 ) {
     val src = remember { MutableInteractionSource() }
     val cs = MaterialTheme.colorScheme
-    val height = if (compact) 48.dp else 54.dp
-    val shape = RoundedCornerShape(12.dp)
+    val height = if (compact) 44.dp else 48.dp
+    val shape = CircleShape
     val brush = when (kind) {
         BtnKind.Primary -> Brush.linearGradient(listOf(cs.primary, cs.primary))
         BtnKind.Danger -> Brush.linearGradient(listOf(cs.error, cs.error))
@@ -193,16 +193,16 @@ fun BButton(
             .then(border)
             .clickable(interactionSource = src, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
-            .padding(horizontal = if (iconOnly) 0.dp else 20.dp, vertical = 12.dp),
+            .padding(horizontal = if (iconOnly) 0.dp else if (compact) 12.dp else 20.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (iconOnly && icon != null) {
             Icon(icon, text, tint = fg, modifier = Modifier.size(21.dp))
         } else {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(19.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 9.dp)) {
+                if (icon != null) Icon(icon, null, tint = fg, modifier = Modifier.size(if (compact) 14.dp else 19.dp))
                 Text(
-                    text, color = fg, style = MaterialTheme.typography.labelLarge,
+                    text, color = fg, style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                     maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center
                 )
             }
@@ -375,7 +375,7 @@ fun Panel(
         .then(if (onClick != null) Modifier.pressScale(interaction, 0.99f) else Modifier)
         .clip(shape)
         .background(cs.surface)
-        .border(1.dp, accent?.copy(alpha = 0.5f) ?: cs.outlineVariant, shape)
+        .border(1.dp, accent?.copy(alpha = 0.5f) ?: if (isDarkTheme()) Color.White.copy(alpha=.08f) else Color.White.copy(alpha=.88f), shape)
         .then(if (onClick != null) Modifier.clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick) else Modifier)
     Column(base.fillMaxWidth(), content = content)
 }
@@ -416,10 +416,10 @@ fun Banner(
     val c = when (kind) { Tk.SUCCESS -> Sem.success; Tk.ERROR -> Sem.danger; Tk.WARN -> Sem.warning; else -> Sem.info }
     val fg = readable(c)
     val icon = when (kind) {
-        Tk.SUCCESS -> Icons.Rounded.CheckCircle
-        Tk.ERROR -> Icons.Rounded.Error
-        Tk.WARN -> Icons.Rounded.Warning
-        else -> Icons.Rounded.Info
+        Tk.SUCCESS -> com.o2dialer.app.ui.components.O2Icons.CheckCircle
+        Tk.ERROR -> com.o2dialer.app.ui.components.O2Icons.Error
+        Tk.WARN -> com.o2dialer.app.ui.components.O2Icons.Warning
+        else -> com.o2dialer.app.ui.components.O2Icons.Info
     }
     val shape = RoundedCornerShape(Rd.s)
     Row(
@@ -468,10 +468,10 @@ fun ToastHost(modifier: Modifier = Modifier) {
         if (shown != null) {
             val c = when (shown.kind) { Tk.SUCCESS -> Sem.success; Tk.ERROR -> Sem.danger; Tk.WARN -> Sem.warning; else -> Sem.info }
             val icon = when (shown.kind) {
-                Tk.SUCCESS -> Icons.Rounded.CheckCircle
-                Tk.ERROR -> Icons.Rounded.Error
-                Tk.WARN -> Icons.Rounded.Warning
-                else -> Icons.Rounded.Info
+                Tk.SUCCESS -> com.o2dialer.app.ui.components.O2Icons.CheckCircle
+                Tk.ERROR -> com.o2dialer.app.ui.components.O2Icons.Error
+                Tk.WARN -> com.o2dialer.app.ui.components.O2Icons.Warning
+                else -> com.o2dialer.app.ui.components.O2Icons.Info
             }
             Row(
                 Modifier.semantics { liveRegion = LiveRegionMode.Polite }.shadow(18.dp, RoundedCornerShape(50), ambientColor = Color.Black.copy(alpha = 0.25f))
@@ -521,7 +521,7 @@ fun EmptyState(
         )
         if (actionText != null && onAction != null) {
             Spacer(Modifier.height(Sp.xl))
-            BButton(actionText, onAction, compact = true, icon = Icons.Rounded.ArrowForward)
+            BButton(actionText, onAction, compact = true, icon = com.o2dialer.app.ui.components.O2Icons.Forward)
         }
     }
 }
@@ -534,7 +534,7 @@ fun NumText(
 ) {
     Text(
         n, modifier = modifier,
-        style = style.copy(textDirection = TextDirection.Ltr, fontFeatureSettings = "tnum"),
+        style = style.copy(textDirection = TextDirection.Ltr, fontFeatureSettings = "tnum", fontFamily = com.o2dialer.app.ui.theme.O2Type.Mono),
         color = color
     )
 }
@@ -589,12 +589,12 @@ fun Pill(text: String, color: Color, icon: ImageVector? = null, onClick: (() -> 
 }
 
 fun stageIcon(s: Int): ImageVector = when (s) {
-    Stg.POTENTIAL -> Icons.Rounded.Star
-    Stg.NOT_INTERESTED -> Icons.Rounded.ThumbDown
-    Stg.CALL_BACK -> Icons.Rounded.Replay
-    Stg.WHATSAPP -> Icons.Rounded.Chat
-    Stg.VOICEMAIL -> Icons.Rounded.Voicemail
-    else -> Icons.Rounded.Label
+    Stg.POTENTIAL -> com.o2dialer.app.ui.components.O2Icons.Star
+    Stg.NOT_INTERESTED -> com.o2dialer.app.ui.components.O2Icons.ThumbDown
+    Stg.CALL_BACK -> com.o2dialer.app.ui.components.O2Icons.Reset
+    Stg.WHATSAPP -> com.o2dialer.app.ui.components.O2Icons.Chat
+    Stg.VOICEMAIL -> com.o2dialer.app.ui.components.O2Icons.Voicemail
+    else -> com.o2dialer.app.ui.components.O2Icons.Label
 }
 
 @Composable
@@ -643,7 +643,7 @@ fun WhatsAppButton(number: String, size: Dp = 40.dp) {
             .clickable { openWhatsApp(ctx, number) },
         Alignment.Center
     ) {
-        Icon(Icons.Rounded.Chat, contentDescription = "WhatsApp", tint = readable(green), modifier = Modifier.size(size * 0.46f))
+        Icon(com.o2dialer.app.ui.components.O2Icons.Chat, contentDescription = "WhatsApp", tint = readable(green), modifier = Modifier.size(size * 0.46f))
     }
 }
 
@@ -671,7 +671,7 @@ private fun LivePill() {
         PulseDot(Sem.success, 7.dp)
         Spacer(Modifier.width(7.dp))
         Text(
-            "${T("Live", "مباشر")} $pct%", color = readable(Sem.success),
+            "${L(R.string.ui_live_e8a7c51c)} $pct%", color = readable(Sem.success),
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
         )
     }
@@ -688,23 +688,14 @@ fun BlendBar(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {
-                SoftIconButton(Icons.AutoMirrored.Filled.ArrowBack, T("Back", "رجوع"), onBack)
+                SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Back, L(R.string.ui_back_794ab43a), onBack)
                 Spacer(Modifier.width(Sp.m))
             }
             Column(Modifier.weight(1f)) {
-                Text(
-                    title, style = MaterialTheme.typography.headlineLarge,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                if (subtitle != null) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        subtitle, style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(title,style=MaterialTheme.typography.headlineLarge,maxLines=2,overflow=TextOverflow.Ellipsis)
+                if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)
             }
+            SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{Store.updateCfg {it.copy(lang=1-it.lang)}})
             Spacer(Modifier.width(Sp.s))
             if (Store.campActive() && Store.tab != 1) {
                 LivePill()
@@ -712,7 +703,7 @@ fun BlendBar(
             }
             actions()
             if (showSettings) {
-                SoftIconButton(Icons.Rounded.Settings, T("Settings", "الإعدادات"), { Store.openSettings() })
+                SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Settings, L(R.string.ui_settings_f3f3f790), { Store.openSettings() })
             }
         }
     }
@@ -722,13 +713,13 @@ fun BlendBar(
 @Composable
 fun BDialog(
     title: String?, onDismiss: () -> Unit, confirmText: String? = null, onConfirm: (() -> Unit)? = null,
-    dismissText: String = T("Cancel", "إلغاء"), destructive: Boolean = false, confirmEnabled: Boolean = true,
+    dismissText: String = L(R.string.ui_cancel_823a3ad2), destructive: Boolean = false, confirmEnabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(24.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha=1f),
         tonalElevation = 0.dp,
         title = if (title != null) { { Text(title, style = MaterialTheme.typography.titleLarge) } } else null,
         text = {
@@ -761,7 +752,7 @@ fun BSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = cs.surface,
+        containerColor = cs.surface.copy(alpha=1f),
         tonalElevation = 0.dp,
         scrimColor = Color.Black.copy(alpha = 0.32f),
         dragHandle = { BottomSheetDefaults.DragHandle(color = cs.outline) }
@@ -777,7 +768,7 @@ fun BSheet(
                     if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall,
                         color = cs.onSurfaceVariant)
                 }
-                IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, T("Close", "إغلاق"), tint = cs.onSurfaceVariant) }
+                IconButton(onClick = onDismiss) { Icon(com.o2dialer.app.ui.components.O2Icons.Close, L(R.string.ui_close_115c64b0), tint = cs.onSurfaceVariant) }
             }
             Column(
                 Modifier.weight(1f, fill = false).fillMaxWidth()

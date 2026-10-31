@@ -2,6 +2,10 @@
 
 package com.o2dialer.app
 
+import com.o2dialer.app.ui.components.*
+import com.o2dialer.app.ui.theme.*
+
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -70,32 +74,7 @@ private fun Outcome(value: Int, label: String, color: Color, modifier: Modifier)
 }
 
 @Composable
-private fun OutcomesPanel(p: Prog, remaining: Int) {
-    val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    SectionLabel(T("Outcomes", "النتائج"))
-                    Text(
-                        T("${p.called} calls placed", "${p.called} مكالمة تم إجراؤها"),
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
-                Pill(T("$remaining left", "$remaining متبقي"), cs.primary)
-            }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Outcome(p.answered, T("answered", "ردّوا"), Sem.success, Modifier.weight(1f))
-                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
-                Outcome(p.noAnswer, T("no answer", "لم يردّوا"), Sem.warning, Modifier.weight(1f))
-                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
-                Outcome(p.failed, T("failed", "فشل"), Sem.danger, Modifier.weight(1f))
-            }
-            if (p.unverified > 0) Text(T("${p.unverified} calls have an unverified answer", "${p.unverified} مكالمة بدون تأكيد الرد"),
-                color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
+private fun OutcomesPanel(p: Prog, remaining: Int) { V7ResultsHeader(p) }
 
 // ====================================================================== controls
 @Composable
@@ -103,50 +82,15 @@ private fun CallControls(paused: Boolean) {
     var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    Surface(
-        shape = RoundedCornerShape(Rd.l),
-        color = cs.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, cs.outlineVariant)
-    ) {
-        Column(Modifier.fillMaxWidth().padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Text(
-                T("SESSION CONTROLS", "التحكم في الجلسة"),
-                style = MaterialTheme.typography.labelSmall,
-                color = cs.onSurfaceVariant,
-                fontWeight = FontWeight.Bold
-            )
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircleAction(
-                    if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-                    if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
-                    { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-                    modifier = Modifier.weight(1f),
-                    container = cs.primary, content = cs.onPrimary, outlined = false
-                )
-                CircleAction(
-                    Icons.Rounded.SkipNext,
-                    T("Skip call", "تخطي المكالمة"),
-                    { DialerService.send(ctx, DialerService.ACT_SKIP) },
-                    modifier = Modifier.weight(1f),
-                    container = cs.surfaceVariant, content = cs.onSurface, outlined = true,
-                    enabled = Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating
-                )
-                CircleAction(
-                    Icons.Rounded.Stop,
-                    T("Stop session", "إنهاء الجلسة"),
-                    { confirmStop = true },
-                    modifier = Modifier.weight(1f),
-                    container = cs.errorContainer, content = cs.onErrorContainer, outlined = false
-                )
-            }
+    O2Card(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().padding(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+            BButton(L(R.string.ui_skip_1b19bc56),{ DialerService.send(ctx,DialerService.ACT_SKIP) },Modifier.weight(1f),kind=BtnKind.Tonal,icon=O2Icons.Skip,compact=true,
+                enabled=Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating)
+            BButton(if(paused) L(R.string.ui_resume_1c6804ad) else L(R.string.ui_pause_f0d3c022),{ DialerService.send(ctx,if(paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },Modifier.weight(1f),icon=if(paused) O2Icons.Play else O2Icons.Pause,compact=true)
+            BButton(L(R.string.ui_stop_8cf806ad),{ confirmStop=true },Modifier.weight(1f),kind=BtnKind.Danger,icon=O2Icons.Stop,compact=true)
         }
     }
-    if (confirmStop) ConfirmDialog(T("Stop this session? Your progress will be kept. If the phone blocks hang-up, end the current call in the phone app.",
-        "إنهاء الجلسة؟ تقدمك محفوظ. لو الجهاز منع الإنهاء التلقائي، أنهِ المكالمة الحالية من تطبيق الهاتف."), { confirmStop = false }) {
+    if (confirmStop) ConfirmDialog(L(R.string.ui_stop_this_session_your_progress_will_b_77af49ab), { confirmStop = false }) {
         DialerService.send(ctx, DialerService.ACT_STOP); confirmStop = false
     }
 }
@@ -173,24 +117,24 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
 @Composable
 private fun RunSetupPanel() {
     val s = Store.cfg
-    val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + T("s", "ث") else "${s.delaySec}" + T("s", "ث")
+    val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + L(R.string.ui_s_5cc34057) else "${s.delaySec}" + L(R.string.ui_s_5cc34057)
     Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SetupItem(Icons.Rounded.Timer, gap, T("between calls", "بين المكالمات"), Modifier.weight(1f))
+            SetupItem(com.o2dialer.app.ui.components.O2Icons.Timer, gap, L(R.string.ui_between_calls_7801b436), Modifier.weight(1f))
             Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
             SetupItem(
-                Icons.Rounded.Replay, "${s.retries}",
-                if (s.retries == 0) T("no retries", "بدون إعادة") else T("retries", "إعادة"),
+                com.o2dialer.app.ui.components.O2Icons.Reset, "${s.retries}",
+                if (s.retries == 0) L(R.string.ui_no_retries_52c2a155) else L(R.string.ui_retries_19789c94),
                 Modifier.weight(1f)
             )
             Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
             SetupItem(
-                if (s.autoSpeaker) Icons.Rounded.MicOff else Icons.Rounded.Mic,
-                if (s.autoSpeaker) T("Auto mute", "كتم تلقائي") else T("Phone", "الهاتف"),
-                T("audio preference", "إعداد الصوت"), Modifier.weight(1f)
+                if (s.autoSpeaker) com.o2dialer.app.ui.components.O2Icons.MicOff else com.o2dialer.app.ui.components.O2Icons.Mic,
+                if (s.autoSpeaker) L(R.string.ui_auto_mute_ea78d27f) else L(R.string.ui_phone_657e04de),
+                L(R.string.ui_audio_preference_9f693631), Modifier.weight(1f)
             )
         }
     }
@@ -205,10 +149,10 @@ private fun UpNext(list: CallList, remaining: Int) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = Sp.l, end = Sp.s, top = Sp.l, bottom = Sp.xs)) {
             Row(Modifier.padding(end = Sp.s), verticalAlignment = Alignment.CenterVertically) {
-                Text(T("Up next", "التالي"), style = MaterialTheme.typography.titleMedium)
+                Text(L(R.string.ui_up_next_d350fa10), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.weight(1f))
                 Text(
-                    T("$remaining left", "$remaining متبقي"),
+                    L(R.string.ui_left_f72bcd83, remaining),
                     style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant
                 )
             }
@@ -249,7 +193,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
-                            Icons.Rounded.Close, T("Remove from the queue", "حذف من القائمة"),
+                            com.o2dialer.app.ui.components.O2Icons.Close, L(R.string.ui_remove_from_the_queue_6ec0b8d7),
                             tint = cs.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)
                         )
                     }
@@ -257,7 +201,7 @@ private fun UpNext(list: CallList, remaining: Int) {
             }
         }
     }
-    removing?.let { entry -> ConfirmDialog(T("Remove ${entry.name.ifBlank { entry.number }} from this campaign?", "حذف ${entry.name.ifBlank { entry.number }} من الحملة؟"), { removing = null }) {
+    removing?.let { entry -> ConfirmDialog(L(R.string.ui_remove_from_this_campaign_465db9c6, entry.name.ifBlank { entry.number }), { removing = null }) {
         Store.deleteEntry(list.id, entry.id); removing = null
     } }
 }
@@ -267,10 +211,10 @@ private fun UpNext(list: CallList, remaining: Int) {
 private fun ReadyHero(selected: CallList?, p: Prog?) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            IconTile(Icons.Rounded.Call, size = 48.dp)
-            Text(T("Ready to call", "جاهز للاتصال"), style = MaterialTheme.typography.headlineMedium)
+            IconTile(com.o2dialer.app.ui.components.O2Icons.Phone, size = 48.dp)
+            Text(L(R.string.ui_ready_to_call_61a4b92c), style = MaterialTheme.typography.headlineMedium)
             if (selected != null && p != null) Text(
-                T("${p.total} contacts · ${p.remaining} remaining", "${p.total} جهة اتصال · ${p.remaining} متبقي"),
+                L(R.string.ui_contacts_remaining_1c6d6fb6, p.total, p.remaining),
                 style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
@@ -282,7 +226,7 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Sp.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                T("Choose a campaign", "اختر الحملة"),
+                L(R.string.ui_choose_a_campaign_eb7e0334),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = Sp.s, vertical = Sp.s)
             )
@@ -318,7 +262,7 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
                             maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            T("${lp.total} contacts · ${lp.remaining} left", "${lp.total} جهة · ${lp.remaining} متبقي"),
+                            L(R.string.ui_contacts_left_6c292586, lp.total, lp.remaining),
                             style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
                         )
                     }
@@ -341,13 +285,13 @@ private fun Launcher(act: MainActivity) {
     if (Store.lists.isEmpty()) {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                IconTile(Icons.Rounded.Campaign, MaterialTheme.colorScheme.primary, 48.dp)
-                Text(T("Nothing to call yet", "لا يوجد ما يتم الاتصال به بعد"), style = MaterialTheme.typography.headlineSmall)
+                IconTile(com.o2dialer.app.ui.components.O2Icons.Megaphone, MaterialTheme.colorScheme.primary, 48.dp)
+                Text(L(R.string.ui_nothing_to_call_yet_80676713), style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    T("Create a campaign and add a few numbers first.", "أنشئ حملة وأضف بعض الأرقام أولاً."),
+                    L(R.string.ui_create_a_campaign_and_add_a_few_number_215d66a2),
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                BButton(T("Go to campaigns", "الذهاب إلى الحملات"), { Store.tab = 0 }, kind = BtnKind.Tonal, compact = true)
+                BButton(L(R.string.ui_go_to_campaigns_ba3e39c8), { Store.tab = 0 }, kind = BtnKind.Tonal, compact = true)
             }
         }
         return
@@ -362,25 +306,25 @@ private fun Launcher(act: MainActivity) {
         Spacer(Modifier.height(Sp.m))
         BButton(
             when {
-                resumable -> T("Resume · ${p.remaining} left", "استئناف · ${p.remaining} متبقي")
-                p.called > 0 -> T("Restart campaign", "إعادة تشغيل الحملة")
-                else -> T("Start campaign", "ابدأ الحملة")
+                resumable -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
+                p.called > 0 -> L(R.string.ui_restart_campaign_062996bf)
+                else -> L(R.string.ui_start_campaign_28d1c94b)
             },
-            { act.startCampaign(sel, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow
+            { act.startCampaign(sel, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = com.o2dialer.app.ui.components.O2Icons.Play
         )
         if (resumable) {
             Spacer(Modifier.height(Sp.s))
             BButton(
-                T("Restart from the beginning", "ابدأ من الأول"), { act.startCampaign(sel, true) },
-                Modifier.fillMaxWidth(), kind = BtnKind.Ghost, icon = Icons.Rounded.Refresh
+                L(R.string.ui_restart_from_the_beginning_ff715b61), { act.startCampaign(sel, true) },
+                Modifier.fillMaxWidth(), kind = BtnKind.Ghost, icon = com.o2dialer.app.ui.components.O2Icons.Refresh
             )
         }
     } else if (selList != null) {
         Spacer(Modifier.height(Sp.m))
         Banner(
-            Tk.WARN, T("This campaign is empty", "هذه الحملة فارغة"),
-            T("Add numbers before starting.", "أضف أرقامًا قبل البدء."),
-            actionText = T("Open", "فتح")
+            Tk.WARN, L(R.string.ui_this_campaign_is_empty_80aceaee),
+            L(R.string.ui_add_numbers_before_starting_9e726753),
+            actionText = L(R.string.ui_open_51464838)
         ) { Store.selectedListId = selList.id; Store.tab = 0 }
     }
     Spacer(Modifier.height(Sp.m))
@@ -398,7 +342,7 @@ fun LiveScreen(act: MainActivity) {
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
 
     Scaffold(
-        topBar = { BlendBar(T("Dialer", "الاتصال")) },
+        topBar = { BlendBar(L(R.string.ui_dialer_bd42b0f9)) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -425,17 +369,17 @@ fun LiveScreen(act: MainActivity) {
                             Enter(2) { OutcomesPanel(p, p.remaining) }
                             if (!c.error) Enter(3) {
                                 BButton(
-                                    T("View campaign results", "عرض نتائج الحملة"),
+                                    L(R.string.ui_view_campaign_results_4e1585fe),
                                     { Store.resultsListId = c.listId; Store.tab = 2 }, Modifier.fillMaxWidth(),
-                                    kind = BtnKind.Tonal, icon = Icons.Rounded.BarChart
+                                    kind = BtnKind.Tonal, icon = com.o2dialer.app.ui.components.O2Icons.Chart
                                 )
                             }
                             Enter(4) {
-                                BButton(T("Choose a campaign", "اختيار حملة"), { Store.camp = CampState() }, Modifier.fillMaxWidth(), kind = BtnKind.Outline)
+                                BButton(L(R.string.ui_choose_a_campaign_18062c29), { Store.camp = CampState() }, Modifier.fillMaxWidth(), kind = BtnKind.Outline)
                             }
                         } else {
-                            Enter(1) { OutcomesPanel(p, p.remaining) }
-                            if (active) Enter(2) { CallControls(c.status == CS.PAUSED) }
+                            if (active) Enter(1) { CallControls(c.status == CS.PAUSED) }
+                            Enter(2) { OutcomesPanel(p, p.remaining) }
                             if (active) Enter(3) { RunSetupPanel() }
                             if (active) Enter(4) { UpNext(heroList, p.remaining) }
                         }

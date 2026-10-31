@@ -147,119 +147,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CampaignReferenceNavigation() {
-    val muted = Color(0xFF9CA3AF)
-    val activeInk = Color(0xFF111827)
-    val activeCount = Store.lists.count { Store.isRunningList(it.id) }
-    val tabs = listOf(
-        Triple(T("Dialer", "الاتصال"), Icons.Rounded.Call, 1),
-        Triple(T("Results", "النتائج"), Icons.Rounded.Groups, 2),
-        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
-        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
-        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
-    )
-    Surface(color = Color.White, tonalElevation = 0.dp, shadowElevation = 0.dp) {
-        Column(Modifier.fillMaxWidth()) {
-            HorizontalDivider(color = Color(0xFFF0F2F5), thickness = 1.dp)
-            Row(
-                Modifier.fillMaxWidth().navigationBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 7.dp),
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                tabs.forEach { (label, icon, destination) ->
-                    val active = Store.tab == destination
-                    Column(
-                        modifier = Modifier.weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                if (destination == 4) Store.openSettings()
-                                else {
-                                    if (destination == 0) Store.selectedListId = null
-                                    Store.tab = destination
-                                }
-                            }.heightIn(min = 46.dp).padding(top = 4.dp, bottom = 2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(icon, null, tint = if (active) activeInk else muted,
-                                modifier = Modifier.size(19.dp))
-                            if (destination == 0 && activeCount > 0) {
-                                Text(activeCount.toString(), fontSize = 8.sp, color = Color.White,
-                                    modifier = Modifier.align(Alignment.TopEnd)
-                                        .offset(x = 8.dp, y = (-5).dp)
-                                        .clip(CircleShape).background(activeInk)
-                                        .padding(horizontal = 4.dp, vertical = 1.dp))
-                            }
-                        }
-                        Text(label, fontSize = 10.sp,
-                            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (active) activeInk else muted, maxLines = 1)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppNavBar() {
-    if (Store.tab == 0) { CampaignReferenceNavigation(); return }
-    val cs = MaterialTheme.colorScheme
-    val slots = listOf(
-        Triple(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, 0),
-        Triple(T("Live", "مباشر"), Icons.Rounded.Call, 1),
-        Triple(T("Results", "النتائج"), Icons.Rounded.BarChart, 2),
-        Triple(T("History", "السجل"), Icons.Rounded.History, 3),
-        Triple(T("Settings", "الإعدادات"), Icons.Rounded.Settings, 4)
-    )
-    val inactiveIcons = listOf(Icons.Outlined.Campaign, Icons.Outlined.Call,
-        Icons.Outlined.BarChart, Icons.Outlined.History, Icons.Outlined.Settings)
-    Surface(
-        color = cs.surface,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column {
-            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
-            Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
-            NavigationBar(
-                modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth(),
-                containerColor = cs.surface,
-                tonalElevation = 0.dp,
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            ) {
-                slots.forEach { (label, icon, destination) ->
-                    val active = Store.tab == destination
-                    NavigationBarItem(
-                        selected = active,
-                        onClick = {
-                                if (destination == 4) Store.openSettings()
-                                else {
-                                    if (destination == 0) Store.selectedListId = null
-                                    Store.tab = destination
-                                }
-                        },
-                        icon = { Icon(if (active) icon else inactiveIcons[destination], null,
-                            modifier = Modifier.size(23.dp)) },
-                        label = { Text(label, style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                            maxLines = 2, textAlign = androidx.compose.ui.text.style.TextAlign.Center) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = cs.primary,
-                            selectedTextColor = cs.primary,
-                            unselectedIconColor = cs.onSurfaceVariant,
-                            unselectedTextColor = cs.onSurfaceVariant,
-                            indicatorColor = cs.primary.copy(alpha = 0.08f)
-                        )
-                    )
-                }
-            }
-            }
-        }
-    }
-}
+private fun AppNavBar() { com.o2dialer.app.ui.components.O2BottomNavBar() }
 
 @Composable
 fun Root(act: MainActivity) {
@@ -286,6 +174,7 @@ fun Root(act: MainActivity) {
 
     val screenKey = if (Store.tab == 0 && Store.selectedListId != null) 10 else Store.tab
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val reducedMotion = LocalReducedMotion.current
     // The floating dock belongs to the five main destinations; the campaign detail page is full-screen.
     val showNav = screenKey in 0..4
 
@@ -299,6 +188,9 @@ fun Root(act: MainActivity) {
                 AnimatedContent(
                     targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
+                        if (reducedMotion) {
+                            androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                        } else {
                         val forward = targetState.first >= initialState.first
                         val dir = (if (forward) 1 else -1) * (if (rtl) -1 else 1)
                         (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) +
@@ -306,6 +198,7 @@ fun Root(act: MainActivity) {
                             scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.975f)) togetherWith
                             (fadeOut(tween(Motion.NAV_EXIT_MS)) +
                                 slideOutHorizontally(tween(Motion.NAV_EXIT_MS)) { -it / 12 * dir })
+                        }
                     },
                     label = "screen"
                 ) { k ->

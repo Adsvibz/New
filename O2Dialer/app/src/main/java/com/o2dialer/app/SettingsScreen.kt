@@ -45,11 +45,11 @@ private fun SettingsFooter() {
         ) { LogoMark(25.dp, color = cs.primary) }
         Text(APP_NAME, style = MaterialTheme.typography.titleSmall)
         Text(
-            T("Version $APP_VERSION · Ahmed Medhat", "الإصدار $APP_VERSION · أحمد مدحت"),
+            L(R.string.ui_version_ahmed_medhat_a6d6a4d2, APP_VERSION),
             style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
         )
         Text(
-            T("All rights reserved · 2026", "جميع الحقوق محفوظة · 2026"),
+            L(R.string.ui_all_rights_reserved_2026_bd9f6472),
             style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
@@ -63,7 +63,7 @@ fun SettingsScreen() {
     fun up(f: (Cfg) -> Cfg) = Store.updateCfg(f)
 
     Scaffold(
-        topBar = { BlendBar(T("Settings", "الإعدادات"), onBack = { Store.tab = Store.prevTab }, showSettings = false) },
+        topBar = { BlendBar(L(R.string.ui_settings_f3f3f790), subtitle = L(R.string.ui_settings_summary), showSettings = false, actions = { TextButton(onClick = { Store.welcomed = false }) { Text(L(R.string.ui_guide)) } }) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -72,76 +72,75 @@ fun SettingsScreen() {
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
 
-            SettingsSection(Icons.Rounded.Language, T("General", "عام"), startOpen = true) {
-                SectionLabel(T("Language", "اللغة"))
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Globe, L(R.string.ui_general_509ae930), startOpen = true) {
+                SectionLabel(L(R.string.ui_language_a2d96192))
                 Segmented(listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
-                SectionLabel(T("Appearance", "المظهر"))
+                SectionLabel(L(R.string.ui_appearance_d1df9e0b))
                 Segmented(
-                    listOf(T("Auto", "تلقائي"), T("Light", "فاتح"), T("Dark", "داكن")), c.themeMode
+                    listOf(L(R.string.ui_auto_c83f6fbd), L(R.string.ui_light_d154c99a), L(R.string.ui_dark_b384fbdc)), c.themeMode
                 ) { i -> up { it.copy(themeMode = i) } }
                 SwitchRow(
-                    T("Use system colours", "استخدام ألوان النظام"),
-                    T("Material You · Android 12 and above", "Material You · أندرويد 12 فما فوق"),
+                    L(R.string.ui_use_system_colours_f2cc791e),
+                    L(R.string.ui_material_you_android_12_and_above_d132b020),
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
             }
 
-            SettingsSection(Icons.Rounded.Timer, T("Timing", "التوقيت")) {
-                SliderRow(T("Delay between calls", "الانتظار بين المكالمات"), c.delaySec, 0, 120, T("s", "ث")) { v -> up { it.copy(delaySec = v) } }
-                SwitchRow(T("Random delay", "انتظار عشوائي"), T("Picks a random wait between the two limits", "مدة عشوائية بين الحدّين"),
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Timer, L(R.string.ui_timing_72ace5eb)) {
+                SliderRow(L(R.string.ui_delay_between_calls_380656be), c.delaySec, 0, 120, L(R.string.ui_s_5cc34057)) { v -> up { it.copy(delaySec = v) } }
+                SwitchRow(L(R.string.ui_random_delay_dd0cc564), L(R.string.ui_picks_a_random_wait_between_the_two_li_ff57927f),
                     c.randomDelay) { v -> up { it.copy(randomDelay = v) } }
-                if (c.randomDelay) SliderRow(T("Maximum delay", "أقصى مدة انتظار"), c.delayMaxSec, 1, 300, T("s", "ث")) { v -> up { it.copy(delayMaxSec = v) } }
-                SliderRow(T("Countdown before start", "عدّاد قبل البدء"), c.startCountdown, 0, 30, T("s", "ث"), T("Instant", "فوري")) { v -> up { it.copy(startCountdown = v) } }
-                Hint(T("Automatic hang-up is not supported by every phone. The limit starts when dialing begins, not when the other person answers.", "الإنهاء التلقائي مش مدعوم على كل الأجهزة. المدة بتبدأ مع الاتصال، مش مع رد الطرف التاني."))
-                SliderRow(T("End each call after", "إنهاء المكالمة بعد"), c.maxCallSec, 0, 600, T("s", "ث"), T("Off", "معطّل")) { v -> up { it.copy(maxCallSec = v) } }
+                if (c.randomDelay) SliderRow(L(R.string.ui_maximum_delay_6d4daf41), c.delayMaxSec, 1, 300, L(R.string.ui_s_5cc34057)) { v -> up { it.copy(delayMaxSec = v) } }
+                SliderRow(L(R.string.ui_countdown_before_start_59587dda), c.startCountdown, 0, 30, L(R.string.ui_s_5cc34057), L(R.string.ui_instant_01ab7276)) { v -> up { it.copy(startCountdown = v) } }
+                Hint(L(R.string.ui_automatic_hang_up_is_not_supported_by__caea566d))
+                SliderRow(L(R.string.ui_end_each_call_after_07ec84fd), c.maxCallSec, 0, 600, L(R.string.ui_s_5cc34057), L(R.string.ui_off_38799a15)) { v -> up { it.copy(maxCallSec = v) } }
             }
 
-            SettingsSection(Icons.Rounded.Tune, T("Campaign", "الحملة")) {
-                SliderRow(T("Retry unanswered", "إعادة المحاولة لمن لم يرد"), c.retries, 0, 5, T("times", "مرات"), T("None", "بدون")) { v -> up { it.copy(retries = v) } }
-                SliderRow(T("Rounds (repeat the list)", "الجولات (تكرار القائمة)"), c.loops, 1, 20, "") { v -> up { it.copy(loops = v) } }
-                SwitchRow(T("Shuffle order", "ترتيب عشوائي"), null, c.shuffle) { v -> up { it.copy(shuffle = v) } }
-                SwitchRow(T("Skip answered numbers", "تخطّي من تم الرد عليهم"), T("On restart, keep answered contacts untouched", "عند إعادة التشغيل لا يُعاد الاتصال بمن ردّ"),
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Filter, L(R.string.ui_campaign_778a89ff)) {
+                SliderRow(L(R.string.ui_retry_unanswered_e1a14c61), c.retries, 0, 5, L(R.string.ui_times_ee99658e), L(R.string.ui_none_35e6d97f)) { v -> up { it.copy(retries = v) } }
+                SliderRow(L(R.string.ui_rounds_repeat_the_list_43170c56), c.loops, 1, 20, "") { v -> up { it.copy(loops = v) } }
+                SwitchRow(L(R.string.ui_shuffle_order_da608317), null, c.shuffle) { v -> up { it.copy(shuffle = v) } }
+                SwitchRow(L(R.string.ui_skip_answered_numbers_27c14510), L(R.string.ui_on_restart_keep_answered_contacts_unto_052fbe32),
                     c.skipAnswered) { v -> up { it.copy(skipAnswered = v) } }
-                SwitchRow(T("Detect answers from call log", "اكتشاف الرد من سجل المكالمات"), T("Requires call-log access. Unavailable results remain unverified.", "يحتاج صلاحية سجل المكالمات. النتائج غير المتاحة تظل غير مؤكدة."),
+                SwitchRow(L(R.string.ui_detect_answers_from_call_log_ebbb4e2b), L(R.string.ui_requires_call_log_access_unavailable_r_1b3c324f),
                     c.useCallLog) { v -> up { it.copy(useCallLog = v) } }
             }
 
-            SettingsSection(Icons.Rounded.VolumeUp, T("During calls", "أثناء المكالمة")) {
-                SwitchRow(T("Auto speaker & mute mic", "سماعة تلقائية وكتم المايك"),
-                    T("Turns the speaker on and mutes the microphone on every new call", "تشغيل مكبر الصوت وكتم المايك مع كل مكالمة جديدة"),
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.VolumeUp, L(R.string.ui_during_calls_b130b177)) {
+                SwitchRow(L(R.string.ui_auto_speaker_mute_mic_9a82cea9),
+                    L(R.string.ui_turns_the_speaker_on_and_mutes_the_mic_49caec08),
                     c.autoSpeaker) { v -> up { it.copy(autoSpeaker = v) } }
-                Hint(T("Some phones don't allow apps to change call audio.", "بعض الأجهزة لا تسمح للتطبيقات بتغيير صوت المكالمة."))
+                Hint(L(R.string.ui_some_phones_don_t_allow_apps_to_change_7ffcedea))
             }
 
-            SettingsSection(Icons.Rounded.Star, T("Call results (stages)", "نتائج المكالمات (Stages)")) {
-                SwitchRow(T("Ask for a stage after answered calls", "اسأل عن النتيجة بعد المكالمات اللي تم الرد عليها"), null,
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Star, L(R.string.ui_call_results_stages_a9b946ef)) {
+                SwitchRow(L(R.string.ui_ask_for_a_stage_after_answered_calls_bb9af7e3), null,
                     c.askStage) { v -> up { it.copy(askStage = v) } }
-                if (c.askStage) SliderRow(T("Wait for your choice", "الانتظار لاختيارك"), c.stageWaitSec, 0, 60, "s",
-                    T("Don't wait", "بدون انتظار")) { v -> up { it.copy(stageWaitSec = v) } }
+                if (c.askStage) SliderRow(L(R.string.ui_wait_for_your_choice_3fef7a49), c.stageWaitSec, 0, 60, "s",
+                    L(R.string.ui_don_t_wait_198041aa)) { v -> up { it.copy(stageWaitSec = v) } }
             }
 
-            SettingsSection(Icons.Rounded.Phone, T("Numbers", "الأرقام")) {
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Phone, L(R.string.ui_numbers_c2b4f604)) {
                 BTextField(c.countryCode, { t -> up { s -> s.copy(countryCode = t.filter { ch -> ch.isDigit() }) } },
-                    label = T("Default country code", "كود الدولة الافتراضي"), placeholder = "20",
+                    label = L(R.string.ui_default_country_code_c5bd17b4), placeholder = "20",
                     keyboardType = KeyboardType.Number,
-                    supporting = T("Numbers are corrected automatically: 0100… becomes +20100…",
-                        "الأرقام بتتصحح تلقائيًا: 0100… تبقى +20100…"))
+                    supporting = L(R.string.ui_numbers_are_corrected_automatically_01_60746d8b))
             }
 
-            SettingsSection(Icons.Rounded.Schedule, T("Allowed calling hours", "ساعات السماح بالاتصال")) {
-                SwitchRow(T("Limit calls to a time window", "تحديد وقت للاتصال"), T("The campaign waits outside these hours", "الحملة تنتظر خارج هذه الساعات"),
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Clock, L(R.string.ui_allowed_calling_hours_a6b3cbad)) {
+                SwitchRow(L(R.string.ui_limit_calls_to_a_time_window_4e36e783), L(R.string.ui_the_campaign_waits_outside_these_hours_16743f31),
                     c.quietEnabled) { v -> up { it.copy(quietEnabled = v) } }
                 if (c.quietEnabled) {
-                    SliderRow(T("From", "من"), c.quietFrom, 0, 23, ":00") { v -> up { it.copy(quietFrom = v) } }
-                    SliderRow(T("To", "إلى"), c.quietTo, 0, 23, ":00") { v -> up { it.copy(quietTo = v) } }
-                    if (c.quietFrom == c.quietTo) Hint(T("Identical hours block all calls. Choose different start and end hours.", "تساوي الوقتين بيمنع كل المكالمات. اختار وقت بداية ونهاية مختلفين."))
+                    SliderRow(L(R.string.ui_from_c9da8847), c.quietFrom, 0, 23, ":00") { v -> up { it.copy(quietFrom = v) } }
+                    SliderRow(L(R.string.ui_to_8d46f804), c.quietTo, 0, 23, ":00") { v -> up { it.copy(quietTo = v) } }
+                    if (c.quietFrom == c.quietTo) Hint(L(R.string.ui_identical_hours_block_all_calls_choose_5e59c47a))
                 }
             }
 
-            SettingsSection(Icons.Rounded.Notifications, T("Screen & alerts", "الشاشة والتنبيهات")) {
-                SwitchRow(T("Keep screen on during a campaign", "إبقاء الشاشة مفتوحة أثناء الحملة"), null,
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Notifications, L(R.string.ui_screen_alerts_537ed863)) {
+                SwitchRow(L(R.string.ui_keep_screen_on_during_a_campaign_c045927c), null,
                     c.keepScreenOn) { v -> up { it.copy(keepScreenOn = v) } }
-                SwitchRow(T("Vibrate when the campaign ends", "اهتزاز عند انتهاء الحملة"), null,
+                SwitchRow(L(R.string.ui_vibrate_when_the_campaign_ends_c169964c), null,
                     c.vibrateOnFinish) { v -> up { it.copy(vibrateOnFinish = v) } }
             }
 
@@ -149,13 +148,13 @@ fun SettingsScreen() {
 
             UpdateSettingsSection()
 
-            SettingsSection(Icons.Rounded.Security, T("Permissions & background", "الصلاحيات والتشغيل في الخلفية"), startOpen = true) {
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Security, L(R.string.ui_permissions_background_ba88001d), startOpen = true) {
                 val perms = listOf(
-                    T("Calling", "الاتصال") to Manifest.permission.CALL_PHONE,
-                    T("Phone state", "حالة الهاتف") to Manifest.permission.READ_PHONE_STATE,
-                    T("Call log", "سجل المكالمات") to Manifest.permission.READ_CALL_LOG,
-                    T("End calls", "إنهاء المكالمات") to Manifest.permission.ANSWER_PHONE_CALLS,
-                    T("Contacts", "جهات الاتصال") to Manifest.permission.READ_CONTACTS
+                    L(R.string.ui_calling_e43b29e8) to Manifest.permission.CALL_PHONE,
+                    L(R.string.ui_phone_state_a694ebf1) to Manifest.permission.READ_PHONE_STATE,
+                    L(R.string.ui_call_log_4c2f84a6) to Manifest.permission.READ_CALL_LOG,
+                    L(R.string.ui_end_calls_975858d3) to Manifest.permission.ANSWER_PHONE_CALLS,
+                    L(R.string.ui_contacts_2fd3de50) to Manifest.permission.READ_CONTACTS
                 )
                 perms.forEach { (n, p) ->
                     val ok = remember(Store.permTick) { ctx.has(p) }
@@ -165,7 +164,7 @@ fun SettingsScreen() {
                             Dot(if (ok) Sem.success else Sem.danger, 6.dp)
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                if (ok) T("Granted", "ممنوحة") else T("Missing", "غير ممنوحة"),
+                                if (ok) L(R.string.ui_granted_8a550fc3) else L(R.string.ui_missing_3a72962b),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (ok) readable(Sem.success) else readable(Sem.danger)
                             )
@@ -173,12 +172,12 @@ fun SettingsScreen() {
                     }
                 }
                 Spacer(Modifier.height(2.dp))
-                BButton(T("Open app settings", "فتح إعدادات التطبيق"), {
+                BButton(L(R.string.ui_open_app_settings_4f27f2fb), {
                     ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", ctx.packageName, null)))
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
-                BButton(T("Exclude from battery saver", "استثناء من توفير البطارية"), {
+                BButton(L(R.string.ui_exclude_from_battery_saver_0c69cc48), {
                     runCatching { ctx.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
-                        .onFailure { Store.notify(Tk.INFO, T("Open battery settings manually on this phone", "افتح إعدادات البطارية يدويًا على الجهاز")) }
+                        .onFailure { Store.notify(Tk.INFO, L(R.string.ui_open_battery_settings_manually_on_this_a9c72db6)) }
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
             }
 

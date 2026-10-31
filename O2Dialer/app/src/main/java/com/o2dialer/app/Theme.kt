@@ -45,8 +45,8 @@ object Sp {
 /** Corner radii. Softer than stock Material, still disciplined. */
 object Rd {
     val xs = 10.dp
-    val s = 14.dp
-    val m = 18.dp
+    val s = 12.dp
+    val m = 24.dp
     val l = 24.dp
     val xl = 30.dp
 }
@@ -72,8 +72,8 @@ val InkCardDark = Color(0xFF14213B)
 fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
-/** Primary brand colour: professional blue. */
-val Brand = Color(0xFF2457E7)
+/** Primary accent from the executable AI Studio reference. */
+val Brand = com.o2dialer.app.ui.theme.O2Colors.Accent
 
 /** Kept as an alias so older references stay valid. */
 val BrandIndigo = Brand
@@ -88,47 +88,8 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
-private val AppFont = FontFamily(
-    Font(R.font.tajawal_regular, FontWeight.Normal),
-    Font(R.font.tajawal_medium, FontWeight.Medium),
-    Font(R.font.tajawal_bold, FontWeight.Bold)
-)
-
-
-private val LightC = lightColorScheme(
-    primary = Brand, onPrimary = Color.White,
-    primaryContainer = Color(0xFFE7EEFF), onPrimaryContainer = Color(0xFF183EAA),
-    secondary = Color(0xFF4667A8), onSecondary = Color.White,
-    secondaryContainer = Color(0xFFEAF0FC), onSecondaryContainer = Color(0xFF223B69),
-    tertiary = Color(0xFF0D966A), onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFDDF7ED), onTertiaryContainer = Color(0xFF07533D),
-    background = Color(0xFFF7F9FC), onBackground = Color(0xFF101828),
-    surface = Color.White, onSurface = Color(0xFF101828),
-    surfaceVariant = Color(0xFFF1F4F9), onSurfaceVariant = Color(0xFF65728A),
-    outline = Color(0xFFDCE3ED), outlineVariant = Color(0xFFEDF1F6),
-    error = Color(0xFFB42318), onError = Color.White,
-    errorContainer = Color(0xFFFFE8E8), onErrorContainer = Color(0xFF8F262D),
-    inverseSurface = Color(0xFF15203A), inverseOnSurface = Color.White,
-    surfaceTint = Color.Transparent
-)
-
-/** Matching deep-navy alternative to the clean light workspace. */
-val NocturneDark = darkColorScheme(
-    primary = Color(0xFF92B1FF), onPrimary = Color(0xFF0B2668),
-    primaryContainer = Color(0xFF243F7E), onPrimaryContainer = Color(0xFFE5EDFF),
-    secondary = Color(0xFFACC2F0), onSecondary = Color(0xFF1C345C),
-    secondaryContainer = Color(0xFF283954), onSecondaryContainer = Color(0xFFDCE7FF),
-    tertiary = Color(0xFF66D8B0), onTertiary = Color(0xFF073D2C),
-    tertiaryContainer = Color(0xFF164C3D), onTertiaryContainer = Color(0xFFD7F8EA),
-    background = Color(0xFF101216), onBackground = Color(0xFFF6F8FE),
-    surface = Color(0xFF191C22), onSurface = Color(0xFFF6F8FE),
-    surfaceVariant = Color(0xFF252930), onSurfaceVariant = Color(0xFFB3BAC6),
-    outline = Color(0xFF41464F), outlineVariant = Color(0xFF2D323A),
-    error = Color(0xFFFF9FA6), onError = Color(0xFF5C1620),
-    errorContainer = Color(0xFF6A2832), onErrorContainer = Color(0xFFFFDADD),
-    inverseSurface = Color(0xFFE7EDFA), inverseOnSurface = Color(0xFF17213A),
-    surfaceTint = Color.Transparent
-)
+private val LightC = com.o2dialer.app.ui.theme.O2Colors.Light
+val NocturneDark = com.o2dialer.app.ui.theme.O2Colors.Dark
 
 fun statusColor(s: Int): Color = when (s) {
     St.ANSWERED -> Sem.success
@@ -139,40 +100,6 @@ fun statusColor(s: Int): Color = when (s) {
     else -> Color(0xFF8A948C)
 }
 
-private fun typo(ff: FontFamily, arabic: Boolean): Typography {
-    // Arabic script needs more vertical room, no negative tracking and no serif display.
-    val k = if (arabic) 1.16f else 1f
-    fun tr(v: Float): TextUnit = if (arabic) 0.sp else v.sp
-    fun display(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
-        fontFamily = ff,
-        fontWeight = w,
-        fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track),
-        fontFeatureSettings = "lnum"
-    )
-    fun text(w: FontWeight, size: Int, lh: Int, track: Float = 0f) = TextStyle(
-        fontFamily = ff, fontWeight = w, fontSize = size.sp, lineHeight = (lh * k).sp, letterSpacing = tr(track)
-    )
-    val b = FontWeight.Medium
-    val n = FontWeight.Normal
-    return Typography(
-        displayLarge = display(n, 58, 60, -1.4f),
-        displayMedium = display(n, 46, 48, -1.1f),
-        displaySmall = display(n, 36, 40, -0.8f),
-        headlineLarge = display(n, 33, 37, -0.6f),
-        headlineMedium = display(n, 27, 31, -0.4f),
-        headlineSmall = text(FontWeight.Bold, 22, 28),
-        titleLarge = text(FontWeight.Bold, 20, 28),
-        titleMedium = text(b, 16, 24),
-        titleSmall = text(b, 14, 20),
-        bodyLarge = text(n, 16, 24),
-        bodyMedium = text(n, 14, 21),
-        bodySmall = text(n, 12, 17),
-        labelLarge = text(b, 14, 20),
-        labelMedium = text(n, 12, 16, 0.1f),
-        labelSmall = text(n, 11, 14, 0.2f)
-    )
-}
-
 @Composable
 fun isDarkTheme(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
@@ -181,12 +108,13 @@ fun AppTheme(content: @Composable () -> Unit) {
     val c = Store.cfg
     val dark = when (c.themeMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     val ctx = LocalContext.current
+    UiText.init(ctx)
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
     } else if (dark) NocturneDark else LightC
-    // Bundled Tajawal keeps Arabic, Latin and mixed-script content visually consistent offline.
+    // Bundled reference fonts work offline and follow the saved language.
     val arabic = c.lang == 1
-    val ty = remember(c.lang) { typo(AppFont, arabic) }
+    val ty = remember(c.lang) { com.o2dialer.app.ui.theme.O2Type.typography(arabic) }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -200,14 +128,8 @@ fun AppTheme(content: @Composable () -> Unit) {
     }
     MaterialTheme(
         colorScheme = scheme, typography = ty,
-        shapes = Shapes(
-            extraSmall = RoundedCornerShape(Rd.xs), small = RoundedCornerShape(Rd.s),
-            medium = RoundedCornerShape(Rd.m), large = RoundedCornerShape(Rd.l),
-            extraLarge = RoundedCornerShape(Rd.xl)
-        )
+        shapes = com.o2dialer.app.ui.theme.O2Shape.Material
     ) {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            content()
-        }
+        com.o2dialer.app.ui.components.O2Canvas(dark) { content() }
     }
 }

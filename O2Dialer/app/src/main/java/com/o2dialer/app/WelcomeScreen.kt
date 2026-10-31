@@ -28,13 +28,13 @@ import androidx.compose.ui.unit.dp
 fun WelcomeScreen() {
     var page by rememberSaveable { mutableIntStateOf(0) }
     val cs = MaterialTheme.colorScheme
-    val titles = listOf(T("Your campaigns", "حملاتك"),
-        T("Your pace", "وقتك بإيدك"), T("Your follow-ups", "متابعاتك"))
+    val titles = listOf(L(R.string.ui_your_campaigns_9e86cc43),
+        L(R.string.ui_your_pace_7b0f3512), L(R.string.ui_your_follow_ups_347d1f6b))
     val bodies = listOf(
-        T("Add contacts manually, paste numbers or import a file.", "أضف جهات اتصال، الصق أرقام أو استورد ملف."),
-        T("Set your SIM and call timing. Pause whenever you need.", "اختار الشريحة وتوقيت المكالمات. وقف مؤقتًا وقت ما تحتاج."),
-        T("Record outcomes, save notes and follow up on WhatsApp. Campaigns and history stay on this device.", "صنّف النتائج، احفظ ملاحظاتك وتابع على واتساب. الحملات وسجل المكالمات بيتحفظوا على جهازك."))
-    val icons = listOf(Icons.Rounded.Campaign, Icons.Rounded.Tune, Icons.Rounded.Insights)
+        L(R.string.ui_add_contacts_manually_paste_numbers_or_3f98aa54),
+        L(R.string.ui_set_your_sim_and_call_timing_pause_whe_995c8566),
+        L(R.string.ui_record_outcomes_save_notes_and_follow__a7f31301))
+    val icons = listOf(com.o2dialer.app.ui.components.O2Icons.Megaphone, com.o2dialer.app.ui.components.O2Icons.Filter, com.o2dialer.app.ui.components.O2Icons.Insights)
     BackHandler(page > 0) { page-- }
     Responsive {
         Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = Sp.xxl)) {
@@ -53,31 +53,29 @@ fun WelcomeScreen() {
             }, label = "welcomePage") { current ->
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = Sp.xxl),
                     verticalArrangement = Arrangement.spacedBy(Sp.xxl)) {
-                    Surface(color = cs.primaryContainer, shape = RoundedCornerShape(28.dp)) {
+                    com.o2dialer.app.ui.components.O2Card(Modifier.fillMaxWidth(),hero=true) {
                         Column(Modifier.fillMaxWidth().padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.l)) {
-                            Icon(icons[current], null, tint = cs.onPrimaryContainer, modifier = Modifier.size(44.dp))
-                            Text(T("STEP ${current + 1} OF 3", "الخطوة ${current + 1} من 3"), color = cs.onPrimaryContainer,
+                            Icon(icons[current], null, tint = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(44.dp))
+                            Text(L(R.string.ui_step_of_3_3efe51ce, current + 1), color = androidx.compose.ui.graphics.Color.White,
                                 style = MaterialTheme.typography.labelMedium)
-                            Text(titles[current], color = cs.onPrimaryContainer, style = MaterialTheme.typography.headlineLarge)
+                            Text(titles[current], color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineLarge)
                         }
                     }
                     Text(bodies[current], style = MaterialTheme.typography.bodyLarge, color = cs.onSurfaceVariant)
-                    if (current == 1) Banner(Tk.INFO, T("You stay in control", "التحكّم في إيدك"),
-                        T("Pause stops the queue; the current call can continue. Ending calls and changing audio depend on your phone.",
-                            "الإيقاف المؤقت بيوقف قائمة الاتصال، والمكالمة الحالية ممكن تستمر. إنهاء المكالمة وتغيير الصوت بيعتمدوا على جهازك."))
-                    if (current == 2) Banner(Tk.INFO, T("Permissions when needed", "الصلاحيات وقت الحاجة"),
-                        T("Calling and phone-state access are required to start. Call-log access helps verify answers; without it, results are marked unverified. Device licensing may require internet.",
-                            "بدء الحملة محتاج صلاحيات الاتصال وحالة الهاتف. سجل المكالمات بيساعد في تأكيد الرد؛ بدونه النتيجة بتظهر غير مؤكدة. ترخيص الجهاز ممكن يحتاج الإنترنت."))
+                    if (current == 1) Banner(Tk.INFO, L(R.string.ui_you_stay_in_control_b6835142),
+                        L(R.string.ui_pause_stops_the_queue_the_current_call_158bf156))
+                    if (current == 2) Banner(Tk.INFO, L(R.string.ui_permissions_when_needed_5da2c96c),
+                        L(R.string.ui_calling_and_phone_state_access_are_req_f4a30ac8))
                 }
             }
             Row(Modifier.fillMaxWidth().padding(vertical = Sp.l), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(3) { i -> Box(Modifier.weight(1f).height(4.dp).clip(CircleShape)
                     .background(if (i <= page) cs.primary else cs.outlineVariant)) }
             }
-            BButton(if (page == 2) T("Open my workspace", "افتح مساحة عملي") else T("Continue", "متابعة"),
+            BButton(if (page == 2) L(R.string.ui_open_my_workspace_383daf0b) else L(R.string.ui_continue_29c1be7a),
                 { if (page == 2) Store.finishWelcome() else page++ }, Modifier.fillMaxWidth())
             TextButton(onClick = { if (page == 0) Store.finishWelcome() else page-- }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (page == 0) T("Skip introduction", "تخطي المقدمة") else T("Back", "رجوع"))
+                Text(if (page == 0) L(R.string.ui_skip_introduction_8aaffb23) else L(R.string.ui_back_794ab43a))
             }
         }
     }

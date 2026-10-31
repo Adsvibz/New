@@ -13,24 +13,22 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun UpdateSettingsSection() {
     val ctx = LocalContext.current
-    SettingsSection(Icons.Rounded.SystemUpdate, T("App updates", "تحديث التطبيق"), startOpen = true) {
-        Text(T("Installed: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-            "الإصدار المثبّت: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"),
+    SettingsSection(com.o2dialer.app.ui.components.O2Icons.SystemUpdate, L(R.string.ui_app_updates_dda8813b), startOpen = true) {
+        Text(L(R.string.ui_installed_b23b63cd, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
             style = MaterialTheme.typography.bodyMedium)
-        Text(T("Checks automatically when you open the app. Downloads only when you choose.",
-            "يفحص التحديثات عند فتح التطبيق. التحميل يبدأ باختيارك فقط."),
+        Text(L(R.string.ui_checks_automatically_when_you_open_the_a892e188),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (AppUpdates.available != null) {
-            if (Store.campActive()) Text(T("Stop or finish the campaign before updating.", "أوقف الحملة أو انتظر نهايتها قبل التحديث."),
+            if (Store.campActive()) Text(L(R.string.ui_stop_or_finish_the_campaign_before_upd_08aa8750),
                 style = MaterialTheme.typography.bodySmall)
             Button(onClick = { AppUpdates.open() }, enabled = !Store.campActive(), modifier = Modifier.fillMaxWidth()) {
-                Text(if (AppUpdates.ready) T("Update ready", "التحديث جاهز") else T("View update", "عرض التحديث"))
+                Text(if (AppUpdates.ready) L(R.string.ui_update_ready_95c3cd4f) else L(R.string.ui_view_update_68941ba7))
             }
         }
         OutlinedButton(onClick = { AppUpdates.check(ctx, manual = true) },
             enabled = !AppUpdates.checking && !AppUpdates.downloading && !AppUpdates.verifying,
             modifier = Modifier.fillMaxWidth()) {
-            Text(if (AppUpdates.checking) T("Checking…", "جارٍ الفحص…") else T("Check for updates", "البحث عن تحديث"))
+            Text(if (AppUpdates.checking) L(R.string.ui_checking_49631f22) else L(R.string.ui_check_for_updates_5ddbcd94))
         }
     }
 }
@@ -44,28 +42,25 @@ fun UpdateHost(activity: Activity) {
     val mayInstall = androidx.compose.runtime.remember(permissionTick) { activity.packageManager.canRequestPackageInstalls() }
     AlertDialog(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha=1f),
         tonalElevation = 0.dp,
         onDismissRequest = { AppUpdates.dismiss(activity) },
-        icon = { Icon(Icons.Rounded.SystemUpdate, null) },
-        title = { Text(T("Update available", "تحديث جديد"), style = MaterialTheme.typography.titleLarge) },
+        icon = { Icon(com.o2dialer.app.ui.components.O2Icons.SystemUpdate, null) },
+        title = { Text(L(R.string.ui_update_available_ac962ad0), style = MaterialTheme.typography.titleLarge) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("${update.versionName} (${update.versionCode})")
                 when {
                     AppUpdates.downloading -> {
                         LinearProgressIndicator(progress = AppUpdates.progress / 100f, modifier = Modifier.fillMaxWidth())
-                        Text(T("Downloading ${AppUpdates.progress}%", "جارٍ التحميل ${AppUpdates.progress}%"))
+                        Text(L(R.string.ui_downloading_69da755f, AppUpdates.progress))
                     }
-                    AppUpdates.verifying -> Text(T("Verifying update…", "جارٍ التحقق من التحديث…"))
-                    AppUpdates.error -> Text(T("Couldn't download, verify or open the update. Check your connection and try again.",
-                        "تعذّر تحميل التحديث أو التحقق منه أو فتحه. راجع الاتصال وحاول تاني."), color = MaterialTheme.colorScheme.error)
+                    AppUpdates.verifying -> Text(L(R.string.ui_verifying_update_3768d0e9))
+                    AppUpdates.error -> Text(L(R.string.ui_couldn_t_download_verify_or_open_the_u_9bd70ce6), color = MaterialTheme.colorScheme.error)
                     AppUpdates.ready -> Text(if (mayInstall)
-                        T("Ready to install. Android will ask you to confirm.", "جاهز للتثبيت. أندرويد هيطلب منك التأكيد.")
-                        else T("Allow O2Dialer to install updates in Android settings, then return and tap Install.",
-                            "اسمح لـO2Dialer بتثبيت التحديثات من إعدادات أندرويد، وبعدها ارجع واضغط تثبيت."))
-                    else -> Text(T("Your campaigns and settings stay in place. Download size: ${((update.size + 1048575) / 1048576)} MB.",
-                        "حملاتك وإعداداتك هتفضل موجودة. حجم التحميل: ${((update.size + 1048575) / 1048576)} ميجابايت."))
+                        L(R.string.ui_ready_to_install_android_will_ask_you__c0fe79b8)
+                        else L(R.string.ui_allow_o2dialer_to_install_updates_in_a_28663a74))
+                    else -> Text(L(R.string.ui_your_campaigns_and_settings_stay_in_pl_61fcea8d, ((update.size + 1048575) / 1048576)))
                 }
             }
         },
@@ -74,14 +69,14 @@ fun UpdateHost(activity: Activity) {
                 enabled = !AppUpdates.verifying,
                 onClick = { if (AppUpdates.ready) AppUpdates.install(activity) else AppUpdates.download(activity) }
             ) { Text(if (AppUpdates.ready) {
-                if (mayInstall) T("Install", "تثبيت") else T("Allow installation", "السماح بالتثبيت")
-            } else if (AppUpdates.error) T("Try again", "حاول تاني") else T("Download update", "تحميل التحديث")) }
+                if (mayInstall) L(R.string.ui_install_c9a38679) else L(R.string.ui_allow_installation_a875d086)
+            } else if (AppUpdates.error) L(R.string.ui_try_again_db24459d) else L(R.string.ui_download_update_d4fda48d)) }
         },
         dismissButton = {
             TextButton(onClick = {
                 if (AppUpdates.downloading) AppUpdates.cancelDownload()
                 AppUpdates.dismiss(activity)
-            }) { Text(if (AppUpdates.downloading) T("Cancel", "إلغاء") else T("Later", "لاحقًا")) }
+            }) { Text(if (AppUpdates.downloading) L(R.string.ui_cancel_823a3ad2) else L(R.string.ui_later_273ebd5f)) }
         }
     )
 }

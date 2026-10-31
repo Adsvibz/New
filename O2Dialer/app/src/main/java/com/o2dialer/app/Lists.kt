@@ -39,8 +39,8 @@ import java.util.Date
 import java.util.Locale
 
 private fun reportAdded(n: Int) {
-    if (n > 0) Store.notify(Tk.SUCCESS, T("$n numbers added", "تمت إضافة $n رقم"))
-    else Store.notify(Tk.INFO, T("No new numbers (duplicates or invalid)", "لا أرقام جديدة (مكررة أو غير صالحة)"))
+    if (n > 0) Store.notify(Tk.SUCCESS, L(R.string.ui_numbers_added_98cb26cf, n))
+    else Store.notify(Tk.INFO, L(R.string.ui_no_new_numbers_duplicates_or_invalid_878e2e8d))
 }
 
 // ============================================================ campaigns list
@@ -55,18 +55,18 @@ fun ListsScreen() {
 
     if (creating) CampaignDialog(null, { creating = false }) { n, sim ->
         Store.selectedListId = Store.addList(n, sim); creating = false
-        Store.notify(Tk.SUCCESS, T("Campaign created", "تم إنشاء الحملة"))
+        Store.notify(Tk.SUCCESS, L(R.string.ui_campaign_created_13e3fbd9))
     }
     editing?.let { l ->
         CampaignDialog(l, { editingId = null }) { n, sim ->
             Store.updateList(l.id) { it.copy(name = n, simSlot = sim) }; editingId = null
-            Store.notify(Tk.SUCCESS, T("Campaign updated", "تم تحديث الحملة"))
+            Store.notify(Tk.SUCCESS, L(R.string.ui_campaign_updated_fb58b04b))
         }
     }
     deleting?.let { l ->
-        ConfirmDialog(T("Delete \"${l.name}\" and all its numbers?", "حذف \"${l.name}\" وكل أرقامها؟"), { deleting = null }) {
+        ConfirmDialog(L(R.string.ui_delete_and_all_its_numbers_a8095c5a, l.name), { deleting = null }) {
             Store.deleteList(l.id); deleting = null
-            Store.notify(Tk.INFO, T("Campaign deleted", "تم حذف الحملة"))
+            Store.notify(Tk.INFO, L(R.string.ui_campaign_deleted_cd945333))
         }
     }
 }
@@ -106,12 +106,12 @@ fun ListDetail(listId: String, act: MainActivity) {
                         parseLines(text)
                     }
                     if (!License.canImport) License.denyImport()
-                    else if (parsed.isEmpty()) Store.notify(Tk.ERROR, T("No valid numbers found in the file", "لم يتم العثور على أرقام صالحة في الملف"))
+                    else if (parsed.isEmpty()) Store.notify(Tk.ERROR, L(R.string.ui_no_valid_numbers_found_in_the_file_0f3c8e51))
                     else reportAdded(Store.addEntries(listId, parsed))
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
-                    Store.notify(Tk.ERROR, T("Could not import. Choose a readable CSV/TXT file under 5 million characters.", "تعذّر الاستيراد. اختار ملف CSV أو TXT قابل للقراءة وأقل من 5 مليون حرف."))
+                    Store.notify(Tk.ERROR, L(R.string.ui_could_not_import_choose_a_readable_csv_6541da07))
                 } finally { importing = false }
             }
         }
@@ -120,16 +120,16 @@ fun ListDetail(listId: String, act: MainActivity) {
     val shown = remember(list.entries, query) {
         list.entries.filter { query.isBlank() || it.name.contains(query, true) || it.number.contains(query) }
     }
-    val simText = when (list.simSlot) { 0 -> "SIM 1"; 1 -> "SIM 2"; else -> T("Default SIM", "الشريحة الافتراضية") }
+    val simText = when (list.simSlot) { 0 -> "SIM 1"; 1 -> "SIM 2"; else -> L(R.string.ui_default_sim_bf6ca60e) }
 
     val chips: @Composable () -> Unit = {
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
-            ActionChip(Icons.Rounded.Add, T("Add number", "إضافة رقم")) { dlg = "add" }
-            ActionChip(Icons.Rounded.ContentPaste, T("Paste", "لصق")) { if (License.canImport) dlg = "bulk" else License.denyImport() }
-            ActionChip(Icons.Rounded.UploadFile, T("Import file", "استيراد ملف")) {
+            ActionChip(com.o2dialer.app.ui.components.O2Icons.Plus, L(R.string.ui_add_number_077dc68a)) { dlg = "add" }
+            ActionChip(com.o2dialer.app.ui.components.O2Icons.Copy, L(R.string.ui_paste_7e57a4f2)) { if (License.canImport) dlg = "bulk" else License.denyImport() }
+            ActionChip(com.o2dialer.app.ui.components.O2Icons.Upload, L(R.string.ui_import_file_feafb58e)) {
                 if (!importing) { if (License.canImport) importer.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) else License.denyImport() }
             }
-            ActionChip(Icons.Rounded.Contacts, T("Contacts", "جهات الاتصال")) {
+            ActionChip(com.o2dialer.app.ui.components.O2Icons.Contacts, L(R.string.ui_contacts_2fd3de50)) {
                 if (License.canImport) act.ensureContacts { dlg = "contacts" } else License.denyImport()
             }
         }
@@ -139,16 +139,16 @@ fun ListDetail(listId: String, act: MainActivity) {
         topBar = {
             BlendBar(
                 list.name, onBack = { Store.selectedListId = null },
-                subtitle = T("${p.total} contacts · $simText", "${p.total} جهة · $simText")
+                subtitle = L(R.string.ui_contacts_13614d72, p.total, simText)
             )
         },
         bottomBar = {
             if (list.entries.isNotEmpty()) {
                 val label = when {
-                    Store.isRunningList(listId) -> T("Return to live session", "العودة للجلسة المباشرة")
-                    p.called == 0 -> T("Start campaign", "ابدأ الحملة")
-                    p.remaining > 0 -> T("Resume · ${p.remaining} left", "استئناف · ${p.remaining} متبقي")
-                    else -> T("Restart campaign", "إعادة تشغيل الحملة")
+                    Store.isRunningList(listId) -> L(R.string.ui_return_to_live_session_404572f9)
+                    p.called == 0 -> L(R.string.ui_start_campaign_28d1c94b)
+                    p.remaining > 0 -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
+                    else -> L(R.string.ui_restart_campaign_062996bf)
                 }
                 Column(
                     Modifier.fillMaxWidth()
@@ -160,7 +160,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                     ) {
                         BButton(
                             label, { act.startCampaign(listId, p.called > 0 && p.remaining == 0) },
-                            Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow
+                            Modifier.fillMaxWidth(), icon = com.o2dialer.app.ui.components.O2Icons.Play
                         )
                     }
                 }
@@ -179,9 +179,8 @@ fun ListDetail(listId: String, act: MainActivity) {
                 chips()
                 if (importing) LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
                 EmptyState(
-                    Icons.Rounded.Groups, T("No contacts yet", "لا توجد أرقام"),
-                    T("Add numbers manually, paste them, import a CSV/TXT file or pick from your contacts.",
-                        "أضف الأرقام يدويًا أو بالصق أو من ملف CSV/TXT أو من جهات الاتصال."),
+                    com.o2dialer.app.ui.components.O2Icons.Users, L(R.string.ui_no_contacts_yet_581955a5),
+                    L(R.string.ui_add_numbers_manually_paste_them_import_dc15a8d5),
                     Modifier.heightIn(min = 240.dp)
                 )
             }
@@ -200,20 +199,20 @@ fun ListDetail(listId: String, act: MainActivity) {
                 item { chips(); Spacer(Modifier.height(Sp.m)) }
                 item {
                     BTextField(
-                        query, { query = it }, placeholder = T("Search name or number", "بحث بالاسم أو الرقم"),
-                        leading = Icons.Rounded.Search
+                        query, { query = it }, placeholder = L(R.string.ui_search_name_or_number_192293ed),
+                        leading = com.o2dialer.app.ui.components.O2Icons.Search
                     )
                     Spacer(Modifier.height(Sp.l))
                 }
                 item {
                     Row(Modifier.fillMaxWidth().padding(bottom = Sp.s), verticalAlignment = Alignment.CenterVertically) {
                         SectionLabel(
-                            if (query.isBlank()) T("${p.total} contacts", "${p.total} جهة اتصال")
-                            else T("${shown.size} results", "${shown.size} نتيجة")
+                            if (query.isBlank()) L(R.string.ui_contacts_a01f7e45, p.total)
+                            else L(R.string.ui_results_6b258097, shown.size)
                         )
                         Spacer(Modifier.weight(1f))
                         if (shown.isNotEmpty()) Text(
-                            T("Tap to edit", "اضغط للتعديل"),
+                            L(R.string.ui_tap_to_edit_ecb9a5ab),
                             style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -221,7 +220,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                 if (shown.isEmpty()) {
                     item {
                         Text(
-                            T("No matches", "لا نتائج"),
+                            L(R.string.ui_no_matches_29a8ff8b),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = Sp.xl)
                         )
@@ -232,7 +231,7 @@ fun ListDetail(listId: String, act: MainActivity) {
                         e, listId,
                         isFirst = i == 0, isLast = i == shown.lastIndex
                     ) { if (Store.canEditEntry(listId, e.id)) editingEntryId = e.id
-                        else Store.notify(Tk.INFO, T("Wait for the current call to finish", "انتظر انتهاء المكالمة الحالية")) }
+                        else Store.notify(Tk.INFO, L(R.string.ui_wait_for_the_current_call_to_finish_ee99ca2c)) }
                 }
             }
         }
@@ -254,7 +253,7 @@ fun ListDetail(listId: String, act: MainActivity) {
     editing?.let { e ->
         EntryDialog(e, { editingEntryId = null }) { n, num ->
             Store.editEntry(listId, e.id, n, num); editingEntryId = null
-            Store.notify(Tk.SUCCESS, T("Contact updated", "تم تحديث الجهة"))
+            Store.notify(Tk.SUCCESS, L(R.string.ui_contact_updated_5044be5f))
         }
     }
 }
@@ -305,7 +304,7 @@ fun EntryRow(
                     ) {
                         if (e.status != St.PENDING) StatusDot(e.status)
                         if (e.stage != Stg.NONE) StagePill(e.stage) { Store.stageTarget = listId to e.id }
-                        else if (answered) Pill(T("+ Stage", "+ نتيجة"), cs.primary) { Store.stageTarget = listId to e.id }
+                        else if (answered) Pill(L(R.string.ui_stage_71ed493b), cs.primary) { Store.stageTarget = listId to e.id }
                     }
                 }
             }
@@ -315,7 +314,7 @@ fun EntryRow(
             }
             IconButton(onClick = { askDelete = true }, modifier = Modifier.size(40.dp)) {
                 Icon(
-                    Icons.Rounded.Delete, T("Delete number", "حذف الرقم"),
+                    com.o2dialer.app.ui.components.O2Icons.Trash, L(R.string.ui_delete_number_d6acf881),
                     tint = cs.onSurfaceVariant.copy(alpha = 0.65f), modifier = Modifier.size(17.dp)
                 )
             }
@@ -324,7 +323,7 @@ fun EntryRow(
     }
     if (askDelete) {
         ConfirmDialog(
-            T("Delete ${e.name.ifBlank { e.number }} from this campaign?", "حذف ${e.name.ifBlank { e.number }} من الحملة؟"),
+            L(R.string.ui_delete_from_this_campaign_7e9b6dcd, e.name.ifBlank { e.number }),
             { askDelete = false }
         ) {
             Store.deleteEntry(listId, e.id); askDelete = false

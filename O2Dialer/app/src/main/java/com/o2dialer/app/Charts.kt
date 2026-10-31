@@ -125,7 +125,7 @@ fun StageDonut(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CountUp(total, style = MaterialTheme.typography.displaySmall)
             Text(
-                T("tagged", "مصنّفة"), style = MaterialTheme.typography.labelSmall,
+                L(R.string.ui_tagged_7b0f62e3), style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
