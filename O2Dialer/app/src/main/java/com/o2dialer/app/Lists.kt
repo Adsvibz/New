@@ -116,126 +116,19 @@ fun ListDetail(listId: String, act: MainActivity) {
             }
         }
     }
-    val p = Store.prog(list)
-    val shown = remember(list.entries, query) {
-        list.entries.filter { query.isBlank() || it.name.contains(query, true) || it.number.contains(query) }
-    }
-    val simText = when (list.simSlot) { 0 -> "SIM 1"; 1 -> "SIM 2"; else -> L(R.string.ui_default_sim_bf6ca60e) }
-
-    val chips: @Composable () -> Unit = {
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
-            ActionChip(com.o2dialer.app.ui.components.O2Icons.Plus, L(R.string.ui_add_number_077dc68a)) { dlg = "add" }
-            ActionChip(com.o2dialer.app.ui.components.O2Icons.Copy, L(R.string.ui_paste_7e57a4f2)) { if (License.canImport) dlg = "bulk" else License.denyImport() }
-            ActionChip(com.o2dialer.app.ui.components.O2Icons.Upload, L(R.string.ui_import_file_feafb58e)) {
-                if (!importing) { if (License.canImport) importer.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) else License.denyImport() }
+    ReferenceCampaignDetail(list, act, importing, query, { query = it }, onTool = { tool ->
+        when (tool) {
+            "add" -> dlg = "add"
+            "bulk" -> if (License.canImport) dlg = "bulk" else License.denyImport()
+            "import" -> if (!importing) {
+                if (License.canImport) importer.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) else License.denyImport()
             }
-            ActionChip(com.o2dialer.app.ui.components.O2Icons.Contacts, L(R.string.ui_contacts_2fd3de50)) {
-                if (License.canImport) act.ensureContacts { dlg = "contacts" } else License.denyImport()
-            }
+            "contacts" -> if (License.canImport) act.ensureContacts { dlg = "contacts" } else License.denyImport()
         }
-    }
-
-    Scaffold(
-        topBar = {
-            BlendBar(
-                list.name, onBack = { Store.selectedListId = null },
-                subtitle = L(R.string.ui_contacts_13614d72, p.total, simText)
-            )
-        },
-        bottomBar = {
-            if (list.entries.isNotEmpty()) {
-                val label = when {
-                    Store.isRunningList(listId) -> L(R.string.ui_return_to_live_session_404572f9)
-                    p.called == 0 -> L(R.string.ui_start_campaign_28d1c94b)
-                    p.remaining > 0 -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
-                    else -> L(R.string.ui_restart_campaign_062996bf)
-                }
-                Column(
-                    Modifier.fillMaxWidth()
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colorScheme.background)))
-                ) {
-                    Box(
-                        Modifier.fillMaxWidth().navigationBarsPadding()
-                            .padding(horizontal = Sp.xl, vertical = Sp.m)
-                    ) {
-                        BButton(
-                            label, { act.startCampaign(listId, p.called > 0 && p.remaining == 0) },
-                            Modifier.fillMaxWidth(), icon = com.o2dialer.app.ui.components.O2Icons.Play
-                        )
-                    }
-                }
-            }
-        },
-        containerColor = Color.Transparent
-    ) { pad ->
-        if (list.entries.isEmpty()) {
-            Column(
-                Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = Sp.xl),
-                verticalArrangement = Arrangement.spacedBy(Sp.m)
-            ) {
-                LicenseBanner()
-                PermissionBanner(act)
-                V7DetailHeader(list, p)
-                chips()
-                if (importing) LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
-                EmptyState(
-                    com.o2dialer.app.ui.components.O2Icons.Users, L(R.string.ui_no_contacts_yet_581955a5),
-                    L(R.string.ui_add_numbers_manually_paste_them_import_dc15a8d5),
-                    Modifier.heightIn(min = 240.dp)
-                )
-            }
-        } else {
-            LazyColumn(
-                Modifier.padding(pad).fillMaxSize(),
-                contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = Sp.l)
-            ) {
-                item { LicenseBanner(); Spacer(Modifier.height(Sp.s)) }
-                item { PermissionBanner(act); Spacer(Modifier.height(Sp.s)) }
-                if (importing) item {
-                    LinearProgressIndicator(Modifier.fillMaxWidth().clip(RoundedCornerShape(50)))
-                    Spacer(Modifier.height(Sp.m))
-                }
-                item { V7DetailHeader(list, p); Spacer(Modifier.height(Sp.m)) }
-                item { chips(); Spacer(Modifier.height(Sp.m)) }
-                item {
-                    BTextField(
-                        query, { query = it }, placeholder = L(R.string.ui_search_name_or_number_192293ed),
-                        leading = com.o2dialer.app.ui.components.O2Icons.Search
-                    )
-                    Spacer(Modifier.height(Sp.l))
-                }
-                item {
-                    Row(Modifier.fillMaxWidth().padding(bottom = Sp.s), verticalAlignment = Alignment.CenterVertically) {
-                        SectionLabel(
-                            if (query.isBlank()) L(R.string.ui_contacts_a01f7e45, p.total)
-                            else L(R.string.ui_results_6b258097, shown.size)
-                        )
-                        Spacer(Modifier.weight(1f))
-                        if (shown.isNotEmpty()) Text(
-                            L(R.string.ui_tap_to_edit_ecb9a5ab),
-                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                if (shown.isEmpty()) {
-                    item {
-                        Text(
-                            L(R.string.ui_no_matches_29a8ff8b),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = Sp.xl)
-                        )
-                    }
-                }
-                itemsIndexed(shown, key = { _, e -> e.id }) { i, e ->
-                    EntryRow(
-                        e, listId,
-                        isFirst = i == 0, isLast = i == shown.lastIndex
-                    ) { if (Store.canEditEntry(listId, e.id)) editingEntryId = e.id
-                        else Store.notify(Tk.INFO, L(R.string.ui_wait_for_the_current_call_to_finish_ee99ca2c)) }
-                }
-            }
-        }
-    }
+    }, onEditContact = { entry ->
+        if (Store.canEditEntry(listId, entry.id)) editingEntryId = entry.id
+        else Store.notify(Tk.INFO, L(R.string.ui_wait_for_the_current_call_to_finish_ee99ca2c))
+    })
 
     when (dlg) {
         "add" -> EntryDialog(null, { dlg = "" }) { n, num -> reportAdded(Store.addEntries(listId, listOf(n to num))); dlg = "" }

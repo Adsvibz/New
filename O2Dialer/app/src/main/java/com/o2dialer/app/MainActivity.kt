@@ -12,6 +12,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.*
+import androidx.compose.ui.platform.LocalDensity
+import com.o2dialer.app.ui.components.ReferenceEase
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -173,17 +180,38 @@ fun Root(act: MainActivity) {
     }
 
     val screenKey = if (Store.tab == 0 && Store.selectedListId != null) 10 else Store.tab
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val reducedMotion = LocalReducedMotion.current
-    // The floating dock belongs to the five main destinations; the campaign detail page is full-screen.
-    val showNav = screenKey in 0..4
+    // The reference keeps its floating navigation visible on campaign details too.
+    val showNav = true
+    var dockHidden by remember(screenKey) { mutableStateOf(false) }
+    val density = LocalDensity.current.density
+    val scrollConnection = remember(screenKey, density) {
+        object : NestedScrollConnection {
+            var scrollTop = 0f
+            var directional = 0f
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                val delta = -consumed.y / density
+                scrollTop = (scrollTop + delta).coerceAtLeast(0f)
+                if (scrollTop <= 20f || (consumed.y == 0f && available.y > 0f)) {
+                    directional = 0f
+                    dockHidden = false
+                } else {
+                    if ((delta > 0f && directional < 0f) || (delta < 0f && directional > 0f)) directional = 0f
+                    directional += delta
+                    if (directional > 16f && scrollTop > 28f) { dockHidden = true; directional = 0f }
+                    else if (directional < -10f) { dockHidden = false; directional = 0f }
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-        bottomBar = { if (showNav) AppNavBar() }
+        bottomBar = {}
     ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad)) {
+        Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).nestedScroll(scrollConnection)) {
             Responsive {
                 AnimatedContent(
                     targetState = screenKey to Store.selectedListId,
@@ -191,13 +219,9 @@ fun Root(act: MainActivity) {
                         if (reducedMotion) {
                             androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
                         } else {
-                        val forward = targetState.first >= initialState.first
-                        val dir = (if (forward) 1 else -1) * (if (rtl) -1 else 1)
-                        (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) +
-                            slideInHorizontally(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) { it / 7 * dir } +
-                            scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.975f)) togetherWith
-                            (fadeOut(tween(Motion.NAV_EXIT_MS)) +
-                                slideOutHorizontally(tween(Motion.NAV_EXIT_MS)) { -it / 12 * dir })
+                        (fadeIn(tween(340, easing = ReferenceEase)) +
+                            slideInVertically(tween(340, easing = ReferenceEase)) { (10 * density).toInt() }) togetherWith
+                            fadeOut(tween(0))
                         }
                     },
                     label = "screen"
@@ -212,6 +236,12 @@ fun Root(act: MainActivity) {
                     }
                 }
             }
+            AnimatedVisibility(
+                visible = showNav && !dockHidden,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = fadeIn(tween(if (reducedMotion) 0 else 300)) + slideInVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() },
+                exit = fadeOut(tween(if (reducedMotion) 0 else 300)) + slideOutVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() }
+            ) { AppNavBar() }
             ToastHost(
                 Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = Sp.m, start = Sp.l, end = Sp.l)
             )

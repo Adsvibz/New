@@ -281,4 +281,75 @@ object O2Icons {
         addPath(PathParser().parsePathString("M8 14h8").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
         addPath(PathParser().parsePathString("M9 10 H15 Q16 10 16 11 V17 Q16 18 15 18 H9 Q8 18 8 17 V11 Q8 10 9 10 Z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
     }.build() }
+    val Palette: ImageVector by lazy { ImageVector.Builder("Palette",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 13 6.5 a 0.5 0.5 0 1 0 1 0 a 0.5 0.5 0 1 0 -1 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 17 10.5 a 0.5 0.5 0 1 0 1 0 a 0.5 0.5 0 1 0 -1 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 6 12.5 a 0.5 0.5 0 1 0 1 0 a 0.5 0.5 0 1 0 -1 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 8 7.5 a 0.5 0.5 0 1 0 1 0 a 0.5 0.5 0 1 0 -1 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val TrendingUp: ImageVector by lazy { ImageVector.Builder("TrendingUp",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M16 7h6v6").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m22 7-8.5 8.5-5-5L2 17").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val Smartphone: ImageVector by lazy { ImageVector.Builder("Smartphone",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M7 2 H17 Q19 2 19 4 V20 Q19 22 17 22 H7 Q5 22 5 20 V4 Q5 2 7 2 Z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M12 18h.01").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val BookOpen: ImageVector by lazy { ImageVector.Builder("BookOpen",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M12 7v14").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val FileCode: ImageVector by lazy { ImageVector.Builder("FileCode",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M14 2v4a2 2 0 0 0 2 2h4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m5 12-3 3 3 3").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m9 18 3-3-3-3").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val PersonAdd: ImageVector by lazy { ImageVector.Builder("PersonAdd",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 5 7 a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M19 8 L19 14").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M22 11 L16 11").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val ClipboardPaste: ImageVector by lazy { ImageVector.Builder("ClipboardPaste",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M11 14h10").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M16 4h2a2 2 0 0 1 2 2v1.344").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m17 18 4-4-4-4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 1.793-1.113").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M9 2 H15 Q16 2 16 3 V5 Q16 6 15 6 H9 Q8 6 8 5 V3 Q8 2 9 2 Z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val FileUp: ImageVector by lazy { ImageVector.Builder("FileUp",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M14 2v4a2 2 0 0 0 2 2h4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M12 12v6").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m15 15-3-3-3 3").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val BookUser: ImageVector by lazy { ImageVector.Builder("BookUser",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M15 13a3 3 0 1 0-6 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 10 8 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val Spreadsheet: ImageVector by lazy { ImageVector.Builder("Spreadsheet",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M14 2v4a2 2 0 0 0 2 2h4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M8 13h2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M14 13h2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M8 17h2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M14 17h2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val Bolt: ImageVector by lazy { ImageVector.Builder("Bolt",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val Sparkles: ImageVector by lazy { ImageVector.Builder("Sparkles",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M20 2v4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M22 4h-4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M 2 20 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val AlertCircle: ImageVector by lazy { ImageVector.Builder("AlertCircle",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M 2 12 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M12 8 L12 12").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M12 16 L12.01 16").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
 }

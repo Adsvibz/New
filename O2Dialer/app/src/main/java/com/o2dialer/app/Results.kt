@@ -193,7 +193,7 @@ fun ResultsScreen() {
                 (outcome==-1 || it.status==outcome) && (stage==-1 || it.stage==stage) &&
                     (query.isBlank() || it.name.contains(query,true) || it.number.contains(query) || it.feedback.contains(query,true))
             }.sortedByDescending { it.calledAt }
-            LazyColumn(Modifier.padding(pad),contentPadding=PaddingValues(horizontal=20.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+            LazyColumn(Modifier.padding(pad),contentPadding=PaddingValues(start=20.dp,end=20.dp,top=8.dp,bottom=112.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 item {
                     Box {
                         BButton(list.name,{picker=true},Modifier.fillMaxWidth(),kind=BtnKind.Tonal,icon=com.o2dialer.app.ui.components.O2Icons.Chevron,compact=true)
@@ -381,7 +381,7 @@ fun LogScreen() {
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.m, bottom = Sp.l)
+                    contentPadding = PaddingValues(start = Sp.xl, end = Sp.xl, top = Sp.m, bottom = 112.dp)
                 ) {
                     groups.forEach { (day, items) ->
                         item(key = "day-$day") {

@@ -82,8 +82,9 @@ private fun CallControls(paused: Boolean) {
     var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    O2Card(Modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().padding(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+    Column {
+        HorizontalDivider(color = cs.onSurface.copy(alpha = .06f))
+        Row(Modifier.fillMaxWidth().padding(top = 14.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             BButton(L(R.string.ui_skip_1b19bc56),{ DialerService.send(ctx,DialerService.ACT_SKIP) },Modifier.weight(1f),kind=BtnKind.Tonal,icon=O2Icons.Skip,compact=true,
                 enabled=Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating)
             BButton(if(paused) L(R.string.ui_resume_1c6804ad) else L(R.string.ui_pause_f0d3c022),{ DialerService.send(ctx,if(paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },Modifier.weight(1f),icon=if(paused) O2Icons.Play else O2Icons.Pause,compact=true)
@@ -142,7 +143,7 @@ private fun RunSetupPanel() {
 
 @Composable
 private fun UpNext(list: CallList, remaining: Int) {
-    val next = remember(Store.camp.queuedIds, list.entries) { queuedEntries(Store.camp, list).take(3) }
+    val next = remember(Store.camp.queuedIds, Store.camp.status, list.entries) { (if(Store.campActive() && Store.camp.listId == list.id) queuedEntries(Store.camp, list) else list.entries.filter { it.status == St.PENDING }).take(3) }
     var removing by remember { mutableStateOf<Entry?>(null) }
     if (next.isEmpty()) return
     val cs = MaterialTheme.colorScheme
@@ -208,14 +209,22 @@ private fun UpNext(list: CallList, remaining: Int) {
 
 // ====================================================================== idle launcher
 @Composable
-private fun ReadyHero(selected: CallList?, p: Prog?) {
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            IconTile(com.o2dialer.app.ui.components.O2Icons.Phone, size = 48.dp)
-            Text(L(R.string.ui_ready_to_call_61a4b92c), style = MaterialTheme.typography.headlineMedium)
-            if (selected != null && p != null) Text(
-                L(R.string.ui_contacts_remaining_1c6d6fb6, p.total, p.remaining),
-                style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+private fun ReadyHero(selected: CallList?, p: Prog?, act: MainActivity) {
+    val cs = MaterialTheme.colorScheme
+    O2Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(L(R.string.ui_ready_to_call_61a4b92c), fontSize = 12.sp, color = cs.onSurfaceVariant)
+            Text(selected?.name ?: L(R.string.ref_no_campaign_selected), Modifier.padding(top = 4.dp), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (p == null) L(R.string.ref_pick_campaign_hint) else if(p.total == 0) L(R.string.ref_empty_campaign_hint) else L(R.string.ref_ready_remaining, p.remaining, p.total) + " · " + (if(selected?.simSlot == -1) L(R.string.ui_default_sim_bf6ca60e) else "SIM " + ((selected?.simSlot ?: 0) + 1)),
+                Modifier.padding(top = 4.dp, bottom = 16.dp), fontSize = 12.sp, color = cs.onSurfaceVariant, textAlign = TextAlign.Center)
+            if (selected != null && p != null) Button({
+                if (p.total == 0) { Store.selectedListId = selected.id; Store.tab = 0 }
+                else act.startCampaign(selected.id, p.called > 0 && p.remaining == 0)
+            }, Modifier.heightIn(min = 46.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = O2Colors.Ink, contentColor = Color.White), contentPadding = PaddingValues(horizontal = 24.dp)) {
+                Icon(if(p.total == 0) O2Icons.PersonAdd else O2Icons.Phone, null, Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(L(if(p.total == 0) R.string.ref_add_contacts else if(p.remaining == 0) R.string.ui_restart_campaign_062996bf else if(p.called > 0) R.string.ui_resume_1c6804ad else R.string.ui_start_campaign_28d1c94b), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }
@@ -276,61 +285,6 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
     }
 }
 
-@Composable
-private fun Launcher(act: MainActivity) {
-    val sel = Store.runListId?.takeIf { id -> Store.lists.any { it.id == id } } ?: Store.lists.firstOrNull()?.id
-    val selList = Store.lists.find { it.id == sel }
-    val p = selList?.let { Store.prog(it) }
-
-    if (Store.lists.isEmpty()) {
-        Panel(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                IconTile(com.o2dialer.app.ui.components.O2Icons.Megaphone, MaterialTheme.colorScheme.primary, 48.dp)
-                Text(L(R.string.ui_nothing_to_call_yet_80676713), style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    L(R.string.ui_create_a_campaign_and_add_a_few_number_215d66a2),
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                BButton(L(R.string.ui_go_to_campaigns_ba3e39c8), { Store.tab = 0 }, kind = BtnKind.Tonal, compact = true)
-            }
-        }
-        return
-    }
-
-    ReadyHero(selList, p)
-    Spacer(Modifier.height(Sp.m))
-    CampaignPicker(sel) { Store.runListId = it }
-
-    if (sel != null && p != null && p.total > 0) {
-        val resumable = p.called > 0 && p.remaining > 0
-        Spacer(Modifier.height(Sp.m))
-        BButton(
-            when {
-                resumable -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
-                p.called > 0 -> L(R.string.ui_restart_campaign_062996bf)
-                else -> L(R.string.ui_start_campaign_28d1c94b)
-            },
-            { act.startCampaign(sel, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = com.o2dialer.app.ui.components.O2Icons.Play
-        )
-        if (resumable) {
-            Spacer(Modifier.height(Sp.s))
-            BButton(
-                L(R.string.ui_restart_from_the_beginning_ff715b61), { act.startCampaign(sel, true) },
-                Modifier.fillMaxWidth(), kind = BtnKind.Ghost, icon = com.o2dialer.app.ui.components.O2Icons.Refresh
-            )
-        }
-    } else if (selList != null) {
-        Spacer(Modifier.height(Sp.m))
-        Banner(
-            Tk.WARN, L(R.string.ui_this_campaign_is_empty_80aceaee),
-            L(R.string.ui_add_numbers_before_starting_9e726753),
-            actionText = L(R.string.ui_open_51464838)
-        ) { Store.selectedListId = selList.id; Store.tab = 0 }
-    }
-    Spacer(Modifier.height(Sp.m))
-    RunSetupPanel()
-}
-
 // ====================================================================== screen
 @Composable
 fun LiveScreen(act: MainActivity) {
@@ -340,55 +294,69 @@ fun LiveScreen(act: MainActivity) {
     LaunchedEffect(active) { while (active) { now = System.currentTimeMillis(); delay(500) } }
     val heroList = Store.lists.find { it.id == c.listId }
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
+    val selected = if(showHero) heroList else Store.lists.find { it.id == Store.runListId } ?: Store.lists.firstOrNull()
+    var picking by remember { mutableStateOf(false) }
+    var operational by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { BlendBar(L(R.string.ui_dialer_bd42b0f9)) },
+        topBar = {},
         containerColor = Color.Transparent
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = Sp.xl, vertical = Sp.s),
+                .padding(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
-            LicenseBanner()
-            PermissionBanner(act)
-            AnimatedContent(
-                targetState = showHero,
-                transitionSpec = {
-                    (fadeIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut)) + scaleIn(tween(Motion.NAV_ENTER_MS, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
-                        (fadeOut(tween(Motion.NAV_EXIT_MS)) + scaleOut(tween(Motion.NAV_EXIT_MS), targetScale = 0.995f))
-                },
-                label = "liveState"
-            ) { hero ->
-                Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                    if (hero && heroList != null) {
-                        val p = Store.prog(heroList)
-                        Enter(0) { V7LiveHero(c, heroList, p, now) }
-                        if (c.status == CS.FINISHED) {
-                            Enter(1) { Banner(if (c.error) Tk.ERROR else if (c.completed) Tk.SUCCESS else Tk.INFO, c.message) }
-                            Enter(2) { OutcomesPanel(p, p.remaining) }
-                            if (!c.error) Enter(3) {
-                                BButton(
-                                    L(R.string.ui_view_campaign_results_4e1585fe),
-                                    { Store.resultsListId = c.listId; Store.tab = 2 }, Modifier.fillMaxWidth(),
-                                    kind = BtnKind.Tonal, icon = com.o2dialer.app.ui.components.O2Icons.Chart
-                                )
-                            }
-                            Enter(4) {
-                                BButton(L(R.string.ui_choose_a_campaign_18062c29), { Store.camp = CampState() }, Modifier.fillMaxWidth(), kind = BtnKind.Outline)
-                            }
-                        } else {
-                            if (active) Enter(1) { CallControls(c.status == CS.PAUSED) }
-                            Enter(2) { OutcomesPanel(p, p.remaining) }
-                            if (active) Enter(3) { RunSetupPanel() }
-                            if (active) Enter(4) { UpNext(heroList, p.remaining) }
-                        }
-                    } else {
-                        Launcher(act)
-                    }
+            ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })
+            if (showHero && heroList != null) {
+                V7LiveHero(c, heroList, Store.prog(heroList), now) { if(active) CallControls(c.status == CS.PAUSED) }
+                if(c.status == CS.FINISHED) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    BButton(L(R.string.ui_view_campaign_results_4e1585fe), { Store.resultsListId = c.listId; Store.tab = 2 }, Modifier.weight(1f), kind = BtnKind.Tonal, compact = true)
+                    BButton(L(R.string.ui_choose_a_campaign_18062c29), { picking = true }, Modifier.weight(1f), compact = true)
                 }
+            } else ReadyHero(selected, selected?.let { Store.prog(it) }, act)
+            selected?.let { list ->
+                val progress = Store.prog(list)
+                O2MetricGrid(listOf(
+                    { m -> O2StatWidget(L(R.string.ui_called_c764210c), progress.called.toString(), modifier=m, hero=true, progress=progress.pct/100f) },
+                    { m -> O2StatWidget(L(R.string.ui_remaining_8cbe3646), progress.remaining.toString(), L(R.string.ref_total_contacts, progress.total), m) },
+                    { m -> O2StatWidget(L(R.string.ref_answered), progress.answered.toString(), L(R.string.ref_connected_calls), m) },
+                    { m -> O2StatWidget(L(R.string.ref_no_answer)+" / "+L(R.string.ref_failed), (progress.noAnswer+progress.failed).toString(), L(R.string.ref_missed_failed, progress.noAnswer, progress.failed), m) }
+                ))
+                UpNext(list, progress.remaining)
             }
+            RunSetupPanel()
             Spacer(Modifier.height(Sp.l))
         }
+    }
+    if(picking) BSheet(L(R.string.ui_choose_a_campaign_eb7e0334), { picking = false }) {
+        CampaignPicker(selected?.id) { id ->
+            if (Store.campActive() && id != Store.camp.listId) Store.notify(Tk.INFO, L(R.string.ref_stop_before_switch))
+            else { Store.runListId = id; if(!Store.campActive()) Store.camp = CampState(); picking = false }
+        }
+    }
+    if(operational) BSheet(L(R.string.ref_operational_status), { operational = false }) {
+        LicenseBanner(); PermissionBanner(act)
+        Text(c.message.ifBlank { sessionLabel(c) }, fontSize = 13.sp)
+    }
+
+}
+
+@Composable
+private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicker: () -> Unit, onOperational: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.weight(1f)) {
+            Row(Modifier.clickable(onClick = onPicker), verticalAlignment = Alignment.CenterVertically) {
+                Text(selected?.name ?: L(R.string.ref_select_campaign), Modifier.weight(1f, fill = false), fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = cs.onSurfaceVariant)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(L(R.string.ui_dialer_bd42b0f9), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                Text(if(state.status == CS.IDLE && selected != null) L(R.string.ui_ready_0c93aede) else sessionLabel(state), Modifier.background(cs.onSurface.copy(alpha = .06f), CircleShape).padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+        IconButton(onOperational, Modifier.size(44.dp).background(cs.surface.copy(alpha=.6f), CircleShape)) { Icon(O2Icons.AlertCircle, L(R.string.ref_operational_status), Modifier.size(18.dp)) }
+        IconButton({ Store.updateCfg { it.copy(lang = 1 - it.lang) } }, Modifier.size(44.dp).background(cs.surface.copy(alpha=.6f), CircleShape)) { Icon(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1), Modifier.size(18.dp)) }
     }
 }

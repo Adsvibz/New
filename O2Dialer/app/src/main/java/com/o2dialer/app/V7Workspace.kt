@@ -51,7 +51,7 @@ private val Ink: Color @Composable get() = MaterialTheme.colorScheme.onSurface
 private val Muted: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 private val Soft: Color @Composable get() = MaterialTheme.colorScheme.surfaceVariant
 private val Line: Color @Composable get() = MaterialTheme.colorScheme.outlineVariant
-private val ProgressBlue = O2Colors.Accent
+private val ProgressBlue get() = O2Colors.Accent
 private fun displayNumber(n: Int): String = java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(n)
 private val Green = Color(0xFF047857)
 private val Amber = Color(0xFFB45309)
@@ -144,13 +144,13 @@ private fun PrecisionCampaignContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 112.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
 
         item {
             O2TopHeader(L(R.string.ui_campaigns_d8df9f8a),L(R.string.ui_campaigns_contacts_d7e52d96, lists.size, total)) {
-                O2PrimaryButton(L(R.string.ui_new_df3f4fcc),onCreate,icon=O2Icons.Plus)
+                O2PrimaryButton(L(R.string.ui_new_campaign_d690aa07),onCreate,icon=O2Icons.Plus)
             }
         }
         item { Spacer(Modifier.height(8.dp)) }
@@ -169,8 +169,8 @@ private fun PrecisionCampaignContent(
                 val interaction = remember { MutableInteractionSource() }
                 val focused by interaction.collectIsFocusedAsState()
                 Row(
-                    Modifier.weight(1f).heightIn(min = 36.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                    Modifier.weight(1f).height(44.dp)
+                        .clip(CircleShape)
                         .background(if (focused) MaterialTheme.colorScheme.surfaceVariant else Soft)
                         .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -199,7 +199,7 @@ private fun PrecisionCampaignContent(
                 }
                 Box {
                     IconButton(onClick = { sortMenu = true },
-                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
+                        modifier = Modifier.size(44.dp).clip(CircleShape)
                             .background(Soft)) {
                         Icon(com.o2dialer.app.ui.components.O2Icons.Filter, L(R.string.ui_sort_f4cfeec2), tint = Muted,
                             modifier = Modifier.size(18.dp))
@@ -232,25 +232,21 @@ private fun PrecisionCampaignContent(
                 listOf(
                     "all" to L(R.string.ui_all_40d8dc7f),
                     "active" to L(R.string.ui_active_1597f9da),
-                    "completed" to L(R.string.ui_completed_8891e609),
+                    "ready" to L(R.string.ui_ready_0c93aede),
                     "paused" to L(R.string.ui_paused_f5813c1d),
-                    "ready" to L(R.string.ui_ready_0c93aede)
+                    "completed" to L(R.string.ui_completed_8891e609)
                 ).forEach { (key, label) ->
                     val selectedChip = key == filter
                     Surface(
                         onClick = { filter = key },
                         color = if (selectedChip) Color(0xFF17191D) else MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(7.dp)
+                        shape = CircleShape
                     ) {
-                        Row(Modifier.padding(horizontal = 11.dp, vertical = 4.dp),
+                        Row(Modifier.heightIn(min = 36.dp).padding(horizontal = 14.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically) {
                             Text(label, style = MaterialTheme.typography.labelSmall,
                                 fontWeight = if (selectedChip) FontWeight.Bold else FontWeight.Medium,
                                 color = if (selectedChip) Color.White else Muted)
-                            Spacer(Modifier.width(4.dp))
-                            Text((counts[key] ?: 0).toString(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (selectedChip) Color.White.copy(alpha = 0.78f) else Muted)
                         }
                     }
                 }
@@ -424,15 +420,15 @@ private fun PrecisionCampaignCard(
         "active" -> Color(0xFF047857)
         "paused" -> Color(0xFFB45309)
         "completed" -> Color(0xFF52525B)
-        else -> Color(0xFF1D4ED8)
+        else -> Color(0xFF6B7280)
     }
 
 
     Column(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(if (selected) MaterialTheme.colorScheme.surface.copy(alpha=.95f) else MaterialTheme.colorScheme.surface)
-            .border(1.dp, if (selected) Ink else Line, RoundedCornerShape(24.dp))
+            .background(if (selected) MaterialTheme.colorScheme.surface.copy(alpha=.95f) else MaterialTheme.colorScheme.surface.copy(alpha = .6f))
+            .border(if (selected) 2.dp else 0.dp, if (selected) Ink else Color.Transparent, RoundedCornerShape(24.dp))
             .combinedClickable(
                 onClick = { if (selecting) onToggle() else onOpen() },
                 onLongClick = onToggle
@@ -452,7 +448,7 @@ private fun PrecisionCampaignCard(
                 Spacer(Modifier.width(8.dp))
             }
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Text(list.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Ink,
+                Text(list.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Ink,
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 Spacer(Modifier.width(7.dp))
                 Surface(shape = CircleShape, color = statusColor.copy(alpha=.1f)) {
@@ -460,20 +456,8 @@ private fun PrecisionCampaignCard(
                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
                 }
             }
-            if (status == "active" || status == "paused") {
-                IconButton(
-                    onClick = { if (running) Store.tab = 1 else onOpen() },
-                    modifier = Modifier.size(26.dp)
-                ) {
-                    Icon(
-                        if (status == "paused") com.o2dialer.app.ui.components.O2Icons.Play else com.o2dialer.app.ui.components.O2Icons.Pause,
-                        L(R.string.ui_open_session_controls_caf6b98b),
-                        tint = Color(0xFF838996), modifier = Modifier.size(17.dp)
-                    )
-                }
-            }
             Box {
-                IconButton(onClick = { menu = true }, modifier = Modifier.size(26.dp)) {
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) {
                     Icon(com.o2dialer.app.ui.components.O2Icons.More, L(R.string.ui_campaign_actions_19a76975),
                         tint = Color(0xFF838996), modifier = Modifier.size(17.dp))
                 }
@@ -528,43 +512,23 @@ private fun PrecisionCampaignCard(
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Text(L(R.string.ui_auto_dialer_c43c3723), color = Muted,
-                style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            Spacer(Modifier.width(6.dp))
-            Text("·", color = Muted, fontSize = 11.sp)
-            Spacer(Modifier.width(6.dp))
-            Text(if (list.simSlot >= 0) L(R.string.ui_sim_bcecb5b1, list.simSlot + 1)
-                else L(R.string.ui_default_sim_bf6ca60e),
-                color = Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1,
-                overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-            if (duplicateCount > 0) {
-                Spacer(Modifier.width(7.dp))
-                Text("· $duplicateCount " + L(R.string.ui_dups_d37bc2ca), color = Color(0xFFEA580C),
-                    style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-        }
-
-        Spacer(Modifier.height(7.dp))
-        HorizontalDivider(color = Line, thickness = 1.dp)
-        Spacer(Modifier.height(8.dp))
-
+        Spacer(Modifier.height(14.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(L(R.string.ui_remaining_e466e397, displayNumber(p.called), displayNumber(p.total), displayNumber(p.remaining)),
                 fontSize = 12.sp, color = Muted, modifier = Modifier.weight(1f))
             Text("${visualPercent}%", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Ink)
         }
         Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(5.dp).clip(CircleShape)
-            .background(Line)) {
+        Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape)
+            .background(Ink.copy(alpha = .06f)).padding(2.dp)) {
             Box(Modifier.fillMaxHeight().fillMaxWidth((visualPercent / 100f).coerceIn(0f, 1f))
-                .background(if (status == "paused") Color(0xFFF59E0B) else ProgressBlue))
+                .background(if (running || status == "active") ProgressBlue else Ink))
         }
         Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(L(R.string.ui_contacts_a01f7e45, displayNumber(p.total)),
-                color = Muted, fontSize = 11.sp, modifier = Modifier.weight(1f))
-            Text(if (last.isEmpty()) statusLabel else statusLabel + " " + last,
+            Text((if (list.simSlot >= 0) "SIM ${list.simSlot + 1}" else L(R.string.ui_default_sim_bf6ca60e)) + " · " + L(R.string.ref_answered_count, p.answered),
+                color = Muted, fontSize = 11.5.sp, modifier = Modifier.weight(1f))
+            Text(last,
                 color = Muted, fontSize = 11.sp, maxLines = 1)
         }
     }

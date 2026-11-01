@@ -49,45 +49,13 @@ import kotlin.math.roundToInt
 // ============================================================ SIM picker
 @Composable
 fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
-    val ctx = LocalContext.current
-    val labels = remember(Store.permTick, Store.cfg.lang) { simLabels(ctx) }
-    val names = listOf(L(R.string.ui_default_sim_bf6ca60e)) + labels
-    val cs = MaterialTheme.colorScheme
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-        .background(cs.surfaceVariant.copy(alpha = 0.35f)).selectableGroup()) {
-        names.forEachIndexed { i, label ->
-            val on = selected == i - 1
-            Row(
-                Modifier.fillMaxWidth().selectable(selected = on,
-                    role = androidx.compose.ui.semantics.Role.RadioButton, onClick = { onSelect(i - 1) })
-                    .heightIn(min = 52.dp).padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(selected = on, onClick = null)
-                Spacer(Modifier.width(12.dp))
-                Text(label, style = MaterialTheme.typography.bodyMedium, color = cs.onSurface,
-                    fontWeight = if (on) FontWeight.Medium else FontWeight.Normal)
-            }
-            if (i < names.lastIndex) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = cs.outlineVariant)
-        }
-    }
+    com.o2dialer.app.ui.components.ReferenceSimPicker(selected, onSelect)
 }
 
 // ============================================================ forms (bottom sheets)
 @Composable
 fun CampaignDialog(initial: CallList?,onDismiss:()->Unit,onSave:(String,Int)->Unit) {
-    var name by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
-    var sim by rememberSaveable(initial?.id) { mutableIntStateOf(initial?.simSlot ?: -1) }
-    BSheet(if(initial==null) L(R.string.ui_new_campaign_d690aa07) else L(R.string.ui_edit_campaign_7f55beab),onDismiss,
-        subtitle=L(R.string.ui_configure_your_campaign_settings_cd0a9725),actions={
-            BButton(if(initial==null) L(R.string.ui_create_campaign_cb28c9a7) else L(R.string.ui_save_changes_176a0511),
-                { if(name.isNotBlank()) onSave(name.trim(),sim) },Modifier.fillMaxWidth(),enabled=name.isNotBlank())
-        }) {
-        BTextField(name,{name=it},label=L(R.string.ui_campaign_name_387f69a0),placeholder=L(R.string.ui_e_g_customer_outreach_566af42f))
-        SectionLabel(L(R.string.ui_outgoing_sim_70f1a44a))
-        SimPicker(sim) { sim=it }
-        Text(L(R.string.ui_add_contacts_after_creating_the_campai_dcae00a2),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    com.o2dialer.app.ui.components.ReferenceCampaignForm(initial, onDismiss, onSave)
 }
 
 @Composable
@@ -300,38 +268,11 @@ fun SettingsSection(
     icon: ImageVector, title: String, startOpen: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    var open by rememberSaveable(title) { mutableStateOf(startOpen) }
     val cs = MaterialTheme.colorScheme
-    val turn by animateFloatAsState(if (open) 180f else 0f, spring(dampingRatio = 0.8f, stiffness = 380f), label = "chevron")
-    Panel(Modifier.fillMaxWidth()) {
-        Column {
-            Row(
-                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 66.dp)
-                    .padding(horizontal = Sp.l),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconTile(icon, cs.primary, 36.dp)
-                Spacer(Modifier.width(Sp.m))
-                Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                Icon(
-                    com.o2dialer.app.ui.components.O2Icons.Chevron,
-                    if (open) L(R.string.ui_collapse_3004788e) else L(R.string.ui_expand_0a80d040),
-                    tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(turn)
-                )
-            }
-            AnimatedVisibility(
-                visible = open,
-                enter = expandVertically(spring(dampingRatio = 0.9f, stiffness = 320f)) + fadeIn(),
-                exit = shrinkVertically(spring(dampingRatio = 0.9f, stiffness = 380f)) + fadeOut()
-            ) {
-                Column {
-                    Hairline(Modifier.padding(horizontal = Sp.l))
-                    Column(
-                        Modifier.padding(start = Sp.l, end = Sp.l, top = Sp.l, bottom = Sp.xl),
-                        verticalArrangement = Arrangement.spacedBy(Sp.l)
-                    ) { content() }
-                }
-            }
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = cs.surface.copy(alpha = .6f), shadowElevation = 3.dp) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(title, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, letterSpacing = (-.3).sp)
+            content()
         }
     }
 }

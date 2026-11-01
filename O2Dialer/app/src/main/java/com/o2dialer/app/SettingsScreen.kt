@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.o2dialer.app.ui.components.*
 
 @Composable
 private fun Hint(text: String) {
@@ -68,53 +69,55 @@ fun SettingsScreen() {
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = Sp.xl, vertical = Sp.s),
-            verticalArrangement = Arrangement.spacedBy(Sp.m)
+                .padding(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = 112.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Globe, L(R.string.ui_general_509ae930), startOpen = true) {
-                SectionLabel(L(R.string.ui_language_a2d96192))
-                Segmented(listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
-                SectionLabel(L(R.string.ui_appearance_d1df9e0b))
-                Segmented(
-                    listOf(L(R.string.ui_auto_c83f6fbd), L(R.string.ui_light_d154c99a), L(R.string.ui_dark_b384fbdc)), c.themeMode
-                ) { i -> up { it.copy(themeMode = i) } }
-                SwitchRow(
+                ReferenceSettingChoice(L(R.string.ui_language_a2d96192), listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
+                ReferenceSettingChoice(L(R.string.ui_appearance_d1df9e0b), listOf("System", "Light", "Dark"), c.themeMode) { i -> up { it.copy(themeMode = i) } }
+                com.o2dialer.app.ui.components.ReferenceColorOption()
+                ReferenceSettingCheck(
                     L(R.string.ui_use_system_colours_f2cc791e),
                     L(R.string.ui_material_you_android_12_and_above_d132b020),
                     c.dynamicColor
                 ) { v -> up { it.copy(dynamicColor = v) } }
+                ReferenceDeviceFrameOption()
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Timer, L(R.string.ui_timing_72ace5eb)) {
                 SliderRow(L(R.string.ui_delay_between_calls_380656be), c.delaySec, 0, 120, L(R.string.ui_s_5cc34057)) { v -> up { it.copy(delaySec = v) } }
-                SwitchRow(L(R.string.ui_random_delay_dd0cc564), L(R.string.ui_picks_a_random_wait_between_the_two_li_ff57927f),
+                ReferenceSettingCheck(L(R.string.ui_random_delay_dd0cc564), L(R.string.ui_picks_a_random_wait_between_the_two_li_ff57927f),
                     c.randomDelay) { v -> up { it.copy(randomDelay = v) } }
                 if (c.randomDelay) SliderRow(L(R.string.ui_maximum_delay_6d4daf41), c.delayMaxSec, 1, 300, L(R.string.ui_s_5cc34057)) { v -> up { it.copy(delayMaxSec = v) } }
-                SliderRow(L(R.string.ui_countdown_before_start_59587dda), c.startCountdown, 0, 30, L(R.string.ui_s_5cc34057), L(R.string.ui_instant_01ab7276)) { v -> up { it.copy(startCountdown = v) } }
-                Hint(L(R.string.ui_automatic_hang_up_is_not_supported_by__caea566d))
-                SliderRow(L(R.string.ui_end_each_call_after_07ec84fd), c.maxCallSec, 0, 600, L(R.string.ui_s_5cc34057), L(R.string.ui_off_38799a15)) { v -> up { it.copy(maxCallSec = v) } }
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    ReferenceSettingNumber(L(R.string.ref_countdown), c.startCountdown, 0, 30, Modifier.weight(1f)) { v -> up { it.copy(startCountdown = v) } }
+                    ReferenceSettingNumber(L(R.string.ref_call_limit), c.maxCallSec, 0, 600, Modifier.weight(1f)) { v -> up { it.copy(maxCallSec = v) } }
+                }
+                Hint(L(R.string.ref_call_limit_hint))
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Filter, L(R.string.ui_campaign_778a89ff)) {
-                SliderRow(L(R.string.ui_retry_unanswered_e1a14c61), c.retries, 0, 5, L(R.string.ui_times_ee99658e), L(R.string.ui_none_35e6d97f)) { v -> up { it.copy(retries = v) } }
-                SliderRow(L(R.string.ui_rounds_repeat_the_list_43170c56), c.loops, 1, 20, "") { v -> up { it.copy(loops = v) } }
-                SwitchRow(L(R.string.ui_shuffle_order_da608317), null, c.shuffle) { v -> up { it.copy(shuffle = v) } }
-                SwitchRow(L(R.string.ui_skip_answered_numbers_27c14510), L(R.string.ui_on_restart_keep_answered_contacts_unto_052fbe32),
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    ReferenceSettingNumber(L(R.string.ui_retry_unanswered_e1a14c61), c.retries, 0, 5, Modifier.weight(1f)) { v -> up { it.copy(retries = v) } }
+                    ReferenceSettingNumber(L(R.string.ui_rounds_repeat_the_list_43170c56), c.loops, 1, 20, Modifier.weight(1f)) { v -> up { it.copy(loops = v) } }
+                }
+                ReferenceSettingCheck(L(R.string.ui_shuffle_order_da608317), null, c.shuffle) { v -> up { it.copy(shuffle = v) } }
+                ReferenceSettingCheck(L(R.string.ui_skip_answered_numbers_27c14510), L(R.string.ui_on_restart_keep_answered_contacts_unto_052fbe32),
                     c.skipAnswered) { v -> up { it.copy(skipAnswered = v) } }
-                SwitchRow(L(R.string.ui_detect_answers_from_call_log_ebbb4e2b), L(R.string.ui_requires_call_log_access_unavailable_r_1b3c324f),
+                ReferenceSettingCheck(L(R.string.ui_detect_answers_from_call_log_ebbb4e2b), L(R.string.ui_requires_call_log_access_unavailable_r_1b3c324f),
                     c.useCallLog) { v -> up { it.copy(useCallLog = v) } }
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.VolumeUp, L(R.string.ui_during_calls_b130b177)) {
-                SwitchRow(L(R.string.ui_auto_speaker_mute_mic_9a82cea9),
+                ReferenceSettingCheck(L(R.string.ui_auto_speaker_mute_mic_9a82cea9),
                     L(R.string.ui_turns_the_speaker_on_and_mutes_the_mic_49caec08),
                     c.autoSpeaker) { v -> up { it.copy(autoSpeaker = v) } }
                 Hint(L(R.string.ui_some_phones_don_t_allow_apps_to_change_7ffcedea))
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Star, L(R.string.ui_call_results_stages_a9b946ef)) {
-                SwitchRow(L(R.string.ui_ask_for_a_stage_after_answered_calls_bb9af7e3), null,
+                ReferenceSettingCheck(L(R.string.ui_ask_for_a_stage_after_answered_calls_bb9af7e3), null,
                     c.askStage) { v -> up { it.copy(askStage = v) } }
                 if (c.askStage) SliderRow(L(R.string.ui_wait_for_your_choice_3fef7a49), c.stageWaitSec, 0, 60, "s",
                     L(R.string.ui_don_t_wait_198041aa)) { v -> up { it.copy(stageWaitSec = v) } }
@@ -128,7 +131,7 @@ fun SettingsScreen() {
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Clock, L(R.string.ui_allowed_calling_hours_a6b3cbad)) {
-                SwitchRow(L(R.string.ui_limit_calls_to_a_time_window_4e36e783), L(R.string.ui_the_campaign_waits_outside_these_hours_16743f31),
+                ReferenceSettingCheck(L(R.string.ui_limit_calls_to_a_time_window_4e36e783), L(R.string.ui_the_campaign_waits_outside_these_hours_16743f31),
                     c.quietEnabled) { v -> up { it.copy(quietEnabled = v) } }
                 if (c.quietEnabled) {
                     SliderRow(L(R.string.ui_from_c9da8847), c.quietFrom, 0, 23, ":00") { v -> up { it.copy(quietFrom = v) } }
@@ -138,9 +141,9 @@ fun SettingsScreen() {
             }
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Notifications, L(R.string.ui_screen_alerts_537ed863)) {
-                SwitchRow(L(R.string.ui_keep_screen_on_during_a_campaign_c045927c), null,
+                ReferenceSettingCheck(L(R.string.ui_keep_screen_on_during_a_campaign_c045927c), null,
                     c.keepScreenOn) { v -> up { it.copy(keepScreenOn = v) } }
-                SwitchRow(L(R.string.ui_vibrate_when_the_campaign_ends_c169964c), null,
+                ReferenceSettingCheck(L(R.string.ui_vibrate_when_the_campaign_ends_c169964c), null,
                     c.vibrateOnFinish) { v -> up { it.copy(vibrateOnFinish = v) } }
             }
 
@@ -181,7 +184,7 @@ fun SettingsScreen() {
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
             }
 
-            SettingsFooter()
+            ReferenceInformationCard()
             Spacer(Modifier.height(Sp.xl))
         }
     }

@@ -13,7 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.o2dialer.app.ui.theme.O2Colors
 
-@Composable fun V7LiveHero(state: CampState,list: CallList,progress: Prog,now: Long) {
+@Composable fun V7LiveHero(state: CampState,list: CallList,progress: Prog,now: Long, controls: @Composable () -> Unit = {}) {
     val next=remember(state.queuedIds,list.entries) { queuedEntries(state,list).firstOrNull() }
     val current=state.currentNumber.isNotBlank()
     val finished=state.status==CS.FINISHED
@@ -28,6 +28,8 @@ import com.o2dialer.app.ui.theme.O2Colors
             Text(name.ifBlank { number.ifBlank { if(finished) L(R.string.ui_contacts_processed_1073aee5, progress.called) else label } },fontSize=25.sp,fontWeight=FontWeight.ExtraBold,textAlign=TextAlign.Center)
             if(number.isNotBlank()) NumText(number,style=MaterialTheme.typography.bodyMedium)
             if(seconds>0) NumText(fmtDur(seconds),style=MaterialTheme.typography.displayLarge)
+            if(current && state.status != CS.PAUSED) ReferenceCallingWave()
+            controls()
             if(state.message.isNotBlank()) Text(state.message,textAlign=TextAlign.Center,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

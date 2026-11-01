@@ -73,10 +73,10 @@ fun inkSurface(): Color =
     if (MaterialTheme.colorScheme.background.luminance() < 0.5f) InkCardDark else InkCard
 
 /** Primary accent from the executable AI Studio reference. */
-val Brand = com.o2dialer.app.ui.theme.O2Colors.Accent
+val Brand get() = com.o2dialer.app.ui.theme.O2Colors.Accent
 
 /** Kept as an alias so older references stay valid. */
-val BrandIndigo = Brand
+val BrandIndigo get() = Brand
 
 /**
  * Text / icon colour that stays readable (>= 4.5:1) on a 10-20 % tint of [c],
@@ -88,8 +88,8 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
-private val LightC = com.o2dialer.app.ui.theme.O2Colors.Light
-val NocturneDark = com.o2dialer.app.ui.theme.O2Colors.Dark
+private val LightC get() = com.o2dialer.app.ui.theme.O2Colors.Light
+val NocturneDark get() = com.o2dialer.app.ui.theme.O2Colors.Dark
 
 fun statusColor(s: Int): Color = when (s) {
     St.ANSWERED -> Sem.success
@@ -108,6 +108,7 @@ fun AppTheme(content: @Composable () -> Unit) {
     val c = Store.cfg
     val dark = when (c.themeMode) { 1 -> false; 2 -> true; else -> isSystemInDarkTheme() }
     val ctx = LocalContext.current
+    com.o2dialer.app.ui.theme.ReferenceAppearance.init(ctx)
     UiText.init(ctx)
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
@@ -130,6 +131,6 @@ fun AppTheme(content: @Composable () -> Unit) {
         colorScheme = scheme, typography = ty,
         shapes = com.o2dialer.app.ui.theme.O2Shape.Material
     ) {
-        com.o2dialer.app.ui.components.O2Canvas(dark) { content() }
+        com.o2dialer.app.ui.components.ReferenceViewport { com.o2dialer.app.ui.components.O2Canvas(dark) { content() } }
     }
 }

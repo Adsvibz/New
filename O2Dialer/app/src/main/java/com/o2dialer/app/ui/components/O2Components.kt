@@ -3,6 +3,10 @@ package com.o2dialer.app.ui.components
 import com.o2dialer.app.L
 import com.o2dialer.app.R
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -50,7 +54,13 @@ import com.o2dialer.app.ui.theme.*
     O2Card(modifier,hero) {
         Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(label,style=MaterialTheme.typography.bodySmall,color=if(hero) Color.White.copy(alpha=.9f) else MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value,style=MaterialTheme.typography.displayMedium,fontWeight=FontWeight.ExtraBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+            Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Text(value,Modifier.weight(1f),style=MaterialTheme.typography.displayMedium,fontWeight=FontWeight.ExtraBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                if(hero && progress!=null) Row(Modifier.background(Color.White.copy(alpha=.2f),CircleShape).padding(horizontal=10.dp,vertical=2.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Icon(O2Icons.TrendingUp,null,Modifier.size(12.dp))
+                    Text("${(progress*100).toInt()}%",fontSize=11.sp,fontWeight=FontWeight.SemiBold)
+                }
+            }
             if(progress!=null) O2Progress(progress,if(hero) Color.White else O2Colors.Accent)
             if(hint.isNotBlank()) Text(hint,style=MaterialTheme.typography.labelMedium,color=if(hero) Color.White.copy(alpha=.8f) else MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -63,7 +73,7 @@ import com.o2dialer.app.ui.theme.*
         Column(verticalArrangement=Arrangement.spacedBy(14.dp)) {
             items.chunked(columns).forEach { group ->
                 Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min),horizontalArrangement=Arrangement.spacedBy(14.dp)) {
-                    group.forEach { item -> item(Modifier.weight(1f).fillMaxHeight()) }
+                    group.forEachIndexed { index, item -> ReferenceEntrance(items.indexOf(item), Modifier.weight(1f).fillMaxHeight()) { item(Modifier.fillMaxSize()) } }
                     if(group.size<columns) Spacer(Modifier.weight(1f))
                 }
             }
@@ -90,7 +100,15 @@ import com.o2dialer.app.ui.theme.*
 }
 
 @Composable fun O2InputField(value:String,onChange:(String)->Unit,placeholder:String,modifier:Modifier=Modifier) {
-    BTextField(value,onChange,modifier,placeholder=placeholder,leading=O2Icons.Search)
+    val cs = MaterialTheme.colorScheme
+    Row(modifier.fillMaxWidth().height(44.dp).background(cs.onSurface.copy(alpha=.04f), CircleShape).padding(horizontal=14.dp),
+        verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+        Icon(O2Icons.Search,null,Modifier.size(16.dp),tint=cs.onSurfaceVariant)
+        androidx.compose.foundation.text.BasicTextField(value,onChange,Modifier.weight(1f),singleLine=true,
+            textStyle=MaterialTheme.typography.bodyMedium.copy(fontSize=12.5.sp,color=cs.onSurface),cursorBrush=SolidColor(cs.onSurface),
+            decorationBox={ field -> Box { if(value.isEmpty()) Text(placeholder,fontSize=12.5.sp,color=cs.onSurfaceVariant,maxLines=1,overflow=TextOverflow.Ellipsis); field() } })
+        if(value.isNotEmpty()) IconButton({ onChange("") },Modifier.size(28.dp)) { Icon(O2Icons.Close,L(R.string.ui_clear_aeaec2c6),Modifier.size(14.dp)) }
+    }
 }
 
 @Composable fun O2TopHeader(title:String,subtitle:String?=null,actions:@Composable RowScope.()->Unit={}) {
@@ -113,9 +131,18 @@ import com.o2dialer.app.ui.theme.*
             .border(1.dp,Color.White.copy(alpha=if(isDarkTheme()) .14f else .88f),CircleShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
             tabs.forEach { (id,icon,label) ->
                 val active=Store.tab==id
-                Box(Modifier.size(48.dp).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
+                val reduced = LocalReducedMotion.current
+                val pop = remember { Animatable(1f) }
+                val interaction = remember { MutableInteractionSource() }
+                LaunchedEffect(active, reduced) {
+                    if (active && !reduced) {
+                        pop.snapTo(.82f)
+                        pop.animateTo(1f, keyframes { durationMillis = 320; .82f at 0; 1.08f at 192 using ReferenceEase; 1f at 320 })
+                    } else pop.snapTo(1f)
+                }
+                Box(Modifier.size(48.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, .9f).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
                     .semantics { contentDescription=label; selected=active; role=Role.Tab }
-                    .clickable { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
+                    .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
                     Icon(icon,null,tint=if(active) Color.White else cs.onSurfaceVariant,modifier=Modifier.size(19.dp))
                     val count=Store.lists.count { Store.isRunningList(it.id) }
                     if(id==0 && count>0) Text(count.toString(),color=Color.White,fontSize=9.sp,modifier=Modifier.align(Alignment.TopEnd).padding(3.dp).background(O2Colors.Accent,CircleShape).padding(horizontal=4.dp))

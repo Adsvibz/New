@@ -4,12 +4,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.*
 
 object O2Colors {
-    val Accent = Color(0xFFE2532B)
+    val Accent: Color get() = ReferenceAppearance.selected.color
     val Ink = Color(0xFF111318)
     val Muted = Color(0xFF8A909E)
     val LightCanvas = listOf(Color(0xFFF7F6F2), Color(0xFFF1EFEA), Color(0xFFEAE7E1))
     val DarkCanvas = listOf(Color(0xFF131519), Color(0xFF171A20), Color(0xFF111317))
-    val Light = lightColorScheme(
+    val Light get() = lightColorScheme(
         primary = Ink, onPrimary = Color.White,
         primaryContainer = Ink.copy(alpha = .06f), onPrimaryContainer = Ink,
         secondary = Accent, onSecondary = Color.White,
@@ -23,7 +23,7 @@ object O2Colors {
         error = Color(0xFFB42318), onError = Color.White,
         errorContainer = Color(0xFFFEE2E2), onErrorContainer = Color(0xFF991B1B), surfaceTint = Color.Transparent
     )
-    val Dark = darkColorScheme(
+    val Dark get() = darkColorScheme(
         primary = Color(0xFFF3F4F6), onPrimary = Ink,
         primaryContainer = Color.White.copy(alpha = .08f), onPrimaryContainer = Color(0xFFF3F4F6),
         secondary = Accent, onSecondary = Color.White,
