@@ -405,8 +405,8 @@ private fun PrecisionCampaignCard(
     Column(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(if (selected) MaterialTheme.colorScheme.surface.copy(alpha=.95f) else MaterialTheme.colorScheme.surface.copy(alpha = .6f))
-            .border(if (selected) 2.dp else 0.dp, if (selected) Ink else Color.Transparent, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(if (selected) 2.dp else 1.dp, if (selected) Ink else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
             .combinedClickable(
                 onClick = { if (selecting) onToggle() else onOpen() },
                 onLongClick = onToggle

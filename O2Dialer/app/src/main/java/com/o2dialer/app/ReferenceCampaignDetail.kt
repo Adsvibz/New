@@ -60,6 +60,14 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
             Spacer(Modifier.height(14.dp))
         }
         item {
+            Spacer(Modifier.height(2.dp))
+            val label = when { list.entries.isEmpty() -> L(R.string.ref_add_contacts_start); running -> L(R.string.ui_return_to_live_session_404572f9)
+                p.called > 0 && p.remaining > 0 -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
+                p.total > 0 && p.remaining == 0 -> L(R.string.ui_restart_campaign_062996bf); else -> L(R.string.ui_start_campaign_28d1c94b) }
+            BButton(label, { if (list.entries.isEmpty()) onTool("bulk") else act.startCampaign(list.id, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = O2Icons.Play)
+            Spacer(Modifier.height(14.dp))
+        }
+        item {
             O2MetricGrid(listOf(
                 { m -> O2Card(m.heightIn(min = 112.dp), hero = true) {
                     Column(Modifier.padding(16.dp)) {
@@ -126,13 +134,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                 }
             }
         }
-        item {
-            Spacer(Modifier.height(18.dp))
-            val label = when { list.entries.isEmpty() -> L(R.string.ref_add_contacts_start); running -> L(R.string.ui_return_to_live_session_404572f9)
-                p.called > 0 && p.remaining > 0 -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
-                p.total > 0 && p.remaining == 0 -> L(R.string.ui_restart_campaign_062996bf); else -> L(R.string.ui_start_campaign_28d1c94b) }
-            BButton(label, { if (list.entries.isEmpty()) onTool("bulk") else act.startCampaign(list.id, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = O2Icons.Play)
-        }
+
     }
     when (action) {
         "edit" -> CampaignDialog(list, { action = "" }) { name, sim -> Store.updateList(list.id) { it.copy(name = name, simSlot = sim) }; action = "" }

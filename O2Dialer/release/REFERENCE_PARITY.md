@@ -62,3 +62,7 @@ User feedback: the dock was too transparent and the app did not occupy the phone
 ## Clean panel surfaces — 2026-11-02
 
 The user explicitly superseded glass styling for settings and dialogs, requesting plain clean white boxes. Shared surfaces are now opaque white in light mode with neutral opaque field backgrounds. Settings sections have a subtle border with no shadow or tonal elevation. Wallpaper-derived colours no longer tint neutral panels or dialog backgrounds; accent controls retain their selected colour. Dark mode retains opaque dark panels with readable text. Layouts and actions are unchanged.
+
+## Brighter canvas and prominent campaign actions — 2026-11-02
+
+At the user's request, light mode now uses a near-white cool neutral background without the grey/beige radial washes. Neutral cards retain subtle outlines; campaign cards are opaque to remain distinct. Campaign details place the existing start/resume action before statistics, and results provide the same entry point beneath the campaign selector using the unchanged permission/licensing-aware MainActivity action. New campaign creation is centered on phones as well as wide displays, with 24dp corners, outer margins and scrolling within the available safe/keyboard area. These are explicit user-directed departures from the original reference.

@@ -32,22 +32,22 @@ fun ReferenceSimPicker(selected: Int, onSelect: (Int) -> Unit) {
         L(R.string.ui_default_sim_bf6ca60e) to L(R.string.ref_sim_default_hint),
         "SIM 1" to L(R.string.ref_sim_one_hint), "SIM 2" to L(R.string.ref_sim_two_hint)
     )
-    Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEachIndexed { index, (label, hint) ->
             val active = selected == index - 1
-            Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
+            Column(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(12.dp))
                 .background(if (active) O2Colors.Ink else cs.surfaceVariant)
                 .border(1.dp, if (active) O2Colors.Ink else cs.outlineVariant, RoundedCornerShape(12.dp))
                 .selectable(active, role = Role.RadioButton, onClick = { onSelect(index - 1) })
                 .padding(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(O2Icons.Smartphone, null, Modifier.size(14.dp), tint = if (active) Color.White else cs.onSurfaceVariant)
                     Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                        color = if (active) Color.White else cs.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        color = if (active) Color.White else cs.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.height(2.dp))
                 Text(hint, fontSize = 10.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -65,15 +65,17 @@ fun ReferenceCampaignForm(initial: CallList?, onDismiss: () -> Unit, onSave: (St
         SideEffect { (view.parent as? DialogWindowProvider)?.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND) }
         BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .4f))
             .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onDismiss)
-            .imePadding()) {
+            .safeDrawingPadding().imePadding()) {
             val wide = maxWidth >= 640.dp
-            Surface(Modifier.align(if (wide) Alignment.Center else Alignment.BottomCenter)
-                .padding(if (wide) 16.dp else 0.dp).widthIn(max = 448.dp).fillMaxWidth()
+            val centered = initial == null || wide
+            Surface(Modifier.align(if (centered) Alignment.Center else Alignment.BottomCenter)
+                .padding(if (centered) 20.dp else 0.dp).widthIn(max = 448.dp).fillMaxWidth()
                 .clickable(remember { MutableInteractionSource() }, indication = null, onClick = {}),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp,
-                    bottomStart = if (wide) 16.dp else 0.dp, bottomEnd = if (wide) 16.dp else 0.dp),
-                color = cs.surface.copy(alpha = 1f), border = BorderStroke(1.dp, cs.outlineVariant)) {
-                Column(Modifier.verticalScroll(rememberScrollState()).navigationBarsPadding()) {
+                shape = RoundedCornerShape(topStart = if (centered) 24.dp else 16.dp, topEnd = if (centered) 24.dp else 16.dp,
+                    bottomStart = if (centered) 24.dp else 0.dp, bottomEnd = if (centered) 24.dp else 0.dp),
+                color = cs.surface, contentColor = cs.onSurface, shadowElevation = if (centered) 16.dp else 0.dp,
+                border = BorderStroke(1.dp, cs.outlineVariant)) {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
                     Row(Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)

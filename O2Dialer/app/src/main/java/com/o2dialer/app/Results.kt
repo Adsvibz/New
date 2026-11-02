@@ -170,7 +170,7 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
 }
 
 @Composable
-fun ResultsScreen() {
+fun ResultsScreen(act: MainActivity) {
     val ctx=LocalContext.current
     val id=Store.resultsListId?.takeIf { id -> Store.lists.any { it.id==id } }
         ?: Store.runListId?.takeIf { id -> Store.lists.any { it.id==id } } ?: Store.lists.firstOrNull()?.id
@@ -201,6 +201,20 @@ fun ResultsScreen() {
                             DropdownMenuItem(text={Text(c.name)},onClick={Store.resultsListId=c.id;picker=false})
                         } }
                     }
+                }
+                item {
+                    val label = when {
+                        Store.campActive() -> L(R.string.ui_return_to_live_session_404572f9)
+                        list.entries.isEmpty() -> L(R.string.ref_add_contacts_start)
+                        p.called > 0 && p.remaining > 0 -> L(R.string.ui_resume_left_0a45dc03, p.remaining)
+                        p.total > 0 && p.remaining == 0 -> L(R.string.ui_restart_campaign_062996bf)
+                        else -> L(R.string.ui_start_campaign_28d1c94b)
+                    }
+                    BButton(label, {
+                        if (Store.campActive()) Store.tab = 1
+                        else if (list.entries.isEmpty()) { Store.selectedListId = list.id; Store.tab = 0 }
+                        else act.startCampaign(list.id, p.called > 0 && p.remaining == 0)
+                    }, Modifier.fillMaxWidth(), icon = com.o2dialer.app.ui.components.O2Icons.Play)
                 }
                 item { V7ResultsHeader(p) }
                 if(p.unverified>0) item { Banner(Tk.INFO,L(R.string.ui_unverified_calls_935baf8e, p.unverified),

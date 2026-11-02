@@ -230,7 +230,7 @@ fun Root(act: MainActivity) {
                         0 -> ListsScreen()
                         10 -> k.second?.let { ListDetail(it, act) }
                         1 -> LiveScreen(act)
-                        2 -> ResultsScreen()
+                        2 -> ResultsScreen(act)
                         3 -> LogScreen()
                         else -> SettingsScreen()
                     }

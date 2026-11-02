@@ -7,7 +7,7 @@ object O2Colors {
     val Accent: Color get() = ReferenceAppearance.selected.color
     val Ink = Color(0xFF111318)
     val Muted = Color(0xFF8A909E)
-    val LightCanvas = listOf(Color(0xFFF7F6F2), Color(0xFFF1EFEA), Color(0xFFEAE7E1))
+    val LightCanvas = listOf(Color(0xFFFCFCFD), Color(0xFFF8F9FB), Color(0xFFF5F6F8))
     val DarkCanvas = listOf(Color(0xFF131519), Color(0xFF171A20), Color(0xFF111317))
     val Light get() = lightColorScheme(
         primary = Ink, onPrimary = Color.White,

@@ -35,7 +35,7 @@ import com.o2dialer.app.ui.theme.*
         val top=Brush.radialGradient(listOf(Color.White.copy(alpha=if(dark) .025f else .72f),Color.Transparent),Offset(size.width*.5f,0f),size.height*.55f)
         val accent=Brush.radialGradient(listOf(O2Colors.Accent.copy(alpha=.06f),Color.Transparent),Offset(size.width*.92f,size.height*.28f),size.height*.48f)
         val bottom=Brush.radialGradient(listOf(Color(0xFFD6D3CC).copy(alpha=if(dark) .02f else .35f),Color.Transparent),Offset(size.width*.08f,size.height*.78f),size.height*.5f)
-        onDrawBehind { drawRect(base);drawRect(top);drawRect(accent);drawRect(bottom) }
+        onDrawBehind { drawRect(base); if (dark) { drawRect(top);drawRect(accent);drawRect(bottom) } }
     }) { content() }
 }
 
@@ -45,7 +45,7 @@ import com.o2dialer.app.ui.theme.*
     val gradient=Brush.linearGradient(listOf(lerp(O2Colors.Accent,Color.White,.04f),lerp(O2Colors.Accent,Color(0xFF18181B),.16f)))
     Column(modifier.shadow(if(hero) 10.dp else 3.dp,O2Shape.Card,ambientColor=Color.Black.copy(alpha=.05f),spotColor=if(hero) O2Colors.Accent.copy(alpha=.24f) else Color.Black.copy(alpha=.04f))
         .clip(O2Shape.Card).then(if(hero) Modifier.background(gradient) else Modifier.background(surface))
-        .border(1.dp,if(hero) Color.White.copy(alpha=.15f) else if(isDarkTheme()) Color.White.copy(alpha=.08f) else Color.White.copy(alpha=.88f),O2Shape.Card)) {
+        .border(1.dp,if(hero) Color.White.copy(alpha=.15f) else cs.outlineVariant,O2Shape.Card)) {
         CompositionLocalProvider(LocalContentColor provides if(hero) Color.White else cs.onSurface) { content() }
     }
 }
