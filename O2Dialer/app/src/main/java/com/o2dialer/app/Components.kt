@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -200,7 +201,9 @@ fun SettingsSection(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = cs.surface.copy(alpha = .6f), shadowElevation = 3.dp) {
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = cs.surface,
+        contentColor = cs.onSurface, tonalElevation = 0.dp, shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, cs.outlineVariant)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(title, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, letterSpacing = (-.3).sp)
             content()

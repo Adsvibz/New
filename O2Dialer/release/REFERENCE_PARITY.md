@@ -58,3 +58,7 @@ Remaining: contact import/modal details, results/history, live configuration and
 ## Phone sizing and navigation correction — 2026-11-02
 
 User feedback: the dock was too transparent and the app did not occupy the phone screen. Removed the 430dp phone-mockup constraint from phone windows and the 620dp content cap, including landscape. The optional mockup presentation is restricted to large windows at least 840dp wide and 600dp tall. Increased dock tint opacity while retaining its reference gradient, pill shape, insets, icon sizes and motion. This is an Android-compatible approximation of the reference's blurred glass: the previous literal alpha values without backdrop blur allowed sharp content to bleed through. Added wide-phone and landscape rendering/layout checks alongside the narrow-phone fixture.
+
+## Clean panel surfaces — 2026-11-02
+
+The user explicitly superseded glass styling for settings and dialogs, requesting plain clean white boxes. Shared surfaces are now opaque white in light mode with neutral opaque field backgrounds. Settings sections have a subtle border with no shadow or tonal elevation. Wallpaper-derived colours no longer tint neutral panels or dialog backgrounds; accent controls retain their selected colour. Dark mode retains opaque dark panels with readable text. Layouts and actions are unchanged.

@@ -113,6 +113,11 @@ fun AppTheme(content: @Composable () -> Unit) {
     val scheme = if (c.dynamicColor && Build.VERSION.SDK_INT >= 31) {
         if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
     } else if (dark) NocturneDark else LightC
+    // Keep neutral panels clean even when Android wallpaper colours are enabled.
+    val neutral = if (dark) NocturneDark else LightC
+    val cleanScheme = scheme.copy(surface = neutral.surface, onSurface = neutral.onSurface,
+        surfaceVariant = neutral.surfaceVariant, onSurfaceVariant = neutral.onSurfaceVariant,
+        outline = neutral.outline, outlineVariant = neutral.outlineVariant, surfaceTint = Color.Transparent)
     // Bundled reference fonts work offline and follow the saved language.
     val arabic = c.lang == 1
     val ty = remember(c.lang) { com.o2dialer.app.ui.theme.O2Type.typography(arabic) }
@@ -128,7 +133,7 @@ fun AppTheme(content: @Composable () -> Unit) {
         }
     }
     MaterialTheme(
-        colorScheme = scheme, typography = ty,
+        colorScheme = cleanScheme, typography = ty,
         shapes = com.o2dialer.app.ui.theme.O2Shape.Material
     ) {
         com.o2dialer.app.ui.components.ReferenceViewport { com.o2dialer.app.ui.components.O2Canvas(dark) { content() } }
