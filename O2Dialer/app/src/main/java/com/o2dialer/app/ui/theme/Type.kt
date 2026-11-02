@@ -9,13 +9,13 @@ import com.o2dialer.app.R
 
 object O2Type {
     val Latin = FontFamily(*listOf(400,500,600,700,800).map { w ->
-        Font(R.font.plus_jakarta, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+        Font(R.font.outfit_variable, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
     }.toTypedArray())
-    val Arabic = FontFamily(Font(R.font.plex_arabic_regular), Font(R.font.plex_arabic_medium, FontWeight.Medium), Font(R.font.plex_arabic_semibold, FontWeight.SemiBold), Font(R.font.plex_arabic_bold, FontWeight.Bold))
+    val Arabic = FontFamily(Font(R.font.tajawal_regular), Font(R.font.tajawal_medium, FontWeight.Medium), Font(R.font.tajawal_bold, FontWeight.Bold))
     val Mono = FontFamily(Font(R.font.jetbrains_mono))
     fun typography(arabic: Boolean): Typography {
         val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) = TextStyle(
+        fun s(size: Int, line: Int, weight: FontWeight = FontWeight.Medium) = TextStyle(
             fontFamily = family, fontSize = size.sp, lineHeight = line.sp, fontWeight = weight,
             letterSpacing = if (arabic) 0.sp else (-size * .011f).sp)
         return Typography(
@@ -24,7 +24,7 @@ object O2Type {
             headlineMedium=s(22,30,FontWeight.ExtraBold), headlineSmall=s(20,28,FontWeight.Bold),
             titleLarge=s(18,26,FontWeight.Bold), titleMedium=s(16,24,FontWeight.Bold),
             titleSmall=s(15,22,FontWeight.Bold), bodyLarge=s(14,22), bodyMedium=s(13,20),
-            bodySmall=s(12,18), labelLarge=s(12,18,FontWeight.SemiBold),
-            labelMedium=s(11,16,FontWeight.Medium), labelSmall=s(10,15,FontWeight.Medium))
+            bodySmall=s(12,18,FontWeight.Normal), labelLarge=s(12,18,FontWeight.Bold),
+            labelMedium=s(11,16,FontWeight.SemiBold), labelSmall=s(10,15,FontWeight.Medium))
     }
 }

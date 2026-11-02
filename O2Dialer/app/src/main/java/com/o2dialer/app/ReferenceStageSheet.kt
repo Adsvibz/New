@@ -45,37 +45,37 @@ fun ReferenceStageSheet(listId: String, entryId: String) {
         val view = LocalView.current
         SideEffect { (view.parent as? DialogWindowProvider)?.window?.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND) }
         BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .4f))
-            .clickable(remember { MutableInteractionSource() }, indication = null, onClick = close).imePadding()) {
-            val wide = maxWidth >= 640.dp
-            Surface(Modifier.align(if (wide) Alignment.Center else Alignment.BottomCenter)
-                .padding(if (wide) 16.dp else 0.dp).widthIn(max = 448.dp).fillMaxWidth().heightIn(max = maxHeight * .9f)
+            .clickable(remember { MutableInteractionSource() }, indication = null, onClick = close)
+            .safeDrawingPadding().imePadding()) {
+            Surface(Modifier.align(Alignment.Center)
+                .padding(20.dp).widthIn(max = 448.dp).fillMaxWidth().heightIn(max = maxHeight * .9f)
                 .clickable(remember { MutableInteractionSource() }, indication = null, onClick = {}),
-                shape = RoundedCornerShape(16.dp, 16.dp, if (wide) 16.dp else 0.dp, if (wide) 16.dp else 0.dp),
-                color = cs.surface.copy(alpha = 1f), contentColor = cs.onSurface, border = BorderStroke(1.dp, cs.outlineVariant)) {
-                Column(Modifier.verticalScroll(rememberScrollState()).navigationBarsPadding()) {
+                shape = RoundedCornerShape(24.dp), shadowElevation = 16.dp,
+                color = cs.surface, contentColor = cs.onSurface, border = BorderStroke(1.dp, cs.outlineVariant)) {
+                Column {
                     Row(Modifier.padding(20.dp, 16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(T("Classify Call Outcome", "تصنيف نتيجة المكالمة"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            Text(entry.name.ifBlank { entry.number } + " · " + entry.number + " · " + fmtDur(entry.duration), fontSize = 12.sp, color = cs.onSurfaceVariant)
+                            Text(entry.name.ifBlank { entry.number } + " · " + entry.number + " · " + fmtDur(entry.duration), fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                         IconButton(close, Modifier.size(32.dp)) { Icon(O2Icons.Close, L(R.string.ref_close), Modifier.size(16.dp)) }
                     }
                     HorizontalDivider(color = cs.outlineVariant)
-                    Column(Modifier.padding(20.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(20.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(T("Select Call Stage", "اختر المرحلة (5 فئات أساسية)"), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         listOf(Stg.POTENTIAL, Stg.CALL_BACK, Stg.WHATSAPP, Stg.VOICEMAIL, Stg.NOT_INTERESTED).chunked(2).forEach { row ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 row.forEach { stage ->
                                     val active = selected == stage
                                     val foreground = if (active) Color.White else cs.onSurface
-                                    Row(Modifier.weight(1f).background(if (active) Color(0xFF17191D) else cs.surfaceVariant, RoundedCornerShape(12.dp))
+                                    Row(Modifier.weight(1f).fillMaxHeight().background(if (active) Color(0xFF17191D) else cs.surfaceVariant, RoundedCornerShape(12.dp))
                                         .border(1.dp, if (active) Color(0xFF17191D) else cs.outlineVariant, RoundedCornerShape(12.dp))
                                         .selectable(active, role = Role.RadioButton) { selected = stage }.padding(12.dp)) {
                                         Icon(when (stage) { Stg.NOT_INTERESTED -> O2Icons.PhoneOff; Stg.CALL_BACK -> O2Icons.PhoneForwarded; else -> stageIcon(stage) }, null, Modifier.padding(top = 2.dp).size(16.dp), tint = foreground)
                                         Spacer(Modifier.width(10.dp))
                                         Column(Modifier.weight(1f)) {
-                                            Text(Stg.label(stage), fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = foreground, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                            Text(descriptions.getValue(stage), Modifier.padding(top = 2.dp), fontSize = 10.5.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text(Stg.label(stage), fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = foreground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                            Text(descriptions.getValue(stage), Modifier.padding(top = 2.dp), fontSize = 10.5.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                         }
                                     }
                                 }
@@ -84,7 +84,7 @@ fun ReferenceStageSheet(listId: String, entryId: String) {
                         }
                         Text(T("Feedback & Follow-up Notes", "الملاحظات والتعليقات"), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         BasicTextField(notes, { notes = it }, Modifier.fillMaxWidth().background(cs.surfaceVariant, RoundedCornerShape(12.dp))
-                            .border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(12.dp), minLines = 3,
+                            .border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(12.dp), minLines = 3, maxLines = 4,
                             textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, color = cs.onSurface), cursorBrush = SolidColor(cs.onSurface),
                             decorationBox = { input -> Box {
                                 if (notes.isEmpty()) Text(T("Interested in a three-bedroom apartment. Follow up on Thursday.", "مثال: مهتم بشقة ٣ غرف. المتابعة يوم الخميس."), fontSize = 13.sp, color = cs.onSurfaceVariant)

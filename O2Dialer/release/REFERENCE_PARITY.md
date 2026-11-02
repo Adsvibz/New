@@ -66,3 +66,9 @@ The user explicitly superseded glass styling for settings and dialogs, requestin
 ## Brighter canvas and prominent campaign actions — 2026-11-02
 
 At the user's request, light mode now uses a near-white cool neutral background without the grey/beige radial washes. Neutral cards retain subtle outlines; campaign cards are opaque to remain distinct. Campaign details place the existing start/resume action before statistics, and results provide the same entry point beneath the campaign selector using the unchanged permission/licensing-aware MainActivity action. New campaign creation is centered on phones as well as wide displays, with 24dp corners, outer margins and scrolling within the available safe/keyboard area. These are explicit user-directed departures from the original reference.
+
+## Elegant bold typography — 2026-11-02
+
+The user requested a stronger, elegant type treatment. English now uses bundled Outfit variable weights (400–800), Arabic uses the bundled Tajawal regular/medium/bold family. Headings retain their bold hierarchy; main body text uses medium and prominent labels use bold/semibold. Small supporting copy and numeric/phone formatting remain readable. Outfit's variable font is sourced from google/fonts/ofl/outfit under the bundled OFL-Outfit license, allowing true medium and semibold weights rather than synthesized static-font weights. This explicitly supersedes the original Plus Jakarta Sans/IBM Plex Arabic type pairing.
+
+The same update centers call classification in a clean 24dp rounded dialog on all window sizes, respecting system and keyboard insets. The header and Save/Skip actions remain outside the scrolling body, so short screens do not hide the actions. All five stages, notes and conditional WhatsApp action remain available. Narrow Arabic and landscape rendering fixtures explicitly check that Save is visible.
