@@ -127,7 +127,9 @@ import com.o2dialer.app.ui.theme.*
     val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=20.dp,vertical=14.dp),contentAlignment=Alignment.Center) {
         Row(Modifier.widthIn(max=390.dp).fillMaxWidth().shadow(12.dp,CircleShape,ambientColor=Color.Black.copy(alpha=.05f),spotColor=Color.Black.copy(alpha=.12f))
-            .clip(CircleShape).background(Brush.verticalGradient(if(isDarkTheme()) listOf(Color(0xFF20242C).copy(alpha=.92f),Color(0xFF181B22).copy(alpha=.88f)) else listOf(Color.White.copy(alpha=.82f),Color(0xFFFAF9F6).copy(alpha=.74f))))
+            // Android 8+ has no uniform backdrop-blur API. A dense tint preserves the
+            // reference's frosted appearance without legible content bleeding through.
+            .clip(CircleShape).background(Brush.verticalGradient(if(isDarkTheme()) listOf(Color(0xFF20242C).copy(alpha=.98f),Color(0xFF181B22).copy(alpha=.97f)) else listOf(Color.White.copy(alpha=.97f),Color(0xFFFAF9F6).copy(alpha=.96f))))
             .border(1.dp,Color.White.copy(alpha=if(isDarkTheme()) .14f else .88f),CircleShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
             tabs.forEach { (id,icon,label) ->
                 val active=Store.tab==id

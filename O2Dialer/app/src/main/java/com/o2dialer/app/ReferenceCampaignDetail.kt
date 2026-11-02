@@ -44,6 +44,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                         Icon(O2Icons.More, L(R.string.ui_campaign_actions_19a76975), Modifier.size(16.dp))
                     }
                     DropdownMenu(menu, { menu = false }) {
+                        if (list.entries.distinctBy { it.number }.size < list.entries.size) DropdownMenuItem({ Text(L(R.string.ui_remove_duplicates_f4f71e9f), fontSize = 12.5.sp) }, { menu = false; action = "dedupe" }, enabled = !running)
                         listOf("rename" to R.string.ui_rename_f50d547f, "reset" to R.string.ui_reset_progress_f4360fc1,
                             "share" to R.string.ui_share_report_28dd6cbd, "delete" to R.string.ui_delete_3ffdefc9).forEach { (key, title) ->
                             DropdownMenuItem({ Text(L(title), fontSize = 12.5.sp) }, { menu = false; action = key }, enabled = !running || key == "share")
@@ -134,10 +135,12 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
         }
     }
     when (action) {
-        "edit", "rename" -> CampaignDialog(list, { action = "" }) { name, sim -> Store.updateList(list.id) { it.copy(name = name, simSlot = sim) }; action = "" }
+        "edit" -> CampaignDialog(list, { action = "" }) { name, sim -> Store.updateList(list.id) { it.copy(name = name, simSlot = sim) }; action = "" }
+        "rename" -> ReferenceRenameModal(list) { action = "" }
+        "dedupe" -> ReferenceDuplicateModal(list) { action = "" }
         "reset" -> ConfirmDialog(L(R.string.ui_reset_call_progress_contacts_stages_an_e06ccb78), { action = "" }) { Store.resetForRestart(list.id, false); action = "" }
-        "delete" -> ConfirmDialog(L(R.string.ui_delete_and_all_its_numbers_a8095c5a, list.name), { action = "" }) { Store.deleteList(list.id); Store.selectedListId = null; action = "" }
-        "share" -> LaunchedEffect(Unit) { shareText(ctx, Store.listReport(list)); action = "" }
+        "delete" -> ReferenceDeleteModal(L(R.string.ui_delete_and_all_its_numbers_a8095c5a, list.name), { action = "" }) { Store.deleteList(list.id); Store.selectedListId = null; action = "" }
+        "share" -> ReferenceShareModal(list) { action = "" }
     }
 }
 

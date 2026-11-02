@@ -447,4 +447,15 @@
     <string name="ref_stop_before_switch">"أوقف الجلسة الحالية قبل اختيار حملة أخرى."</string>
     <string name="ref_operational_status">"حالة التشغيل"</string>
     <string name="ref_select_campaign">"اختر حملة"</string>
+    <string name="ref_new_campaign_name">اسم الحملة الجديد</string>
+    <string name="ref_delete_campaign">حذف الحملة</string>
+    <string name="ref_duplicate_message">تم العثور على %1$d رقم مكرر في \"%2$s\". إزالتها تمنع تكرار المكالمات وتحسّن الاتصال التلقائي.</string>
+    <string name="ref_clean_duplicates">إزالة المكرر</string>
+    <string name="ref_csv_saved">تم حفظ التقرير</string>
+    <string name="ref_csv_save_failed">تعذّر حفظ التقرير</string>
+    <string name="ref_csv_report_description">تقرير CSV لحملة %1$s (%2$d جهة اتصال):</string>
+    <string name="ref_csv_copied">تم نسخ التقرير</string>
+    <string name="ref_copied">تم النسخ</string>
+    <string name="ref_copy_csv">نسخ CSV</string>
+    <string name="ref_download_csv">تنزيل .CSV</string>
 </resources>

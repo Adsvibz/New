@@ -66,11 +66,11 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 // ====================================================================== layout helpers
-/** Caps the content width so tablets / landscape stay tidy. Phones are unaffected. */
+/** Native screens follow the available window, including landscape and split screen. */
 @Composable
 fun Responsive(content: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize(), Alignment.TopCenter) {
-        Box(Modifier.widthIn(max = 620.dp).fillMaxSize()) { content() }
+        Box(Modifier.fillMaxSize()) { content() }
     }
 }
 

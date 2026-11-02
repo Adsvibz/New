@@ -46,3 +46,15 @@ Implemented at this checkpoint: floating dock and scroll behavior; screen/card e
 The 18 protected-code checks pass. Native Android hierarchy renders have been inspected for English, Arabic, dark theme, a narrow display, campaigns, detail, settings and welcome. These are native rendering checks, not pixel comparisons against the browser reference. The reference browser remains blocked by a saved browser permission even after the user approved opening it.
 
 Still pending after this release: complete modal parity (share, rename, deduplication, deletion, contact import and stage classification), remaining results/history differences, precise live state/configuration parity, settings range-control details, complete animation choreography and direct reference-to-native visual comparison. Real-device telephony acceptance remains a separate user check.
+
+## Resumed modal and classification checkpoint — 2026-11-01
+
+Replaced generic/direct campaign rename, delete (including bulk delete), duplicate removal and report sharing with layouts traced to the corresponding reference components. CSV previews preserve the existing report serialization; copy uses Android clipboard and download uses Android's document destination picker, with the existing export policy checked before each action. Duplicate counts now use the exact identities removed by the existing Store implementation.
+
+Replaced immediate stage selection writes with the reference's five-category selection and explicit save flow. Notes remain visible for every stage; Skip discards unsaved edits. The existing service hold/done actions prevent the next scheduled call from starting while classification is open. The sheet includes the conditional external WhatsApp shortcut, mobile bottom alignment and wide-screen centered placement.
+
+Remaining: contact import/modal details, results/history, live configuration and state-specific differences, settings range controls, animation choreography and direct browser comparison. This checkpoint does not claim complete visual parity. Native rendering and interaction tests cover explicit stage save/skip, rename/delete cancellation, duplicate confirmation and CSV preview/copy; actual device calling and document-provider acceptance still require a phone.
+
+## Phone sizing and navigation correction — 2026-11-02
+
+User feedback: the dock was too transparent and the app did not occupy the phone screen. Removed the 430dp phone-mockup constraint from phone windows and the 620dp content cap, including landscape. The optional mockup presentation is restricted to large windows at least 840dp wide and 600dp tall. Increased dock tint opacity while retaining its reference gradient, pill shape, insets, icon sizes and motion. This is an Android-compatible approximation of the reference's blurred glass: the previous literal alpha values without backdrop blur allowed sharp content to bleed through. Added wide-phone and landscape rendering/layout checks alongside the narrow-phone fixture.

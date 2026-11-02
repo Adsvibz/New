@@ -191,76 +191,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
 }
 
 @Composable
-fun StageSheet(listId: String, entryId: String) {
-    val ctx = LocalContext.current
-    val entry = Store.lists.find { it.id == listId }?.entries?.find { it.id == entryId }
-    if (entry == null) { LaunchedEffect(Unit) { Store.stageTarget = null }; return }
-    var selected by rememberSaveable(listId, entryId) { mutableIntStateOf(entry.stage) }
-    var fb by rememberSaveable(listId, entryId) { mutableStateOf(entry.feedback) }
-    val release: () -> Unit = { if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_DONE) }
-    // Dismissing the sheet keeps whatever comment was typed, then lets the campaign continue.
-    val close: () -> Unit = {
-        if (Stg.needsFeedback(selected)) Store.setStage(listId, entryId, selected, fb.trim())
-        release(); Store.stageTarget = null
-    }
-
-    BSheet(
-        title = L(R.string.ui_how_did_the_call_go_8d647362),
-        onDismiss = close,
-        actions = {
-            if (Stg.needsFeedback(selected)) BButton(L(R.string.ui_save_feedback_4d07fefe), {
-                Store.setStage(listId, entryId, selected, fb.trim())
-                release()
-                Store.stageTarget = null
-                Store.notify(Tk.SUCCESS, L(R.string.ui_saved_65225f27))
-            }, Modifier.fillMaxWidth())
-            else BButton(L(R.string.ui_skip_1b19bc56), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
-        }
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Avatar(entry.name.ifBlank { entry.number })
-            Spacer(Modifier.width(Sp.m))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    entry.name.ifBlank { entry.number }, style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    NumText(entry.number, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (entry.duration > 0) Text(
-                        "  ·  ${fmtDur(entry.duration)}", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        Stg.all.chunked(2).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
-                row.forEach { s ->
-                    StageTile(s, selected == s, Modifier.weight(1f)) {
-                        selected = s
-                        Store.setStage(listId, entryId, s, fb)
-                        if (Stg.needsFeedback(s)) {
-                            // Hold the campaign until "Save feedback" so the next call does not start while typing.
-                            if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_HOLD)
-                        } else {
-                            release()
-                            Store.stageTarget = null
-                            Store.notify(Tk.SUCCESS, L(R.string.ui_saved_65225f27))
-                        }
-                    }
-                }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
-            }
-        }
-        if (Stg.needsFeedback(selected)) {
-            BTextField(
-                fb, { fb = it }, singleLine = false, minLines = 3, label = L(R.string.ui_feedback_824805e1),
-                placeholder = L(R.string.ui_what_did_they_say_11cdeda1)
-            )
-        }
-    }
-}
+fun StageSheet(listId: String, entryId: String) { ReferenceStageSheet(listId, entryId) }
 
 // ============================================================ settings widgets
 @Composable

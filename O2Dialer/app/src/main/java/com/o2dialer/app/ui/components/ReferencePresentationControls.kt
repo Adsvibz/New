@@ -19,8 +19,9 @@ import com.o2dialer.app.ui.theme.*
 @Composable fun ReferenceViewport(content: @Composable () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val framed = ReferenceAppearance.deviceFrame
-        val desktop = maxWidth >= 640.dp
-        Box(Modifier.widthIn(max = if (framed) 430.dp else 768.dp)
+        // The browser's phone mockup must never constrain a real phone, including landscape.
+        val desktop = maxWidth >= 840.dp && maxHeight >= 600.dp
+        Box(Modifier.then(if (desktop && framed) Modifier.widthIn(max = 430.dp) else Modifier)
             .then(if (desktop) Modifier.heightIn(max = if (framed) 860.dp else 880.dp).padding(vertical = 24.dp) else Modifier)
             .fillMaxSize().then(if (desktop) Modifier.clip(RoundedCornerShape(if (framed) 44.dp else 36.dp)) else Modifier)) { content() }
     }

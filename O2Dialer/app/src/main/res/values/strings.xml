@@ -447,4 +447,15 @@
     <string name="ref_stop_before_switch">"Stop the current session before choosing another campaign."</string>
     <string name="ref_operational_status">"Operational status"</string>
     <string name="ref_select_campaign">"Select a campaign"</string>
+    <string name="ref_new_campaign_name">New Campaign Name</string>
+    <string name="ref_delete_campaign">Delete Campaign</string>
+    <string name="ref_duplicate_message">Found %1$d duplicate phone numbers in \"%2$s\". Removing them will optimize auto-dialing and prevent repeat calls.</string>
+    <string name="ref_clean_duplicates">Clean Duplicates</string>
+    <string name="ref_csv_saved">CSV report saved</string>
+    <string name="ref_csv_save_failed">Could not save the report</string>
+    <string name="ref_csv_report_description">CSV report for %1$s (%2$d contacts):</string>
+    <string name="ref_csv_copied">CSV copied to clipboard</string>
+    <string name="ref_copied">Copied</string>
+    <string name="ref_copy_csv">Copy CSV</string>
+    <string name="ref_download_csv">Download .CSV</string>
 </resources>

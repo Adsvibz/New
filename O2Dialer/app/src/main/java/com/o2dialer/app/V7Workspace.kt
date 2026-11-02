@@ -346,44 +346,20 @@ private fun PrecisionCampaignContent(
 
     if (confirmBulk) {
         val deletableIds = selected.filter { !Store.isRunningList(it) }
-        AlertDialog(
-            onDismissRequest = { confirmBulk = false },
-            title = { Text(L(R.string.ui_delete_selected_campaigns_d92f6b1e)) },
-            text = { Text(L(R.string.ui_delete_selected_confirmation, deletableIds.size)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    deletableIds.forEach { Store.deleteList(it) }
+        ReferenceDeleteModal(
+            onDismiss = { confirmBulk = false },
+            title = L(R.string.ui_delete_selected_campaigns_d92f6b1e),
+            message = L(R.string.ui_delete_selected_confirmation, deletableIds.size),
+            onDelete = {
+                    deletableIds.filter { !Store.isRunningList(it) }.forEach { Store.deleteList(it) }
                     selected.clear()
                     selecting = false
                     confirmBulk = false
                     Store.notify(Tk.INFO, L(R.string.ui_campaigns_deleted_821153cb))
-                }) { Text(L(R.string.ui_delete_3ffdefc9), color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = { TextButton(onClick = { confirmBulk = false }) { Text(L(R.string.ui_cancel_823a3ad2)) } }
+            }
         )
     }
-    renameTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { renameTarget = null },
-            title = { Text(L(R.string.ui_rename_campaign_78f5a10f)) },
-            text = {
-                OutlinedTextField(
-                    value = renameValue, onValueChange = { renameValue = it },
-                    label = { Text(L(R.string.ui_campaign_name_387f69a0)) },
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                TextButton(enabled = renameValue.isNotBlank() && !Store.isRunningList(target.id),
-                    onClick = {
-                        Store.updateList(target.id) { it.copy(name = renameValue.trim()) }
-                        renameTarget = null
-                        Store.notify(Tk.SUCCESS, L(R.string.ui_campaign_renamed_2922e01a))
-                    }) { Text(L(R.string.ui_save_ab3669ed)) }
-            },
-            dismissButton = { TextButton(onClick = { renameTarget = null }) { Text(L(R.string.ui_cancel_823a3ad2)) } }
-        )
-    }
+    renameTarget?.let { target -> ReferenceRenameModal(target) { renameTarget = null } }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -405,9 +381,11 @@ private fun PrecisionCampaignCard(
     val ctx = LocalContext.current
     var menu by remember { mutableStateOf(false) }
     var reset by remember { mutableStateOf(false) }
+    var duplicates by remember { mutableStateOf(false) }
+    var sharing by remember { mutableStateOf(false) }
     val last = relativeActivity(activityTime(list))
     val duplicateCount = remember(list.entries) {
-        list.entries.groupingBy { it.number.filter(Char::isDigit) }
+        list.entries.groupingBy { it.number }
             .eachCount().values.sumOf { (it - 1).coerceAtLeast(0) }
     }
     val statusLabel = when (status) {
@@ -488,8 +466,7 @@ private fun PrecisionCampaignCard(
                         text = { Text(L(R.string.ui_remove_duplicates_f4f71e9f) + if (duplicateCount > 0) " ($duplicateCount)" else "") },
                         onClick = {
                             menu = false
-                            val count = Store.dedupe(list.id)
-                            Store.notify(Tk.SUCCESS, L(R.string.ui_removed_duplicates_994c7551, count))
+                            duplicates = true
                         }, leadingIcon = { Icon(com.o2dialer.app.ui.components.O2Icons.GroupRemove, null) }
                     )
                     DropdownMenuItem(enabled = !running,
@@ -499,7 +476,7 @@ private fun PrecisionCampaignCard(
                     )
                     DropdownMenuItem(
                         text = { Text(L(R.string.ui_share_report_28dd6cbd)) },
-                        onClick = { menu = false; shareText(ctx, Store.listReport(list)) },
+                        onClick = { menu = false; sharing = true },
                         leadingIcon = { Icon(com.o2dialer.app.ui.components.O2Icons.Share, null) }
                     )
                     HorizontalDivider(color = Line)
@@ -532,6 +509,8 @@ private fun PrecisionCampaignCard(
                 color = Muted, fontSize = 11.sp, maxLines = 1)
         }
     }
+    if (duplicates) ReferenceDuplicateModal(list) { duplicates = false }
+    if (sharing) ReferenceShareModal(list) { sharing = false }
     if (reset) {
         ConfirmDialog(L(R.string.ui_reset_call_progress_contacts_stages_an_e06ccb78),
             { reset = false }) {

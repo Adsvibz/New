@@ -352,4 +352,19 @@ object O2Icons {
         addPath(PathParser().parsePathString("M12 8 L12 12").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
         addPath(PathParser().parsePathString("M12 16 L12.01 16").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
     }.build() }
+    val PhoneOff: ImageVector by lazy { ImageVector.Builder("PhoneOff",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M10.1 13.9a14 14 0 0 0 3.732 2.668 1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2 18 18 0 0 1-12.728-5.272").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M22 2 2 22").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M4.76 13.582A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 .244.473").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val PhoneForwarded: ImageVector by lazy { ImageVector.Builder("PhoneForwarded",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M14 6h8").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("m18 2 4 4-4 4").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
+    val ExternalLink: ImageVector by lazy { ImageVector.Builder("ExternalLink",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M15 3h6v6").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M10 14 21 3").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
 }

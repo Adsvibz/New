@@ -64,7 +64,7 @@ fun ListsScreen() {
         }
     }
     deleting?.let { l ->
-        ConfirmDialog(L(R.string.ui_delete_and_all_its_numbers_a8095c5a, l.name), { deleting = null }) {
+        ReferenceDeleteModal(L(R.string.ui_delete_and_all_its_numbers_a8095c5a, l.name), { deleting = null }) {
             Store.deleteList(l.id); deleting = null
             Store.notify(Tk.INFO, L(R.string.ui_campaign_deleted_cd945333))
         }
