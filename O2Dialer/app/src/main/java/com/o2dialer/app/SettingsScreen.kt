@@ -184,7 +184,6 @@ fun SettingsScreen() {
                 }, Modifier.fillMaxWidth(), kind = BtnKind.Outline, compact = true)
             }
 
-            ReferenceInformationCard()
             Spacer(Modifier.height(Sp.xl))
         }
     }
