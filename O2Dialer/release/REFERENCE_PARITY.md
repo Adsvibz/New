@@ -76,3 +76,7 @@ The same update centers call classification in a clean 24dp rounded dialog on al
 ## Readable medium-size bold text — 2026-11-03
 
 The user requested clearer bold text without oversized or tiny typography. Main body styles now use 14sp semibold with 22sp line height; supporting copy uses 12sp medium, and action labels use 13sp bold. Headline sizes remain unchanged. Small hard-coded labels in active campaign, settings and classification controls are raised to 12sp; dense CSV previews and decorative onboarding examples retain their specialized sizing. Existing English/Arabic, narrow/landscape and modal interaction fixtures validate the layout.
+
+## English font replacement — 2026-11-03
+
+The user rejected Outfit's appearance and requested a bold, clear, elegant English font. Replaced the Latin family with Inter variable (google/fonts/ofl/inter), bundled offline with OFL-Inter.txt. English headings use bold rather than extra-bold; body and control sizes retain the previous balanced scale. Removed negative tracking from English body/control text to avoid crowded letters. Arabic Tajawal, Arabic weights and spacing, and dedicated monospaced numbers are unchanged.
