@@ -46,7 +46,7 @@ fun ReferenceSimPicker(selected: Int, onSelect: (Int) -> Unit) {
                         color = if (active) Color.White else cs.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.height(2.dp))
-                Text(hint, fontSize = 10.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant,
+                Text(hint, fontSize = 12.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }

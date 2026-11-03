@@ -430,7 +430,7 @@ private fun PrecisionCampaignCard(
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 Spacer(Modifier.width(7.dp))
                 Surface(shape = CircleShape, color = statusColor.copy(alpha=.1f)) {
-                    Text(statusLabel, color = readable(statusColor), fontSize = 10.sp, fontWeight = FontWeight.Medium,
+                    Text(statusLabel, color = readable(statusColor), fontSize = 12.sp, fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp), maxLines = 1)
                 }
             }
@@ -504,9 +504,9 @@ private fun PrecisionCampaignCard(
         Spacer(Modifier.height(6.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text((if (list.simSlot >= 0) "SIM ${list.simSlot + 1}" else L(R.string.ui_default_sim_bf6ca60e)) + " · " + L(R.string.ref_answered_count, p.answered),
-                color = Muted, fontSize = 11.5.sp, modifier = Modifier.weight(1f))
+                color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
             Text(last,
-                color = Muted, fontSize = 11.sp, maxLines = 1)
+                color = Muted, fontSize = 12.sp, maxLines = 1)
         }
     }
     if (duplicates) ReferenceDuplicateModal(list) { duplicates = false }

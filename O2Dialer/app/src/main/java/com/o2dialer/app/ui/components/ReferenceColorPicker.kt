@@ -31,7 +31,7 @@ fun ReferenceColorOption() {
     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(L(R.string.ref_app_color), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            Text(L(R.string.ref_color_count), fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(L(R.string.ref_color_count), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Row(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer)
             .clickable { opened = true }.heightIn(min = 40.dp).padding(horizontal = 12.dp),
@@ -58,7 +58,7 @@ private fun ReferenceColorPicker(onDismiss: () -> Unit) {
                     }
                     Column(Modifier.weight(1f)) {
                         Text(L(R.string.ref_choose_color), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-                        Text(L(R.string.ref_choose_color_hint), fontSize = 11.sp, color = cs.onSurfaceVariant)
+                        Text(L(R.string.ref_choose_color_hint), fontSize = 12.sp, color = cs.onSurfaceVariant)
                     }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(36.dp).background(cs.primaryContainer, CircleShape)) {
                         Icon(O2Icons.Close, L(R.string.ref_close_color_picker), Modifier.size(16.dp))

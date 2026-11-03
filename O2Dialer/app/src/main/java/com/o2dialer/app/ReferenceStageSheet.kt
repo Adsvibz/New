@@ -75,7 +75,7 @@ fun ReferenceStageSheet(listId: String, entryId: String) {
                                         Spacer(Modifier.width(10.dp))
                                         Column(Modifier.weight(1f)) {
                                             Text(Stg.label(stage), fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold, color = foreground, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                            Text(descriptions.getValue(stage), Modifier.padding(top = 2.dp), fontSize = 10.5.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                            Text(descriptions.getValue(stage), Modifier.padding(top = 2.dp), fontSize = 12.sp, color = if (active) Color(0xFFD4D4D4) else cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                         }
                                     }
                                 }
@@ -93,7 +93,7 @@ fun ReferenceStageSheet(listId: String, entryId: String) {
                         if (selected == Stg.POTENTIAL || selected == Stg.WHATSAPP) Row(Modifier.fillMaxWidth().background(cs.surfaceVariant, RoundedCornerShape(12.dp)).border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(T("WhatsApp Follow-up Shortcut", "متابعة فورية عبر واتساب"), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                Text(T("Opens external WhatsApp chat with this contact", "يفتح محادثة واتساب خارجية مع الرقم مباشرة"), fontSize = 11.sp, color = cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(T("Opens external WhatsApp chat with this contact", "يفتح محادثة واتساب خارجية مع الرقم مباشرة"), fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                             Spacer(Modifier.width(12.dp))
                             OutlinedButton({ openWhatsApp(ctx, entry.number) }, shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(12.dp, 6.dp)) {

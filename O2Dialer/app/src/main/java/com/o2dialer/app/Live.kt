@@ -353,7 +353,7 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(L(R.string.ui_dialer_bd42b0f9), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                Text(if(state.status == CS.IDLE && selected != null) L(R.string.ui_ready_0c93aede) else sessionLabel(state), Modifier.background(cs.onSurface.copy(alpha = .06f), CircleShape).padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                Text(if(state.status == CS.IDLE && selected != null) L(R.string.ui_ready_0c93aede) else sessionLabel(state), Modifier.background(cs.onSurface.copy(alpha = .06f), CircleShape).padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
         IconButton(onOperational, Modifier.size(44.dp).background(cs.surface.copy(alpha=.6f), CircleShape)) { Icon(O2Icons.AlertCircle, L(R.string.ref_operational_status), Modifier.size(18.dp)) }

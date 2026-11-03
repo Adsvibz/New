@@ -41,7 +41,7 @@ fun ReferenceSettingCheck(title: String, sub: String?, checked: Boolean, onChang
         .padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-            if (sub != null) Text(sub, fontSize = 11.5.sp, color = cs.onSurfaceVariant)
+            if (sub != null) Text(sub, fontSize = 12.sp, color = cs.onSurfaceVariant)
         }
         Box(Modifier.size(16.dp).clip(RoundedCornerShape(3.dp)).background(if (checked) O2Colors.Ink else cs.surface)
             .border(1.dp, if (checked) O2Colors.Ink else cs.outline, RoundedCornerShape(3.dp)), contentAlignment = Alignment.Center) {
@@ -55,7 +55,7 @@ fun ReferenceSettingNumber(title: String, value: Int, min: Int, max: Int, modifi
     val cs = MaterialTheme.colorScheme
     var input by remember(value) { mutableStateOf(value.toString()) }
     Column(modifier) {
-        Text(title, fontSize = 11.5.sp, fontWeight = FontWeight.Medium, color = cs.onSurfaceVariant,
+        Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = cs.onSurfaceVariant,
             maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
         BasicTextField(input, { next ->

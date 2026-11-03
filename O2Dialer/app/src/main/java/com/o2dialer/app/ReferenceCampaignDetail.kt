@@ -72,8 +72,8 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                 { m -> O2Card(m.heightIn(min = 112.dp), hero = true) {
                     Column(Modifier.padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text(L(R.string.ui_called_c764210c), Modifier.weight(1f), fontSize = 11.5.sp)
-                            Text("${p.pct}%", Modifier.background(Color.White.copy(alpha = .2f), CircleShape).padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+                            Text(L(R.string.ui_called_c764210c), Modifier.weight(1f), fontSize = 12.sp)
+                            Text("${p.pct}%", Modifier.background(Color.White.copy(alpha = .2f), CircleShape).padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(8.dp)); Text(java.text.NumberFormat.getIntegerInstance().format(p.called), fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
                         Spacer(Modifier.height(10.dp)); O2Progress(p.pct / 100f, Color.White)
@@ -116,7 +116,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                             St.NO_ANSWER to L(R.string.ref_no_answer), St.FAILED to L(R.string.ref_failed), St.DONE to L(R.string.ref_unverified)).forEach { (value, label) ->
                             Box(Modifier.clip(CircleShape).background(if (filter == value) O2Colors.Ink else cs.onSurface.copy(alpha = .04f))
                                 .clickable { filter = value }.heightIn(min = 34.dp).padding(horizontal = 12.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
-                                Text(label, fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, color = if (filter == value) Color.White else cs.onSurfaceVariant)
+                                Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = if (filter == value) Color.White else cs.onSurfaceVariant)
                             }
                         }
                     }
@@ -150,9 +150,9 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
 private fun ReferenceDetailStat(modifier: Modifier, title: String, value: Int, size: Int, hint: String = "", minHeight: Int = 104, color: Color = MaterialTheme.colorScheme.onSurface) {
     O2Card(modifier.heightIn(min = minHeight.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Text(title, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp)); Text(java.text.NumberFormat.getIntegerInstance().format(value), fontSize = size.sp, fontWeight = FontWeight.ExtraBold, color = color)
-            if (hint.isNotEmpty()) Text(hint, Modifier.padding(top = 6.dp), fontSize = 10.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (hint.isNotEmpty()) Text(hint, Modifier.padding(top = 6.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -176,10 +176,10 @@ private fun ReferenceContactRow(entry: Entry, listId: String, onEdit: () -> Unit
             NumText(entry.number, style = MaterialTheme.typography.bodySmall, color = cs.onSurface.copy(alpha = .8f))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 StatusDot(entry.status)
-                if (entry.duration > 0) Text("· ${fmtDur(entry.duration)}", fontSize = 11.5.sp, color = cs.onSurfaceVariant)
+                if (entry.duration > 0) Text("· ${fmtDur(entry.duration)}", fontSize = 12.sp, color = cs.onSurfaceVariant)
             }
-            if (entry.stage != Stg.NONE) Text(Stg.label(entry.stage), fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold)
-            if (entry.feedback.isNotBlank()) Text("“${entry.feedback}”", fontSize = 11.5.sp, color = cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (entry.stage != Stg.NONE) Text(Stg.label(entry.stage), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            if (entry.feedback.isNotBlank()) Text("“${entry.feedback}”", fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             IconButton({ Store.stageTarget = listId to entry.id }, Modifier.size(32.dp)) { Icon(O2Icons.Tag, L(R.string.ui_stage_71ed493b), Modifier.size(14.dp), tint = cs.onSurfaceVariant) }
