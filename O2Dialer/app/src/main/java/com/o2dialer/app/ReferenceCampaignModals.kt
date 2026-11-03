@@ -130,6 +130,8 @@ fun ReferenceShareModal(list: CallList, onDismiss: () -> Unit) {
     val csv = remember(list.entries, Store.cfg.lang) { Store.listReport(list) }
     var copied by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
+    // Keep the writing coroutine alive until the selected document has been fully written.
+    val dismissWhenIdle = { if (!saving) onDismiss() }
     LaunchedEffect(copied) { if (copied) { delay(2000); copied = false } }
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null && License.canExport) scope.launch {
@@ -145,8 +147,8 @@ fun ReferenceShareModal(list: CallList, onDismiss: () -> Unit) {
             finally { saving = false }
         } else if (uri != null) License.denyExport()
     }
-    ReferenceModal(onDismiss, 448.dp) {
-        ReferenceModalHeader(L(R.string.ui_share_report_28dd6cbd) + " (CSV)", onDismiss, O2Icons.Share)
+    ReferenceModal(dismissWhenIdle, 448.dp) {
+        ReferenceModalHeader(L(R.string.ui_share_report_28dd6cbd) + " (CSV)", dismissWhenIdle, O2Icons.Share)
         Spacer(Modifier.height(12.dp)); HorizontalDivider(color = cs.outlineVariant)
         Text(L(R.string.ref_csv_report_description, list.name, list.entries.size), Modifier.padding(top = 12.dp, bottom = 8.dp), fontSize = 12.sp, color = cs.onSurfaceVariant)
         SelectionContainer {
@@ -157,7 +159,7 @@ fun ReferenceShareModal(list: CallList, onDismiss: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp)); HorizontalDivider(color = cs.outlineVariant)
         Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onDismiss, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(L(R.string.ref_close), fontSize = 12.sp, color = cs.onSurfaceVariant) }
+            TextButton(dismissWhenIdle, enabled = !saving, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(L(R.string.ref_close), fontSize = 12.sp, color = cs.onSurfaceVariant) }
             OutlinedButton({
                 if (License.canExport) {
                     (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(list.name, csv))
