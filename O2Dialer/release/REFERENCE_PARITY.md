@@ -80,3 +80,7 @@ The user requested clearer bold text without oversized or tiny typography. Main 
 ## English font replacement — 2026-11-03
 
 The user rejected Outfit's appearance and requested a bold, clear, elegant English font. Replaced the Latin family with Inter variable (google/fonts/ofl/inter), bundled offline with OFL-Inter.txt. English headings use bold rather than extra-bold; body and control sizes retain the previous balanced scale. Removed negative tracking from English body/control text to avoid crowded letters. Arabic Tajawal, Arabic weights and spacing, and dedicated monospaced numbers are unchanged.
+
+## English font restored — 2026-11-03
+
+Following the user's request, the English family and Material typography sizes, weights and letter spacing are restored to build 196's Outfit configuration. The current Arabic typography and later layout fixes are retained. Explicit sizes added to individual controls in build 197 remain unchanged.
