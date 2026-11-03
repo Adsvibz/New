@@ -84,3 +84,7 @@ The user rejected Outfit's appearance and requested a bold, clear, elegant Engli
 ## English font restored — 2026-11-03
 
 Following the user's request, the English family and Material typography sizes, weights and letter spacing are restored to build 196's Outfit configuration. The current Arabic typography and later layout fixes are retained. Explicit sizes added to individual controls in build 197 remain unchanged.
+
+## Clearly bold English type — 2026-11-03
+
+The user found Outfit too thin and requested an elegant bold English typeface. English now uses the bundled Plus Jakarta Sans variable font, with a minimum actual weight of 600 even for labels requesting regular weight and bold weight 700 for default body text. The existing scale is retained and letter spacing is neutral for clarity. Arabic Tajawal and monospaced numeric text remain unchanged.

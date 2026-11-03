@@ -9,16 +9,16 @@ import com.o2dialer.app.R
 
 object O2Type {
     val Latin = FontFamily(*listOf(400,500,600,700,800).map { w ->
-        Font(R.font.outfit_variable, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
+        Font(R.font.plus_jakarta, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w.coerceAtLeast(600))))
     }.toTypedArray())
     val Arabic = FontFamily(Font(R.font.tajawal_regular), Font(R.font.tajawal_medium, FontWeight.Medium), Font(R.font.tajawal_bold, FontWeight.Bold))
     val Mono = FontFamily(Font(R.font.jetbrains_mono))
     fun typography(arabic: Boolean): Typography {
         val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Medium) = TextStyle(
+        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold) = TextStyle(
             fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
             fontWeight = weight,
-            letterSpacing = if (arabic) 0.sp else (-size * .011f).sp)
+            letterSpacing = 0.sp)
         return Typography(
             displayLarge=s(36,44,FontWeight.ExtraBold), displayMedium=s(28,36,FontWeight.ExtraBold),
             displaySmall=s(26,34,FontWeight.ExtraBold), headlineLarge=s(22,30,FontWeight.ExtraBold),
