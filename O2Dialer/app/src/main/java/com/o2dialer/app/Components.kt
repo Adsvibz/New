@@ -218,10 +218,12 @@ fun SettingsSection(
     val cs = MaterialTheme.colorScheme
     val reducedMotion = LocalReducedMotion.current
     val controlled = LocalSettingsOpenSection.current
+    // Stable across translated section titles, so the opened group stays open.
+    val sectionKey = icon.name
     var independentOpen by remember { mutableStateOf(startOpen) }
-    val expanded = if (controlled != null) controlled.value == title else independentOpen
+    val expanded = if (controlled != null) controlled.value == sectionKey else independentOpen
     val onToggle = {
-        if (controlled != null) controlled.value = if (expanded) null else title
+        if (controlled != null) controlled.value = if (expanded) null else sectionKey
         else independentOpen = !independentOpen
     }
     val shape = RoundedCornerShape(22.dp)

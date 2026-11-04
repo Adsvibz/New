@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val dir = if (Store.cfg.lang == 1) LayoutDirection.Rtl else LayoutDirection.Ltr
             CompositionLocalProvider(LocalLayoutDirection provides dir) {
-                AppTheme { MotionPreferences { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() } }
+                AppTheme { MotionPreferences { LanguageTransitionHost { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() } } }
             }
         }
     }

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -65,7 +67,33 @@ fun SettingsScreen() {
 
     SettingsAccordion {
     Scaffold(
-        topBar = { BlendBar(L(R.string.ui_settings_f3f3f790), subtitle = L(R.string.ui_settings_summary), showSettings = false, showLanguage = false, actions = { TextButton(onClick = { Store.welcomed = false }) { Text(L(R.string.ui_guide)) } }) },
+        topBar = {
+            BlendBar(
+                L(R.string.ui_settings_f3f3f790),
+                subtitle = L(R.string.ui_settings_summary),
+                showSettings = false,
+                showLanguage = false,
+                actions = {
+                    val cs = MaterialTheme.colorScheme
+                    val shape = RoundedCornerShape(14.dp)
+                    OutlinedButton(
+                        onClick = { Store.welcomed = false },
+                        modifier = Modifier.height(40.dp).shadow(3.dp, shape),
+                        shape = shape,
+                        border = BorderStroke(1.dp, cs.outline.copy(alpha = .42f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = cs.surface,
+                            contentColor = cs.onSurface
+                        ),
+                        contentPadding = PaddingValues(horizontal = 12.dp)
+                    ) {
+                        Icon(com.o2dialer.app.ui.components.O2Icons.BookOpen, null, Modifier.size(15.dp))
+                        Spacer(Modifier.width(7.dp))
+                        Text(L(R.string.ui_guide), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            )
+        },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -75,7 +103,7 @@ fun SettingsScreen() {
         ) {
 
             SettingsSection(com.o2dialer.app.ui.components.O2Icons.Globe, L(R.string.ui_general_509ae930)) {
-                ReferenceSettingChoice(L(R.string.ui_language_a2d96192), listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
+                ReferenceSettingChoice(L(R.string.ui_language_a2d96192), listOf("English", "العربية"), c.lang) { i -> LanguageTransition.changeTo(i) }
                 ReferenceSettingChoice(L(R.string.ui_appearance_d1df9e0b), listOf("System", "Light", "Dark"), c.themeMode) { i -> up { it.copy(themeMode = i) } }
                 com.o2dialer.app.ui.components.ReferenceColorOption()
                 ReferenceSettingCheck(

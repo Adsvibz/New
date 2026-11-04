@@ -388,7 +388,7 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
                 }
             }
         }
-        DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { Store.updateCfg { it.copy(lang = 1 - it.lang) } }
+        DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { LanguageTransition.toggle() }
     }
 }
 

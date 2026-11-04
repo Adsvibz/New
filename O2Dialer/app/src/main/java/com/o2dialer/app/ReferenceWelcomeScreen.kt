@@ -30,7 +30,7 @@ fun ReferenceWelcomeScreen() {
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(10.dp).background(O2Colors.Accent, CircleShape))
             Text("O2Dialer 7.0", Modifier.weight(1f), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            TextButton({ Store.updateCfg { it.copy(lang = 1 - it.lang) } }, shape = CircleShape,
+            TextButton({ LanguageTransition.toggle() }, shape = CircleShape,
                 colors = ButtonDefaults.textButtonColors(containerColor = cs.surface.copy(alpha = .75f), contentColor = cs.onSurface), contentPadding = PaddingValues(horizontal = 12.dp)) {
                 Icon(O2Icons.Globe, null, Modifier.size(14.dp)); Spacer(Modifier.width(6.dp))
                 Text(if (Store.cfg.lang == 1) "English" else "العربية", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold)

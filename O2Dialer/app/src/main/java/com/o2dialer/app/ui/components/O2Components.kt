@@ -122,7 +122,7 @@ import com.o2dialer.app.ui.theme.*
             if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
             Text(title,style=MaterialTheme.typography.headlineLarge)
         }
-        SoftIconButton(O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{ Store.updateCfg { it.copy(lang=1-it.lang) } })
+        SoftIconButton(O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{ LanguageTransition.toggle() })
         actions()
     }
 }

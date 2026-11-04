@@ -697,7 +697,7 @@ fun BlendBar(
                 if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)
             }
             if (showLanguage) {
-                SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{Store.updateCfg {it.copy(lang=1-it.lang)}})
+                SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{LanguageTransition.toggle()})
                 Spacer(Modifier.width(Sp.s))
             }
             if (Store.campActive() && Store.tab != 1) {
