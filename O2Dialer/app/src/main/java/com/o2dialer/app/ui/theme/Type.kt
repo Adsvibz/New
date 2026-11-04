@@ -13,16 +13,20 @@ object O2Type {
     }.toTypedArray())
     val Arabic = FontFamily(Font(R.font.tajawal_regular), Font(R.font.tajawal_medium, FontWeight.Medium), Font(R.font.tajawal_bold, FontWeight.Bold))
     val Mono = FontFamily(Font(R.font.jetbrains_mono))
+    /** Editorial display serif for Latin page titles and hero numbers; single regular weight by design. */
+    val Serif = FontFamily(Font(R.font.instrument_serif))
     fun typography(arabic: Boolean): Typography {
         val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold) = TextStyle(
-            fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
+        val display = if (arabic) Arabic else Serif
+        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold, fam: FontFamily = family) = TextStyle(
+            fontFamily = fam, fontSize = size.sp, lineHeight = line.sp,
             fontWeight = weight,
             letterSpacing = 0.sp)
+        fun d(size: Int, line: Int) = s(size, line, if (arabic) FontWeight.SemiBold else FontWeight.Normal, display)
         return Typography(
-            displayLarge=s(36,44,FontWeight.ExtraBold), displayMedium=s(28,36,FontWeight.ExtraBold),
-            displaySmall=s(26,34,FontWeight.ExtraBold), headlineLarge=s(22,30,FontWeight.ExtraBold),
-            headlineMedium=s(22,30,FontWeight.ExtraBold), headlineSmall=s(20,28,FontWeight.Bold),
+            displayLarge=d(36,44), displayMedium=d(28,36),
+            displaySmall=d(26,34), headlineLarge=d(22,30),
+            headlineMedium=d(22,30), headlineSmall=d(20,28),
             titleLarge=s(18,26,FontWeight.Bold), titleMedium=s(16,24,FontWeight.Bold),
             titleSmall=s(15,22,FontWeight.Bold), bodyLarge=s(14,22), bodyMedium=if (arabic) s(14,22) else s(13,20),
             bodySmall=s(12,18,if (arabic) FontWeight.Medium else FontWeight.Normal), labelLarge=if (arabic) s(13,20,FontWeight.Bold) else s(12,18,FontWeight.Bold),
