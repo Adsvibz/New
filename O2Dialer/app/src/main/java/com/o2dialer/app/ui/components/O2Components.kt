@@ -124,13 +124,22 @@ import com.o2dialer.app.ui.theme.*
 
 @Composable fun O2BottomNavBar() {
     val cs=MaterialTheme.colorScheme
+    val dark=isDarkTheme()
+    val count=Store.lists.count { Store.isRunningList(it.id) }
     val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
-    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=20.dp,vertical=14.dp),contentAlignment=Alignment.Center) {
-        Row(Modifier.widthIn(max=390.dp).fillMaxWidth().shadow(12.dp,CircleShape,ambientColor=Color.Black.copy(alpha=.05f),spotColor=Color.Black.copy(alpha=.12f))
-            // Android 8+ has no uniform backdrop-blur API. A dense tint preserves the
-            // reference's frosted appearance without legible content bleeding through.
-            .clip(CircleShape).background(Brush.verticalGradient(if(isDarkTheme()) listOf(Color(0xFF20242C).copy(alpha=.98f),Color(0xFF181B22).copy(alpha=.97f)) else listOf(Color.White.copy(alpha=.97f),Color(0xFFFAF9F6).copy(alpha=.96f))))
-            .border(1.dp,Color.White.copy(alpha=if(isDarkTheme()) .14f else .88f),CircleShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+    val navShape=RoundedCornerShape(30.dp)
+    val navFill=if(dark) Color(0xFF252932) else Color(0xFFF2F3F6)
+    val navBorder=if(dark) Color.White.copy(alpha=.20f) else Color(0xFFCFD3DA)
+    BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),contentAlignment=Alignment.Center) {
+        val navItemSize=when {
+            maxWidth < 280.dp -> 40.dp
+            maxWidth < 310.dp -> 44.dp
+            else -> 48.dp
+        }
+        Row(Modifier.widthIn(max=390.dp).fillMaxWidth()
+            .shadow(14.dp,navShape,ambientColor=Color.Black.copy(alpha=.10f),spotColor=Color.Black.copy(alpha=.18f))
+            .clip(navShape).background(navFill)
+            .border(1.dp,navBorder,navShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
             tabs.forEach { (id,icon,label) ->
                 val active=Store.tab==id
                 val reduced = LocalReducedMotion.current
@@ -142,12 +151,12 @@ import com.o2dialer.app.ui.theme.*
                         pop.animateTo(1f, keyframes { durationMillis = 320; .82f at 0; 1.08f at 192 using ReferenceEase; 1f at 320 })
                     } else pop.snapTo(1f)
                 }
-                Box(Modifier.size(48.dp).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, .9f).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
-                    .semantics { contentDescription=label; selected=active; role=Role.Tab }
+                Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, .9f).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
+                    .semantics { contentDescription=if(id==0 && count>0) "$label ($count)" else label; selected=active; role=Role.Tab }
                     .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
-                    Icon(icon,null,tint=if(active) Color.White else cs.onSurfaceVariant,modifier=Modifier.size(19.dp))
-                    val count=Store.lists.count { Store.isRunningList(it.id) }
-                    if(id==0 && count>0) Text(count.toString(),color=Color.White,fontSize=9.sp,modifier=Modifier.align(Alignment.TopEnd).padding(3.dp).background(O2Colors.Accent,CircleShape).padding(horizontal=4.dp))
+                    Icon(icon,null,tint=if(active) Color.White else if(dark) cs.onSurface.copy(alpha=.80f) else O2Colors.Ink.copy(alpha=.68f),modifier=Modifier.size(19.dp))
+                    // A dot replaces the cramped circular count badge; stays inside the tab's bounds.
+                    if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=4.dp,end=4.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
                 }
             }
         }
