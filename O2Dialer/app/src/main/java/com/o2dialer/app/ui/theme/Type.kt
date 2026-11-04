@@ -9,9 +9,18 @@ import androidx.compose.ui.unit.sp
 import com.o2dialer.app.R
 
 object O2Type {
-    val Latin = FontFamily(*listOf(400,500,600,700,800).map { w ->
-        Font(R.font.plus_jakarta, FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w.coerceAtLeast(600))))
-    }.toTypedArray())
+    // Keep each advertised weight equal to the font's actual variable-font axis.
+    // Previously 400/500 were declared but rendered at 600, which could lead to
+    // weight substitution/synthetic bold behaving differently across devices.
+    // The product's minimum English weight is intentionally SemiBold (600).
+    val Latin = FontFamily(
+        Font(R.font.plus_jakarta, FontWeight.SemiBold,
+            variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+        Font(R.font.plus_jakarta, FontWeight.Bold,
+            variationSettings = FontVariation.Settings(FontVariation.weight(700))),
+        Font(R.font.plus_jakarta, FontWeight.ExtraBold,
+            variationSettings = FontVariation.Settings(FontVariation.weight(800)))
+    )
     val Arabic = FontFamily(
         Font(R.font.plex_arabic_regular, FontWeight.Normal),
         Font(R.font.plex_arabic_medium, FontWeight.Medium),
@@ -19,13 +28,21 @@ object O2Type {
         Font(R.font.plex_arabic_bold, FontWeight.Bold)
     )
     val Mono = FontFamily(Font(R.font.jetbrains_mono))
+
     fun typography(arabic: Boolean): Typography {
         val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold, track: TextUnit = 0.sp) = TextStyle(
-            fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
-            fontWeight = weight,
-            letterSpacing = track)
-        // Reference headings sit closer to 720-760 with about -0.028em tracking; tracking is Latin-only.
+        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold, track: TextUnit = 0.sp): TextStyle {
+            // Match the requested weight to an embedded, explicitly declared face.
+            // Never ask Android to manufacture bold faces that we haven't supplied.
+            val resolvedWeight = if (!arabic && weight.weight < 600) FontWeight.SemiBold else weight
+            return TextStyle(
+                fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
+                fontWeight = resolvedWeight,
+                fontSynthesis = FontSynthesis.None,
+                letterSpacing = track
+            )
+        }
+        // Reference headings use controlled tracking; keep Arabic spacing neutral.
         fun h(size: Int, line: Int) = s(size, line, if (arabic) FontWeight.SemiBold else FontWeight.Bold, if (arabic) 0.sp else (-size * 0.028f).sp)
         fun t(size: Int, line: Int) = s(size, line, FontWeight.Bold, if (arabic) 0.sp else (-size * 0.02f).sp)
         return Typography(
