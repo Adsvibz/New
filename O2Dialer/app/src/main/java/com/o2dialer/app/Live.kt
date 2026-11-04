@@ -356,7 +356,25 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
                 Text(if(state.status == CS.IDLE && selected != null) L(R.string.ui_ready_0c93aede) else sessionLabel(state), Modifier.background(cs.onSurface.copy(alpha = .06f), CircleShape).padding(horizontal = 10.dp, vertical = 2.dp), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
-        IconButton(onOperational, Modifier.size(44.dp).background(cs.surface.copy(alpha=.6f), CircleShape)) { Icon(O2Icons.AlertCircle, L(R.string.ref_operational_status), Modifier.size(18.dp)) }
-        IconButton({ Store.updateCfg { it.copy(lang = 1 - it.lang) } }, Modifier.size(44.dp).background(cs.surface.copy(alpha=.6f), CircleShape)) { Icon(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1), Modifier.size(18.dp)) }
+        DialerHeaderAction(O2Icons.AlertCircle, L(R.string.ref_operational_status), onOperational)
+        DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { Store.updateCfg { it.copy(lang = 1 - it.lang) } }
+    }
+}
+
+/** Bounded, accessible actions that remain distinct from the pale dialer canvas. */
+@Composable
+private fun DialerHeaderAction(icon: ImageVector, description: String, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(14.dp)
+    Box(
+        Modifier.size(44.dp)
+            .shadow(4.dp, shape, ambientColor = Color.Black.copy(alpha = .05f), spotColor = Color.Black.copy(alpha = .12f))
+            .clip(shape)
+            .background(cs.surface)
+            .border(1.dp, cs.outline.copy(alpha = .36f), shape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, description, Modifier.size(18.dp), tint = cs.onSurface)
     }
 }
