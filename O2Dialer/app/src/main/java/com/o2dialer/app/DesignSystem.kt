@@ -243,7 +243,7 @@ fun CircleAction(
     val cs = MaterialTheme.colorScheme
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
-            Modifier.size(62.dp).pressScale(src, 0.94f)
+            Modifier.size(62.dp).pressScale(src, TouchFeedback.COMPACT_SCALE)
                 .semantics { contentDescription = label }
                 .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
                 .shadow(if (outlined) 6.dp else 14.dp, CircleShape, ambientColor = container.copy(alpha = 0.4f))
@@ -622,7 +622,7 @@ fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
         Modifier.clip(shape)
             .background(cs.surface)
             .border(1.dp, cs.outline.copy(alpha = 0.8f), shape)
-            .pressScale(src, 0.94f)
+            .pressScale(src, TouchFeedback.COMPACT_SCALE)
             .clickable(interactionSource = src, indication = null, role = Role.Button) { onClick() }
             .heightIn(min = 48.dp).padding(horizontal = 15.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -814,7 +814,7 @@ fun BrandFab(text: String, icon: ImageVector, onClick: () -> Unit, modifier: Mod
     val shape = RoundedCornerShape(19.dp)
     val src = remember { MutableInteractionSource() }
     Row(
-        modifier.pressScale(src, 0.94f)
+        modifier.pressScale(src, TouchFeedback.COMPACT_SCALE)
             .shadow(3.dp, shape, ambientColor = cs.primary.copy(alpha = 0.12f), spotColor = cs.primary.copy(alpha = 0.10f))
             .clip(shape)
             .background(Brush.horizontalGradient(listOf(cs.primary, cs.primary)))

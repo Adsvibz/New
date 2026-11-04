@@ -149,10 +149,21 @@ fun LanguageTransitionHost(content: @Composable () -> Unit) {
     }
 }
 
+/** Quiet, crisp press response without overshoot or the heavy stock gray flash. */
 @Composable
-fun Modifier.pressScale(src: MutableInteractionSource, pressedScale: Float = 0.975f): Modifier {
+fun Modifier.pressScale(
+    src: MutableInteractionSource,
+    pressedScale: Float = TouchFeedback.BUTTON_SCALE
+): Modifier {
     if (LocalReducedMotion.current) return this
     val pressed by src.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) pressedScale else 1f, Motion.press(), label = "press")
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) pressedScale else 1f,
+        animationSpec = tween(
+            durationMillis = if (pressed) TouchFeedback.PRESS_MS else TouchFeedback.RELEASE_MS,
+            easing = FastOutSlowInEasing
+        ),
+        label = "touchPress"
+    )
     return graphicsLayer { scaleX = scale; scaleY = scale }
 }

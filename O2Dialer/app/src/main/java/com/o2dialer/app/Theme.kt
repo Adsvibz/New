@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -25,6 +28,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.TextUnit
 import androidx.core.view.WindowCompat
+
+/**
+ * A restrained touch wash for Material controls and plain clickable elements.
+ * Retain tactile feedback without the stock gray overlay.
+ */
+private object O2QuietRippleTheme : RippleTheme {
+    @Composable
+    override fun defaultColor(): Color = LocalContentColor.current
+
+    @Composable
+    override fun rippleAlpha(): RippleAlpha = RippleAlpha(
+        pressedAlpha = TouchFeedback.PRESS_ALPHA,
+        focusedAlpha = TouchFeedback.FOCUS_ALPHA,
+        hoveredAlpha = TouchFeedback.HOVER_ALPHA,
+        draggedAlpha = TouchFeedback.DRAG_ALPHA
+    )
+}
 
 /** Visible product name. Change it here to rebrand every screen. */
 const val APP_NAME = "O2Dialer"
@@ -136,6 +156,10 @@ fun AppTheme(content: @Composable () -> Unit) {
         colorScheme = cleanScheme, typography = ty,
         shapes = com.o2dialer.app.ui.theme.O2Shape.Material
     ) {
-        com.o2dialer.app.ui.components.ReferenceViewport { com.o2dialer.app.ui.components.O2Canvas(dark) { content() } }
+        CompositionLocalProvider(LocalRippleTheme provides O2QuietRippleTheme) {
+            com.o2dialer.app.ui.components.ReferenceViewport {
+                com.o2dialer.app.ui.components.O2Canvas(dark) { content() }
+            }
+        }
     }
 }
