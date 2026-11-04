@@ -2,6 +2,10 @@ package com.o2dialer.app.ui.components
 
 import com.o2dialer.app.L
 import com.o2dialer.app.R
+import android.os.Build
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.hazeChild
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
@@ -123,18 +127,28 @@ import com.o2dialer.app.ui.theme.*
     }
 }
 
-@Composable fun O2BottomNavBar() {
+@Composable fun O2BottomNavBar(hazeState: HazeState) {
     val cs=MaterialTheme.colorScheme
     val dark=isDarkTheme()
     val count=Store.lists.count { Store.isRunningList(it.id) }
     val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
     val navShape=RoundedCornerShape(32.dp)
-    // Translucent gradient glass surface, preserving sharp icon rendering.
-    val navFill=Brush.verticalGradient(
-        if(dark) listOf(Color(0xFF343B49).copy(alpha=.92f),Color(0xFF202733).copy(alpha=.82f))
-        else listOf(Color.White.copy(alpha=.91f),Color(0xFFE9EDF5).copy(alpha=.80f))
-    )
-    val navBorder=if(dark) Color.White.copy(alpha=.30f) else Color.White.copy(alpha=.96f)
+    // Actual backdrop blur, NOT a tinted gradient. Haze samples the Compose
+    // content behind this dock; icons remain sharp because only the source is blurred.
+    val blurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val glassTint = if (dark) Color(0xFF242A36).copy(alpha = .40f)
+                    else Color.White.copy(alpha = .38f)
+    val glassStyle = HazeStyle(tint = glassTint, blurRadius = 24.dp, noiseFactor = .09f)
+    val backdropBlur = if (blurSupported) Modifier.hazeChild(hazeState, shape = navShape, style = glassStyle)
+                       else Modifier
+    // Android 11 and older use a more opaque surface instead of pretending a gradient is blur.
+    val navFill = if (blurSupported) {
+        if (dark) Color(0xFF283241).copy(alpha = .10f) else Color.White.copy(alpha = .12f)
+    } else {
+        if (dark) Color(0xFF242A34).copy(alpha = .94f) else Color(0xFFF5F6FA).copy(alpha = .96f)
+    }
+    val navBorder = if (dark) Color.White.copy(alpha = .25f)
+                    else Color.White.copy(alpha = .85f)
     BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),contentAlignment=Alignment.Center) {
         val navItemSize=when {
             maxWidth < 280.dp -> 40.dp
@@ -143,7 +157,7 @@ import com.o2dialer.app.ui.theme.*
         }
         Row(Modifier.widthIn(max=390.dp).fillMaxWidth()
             .shadow(16.dp,navShape,ambientColor=Color.Black.copy(alpha=.11f),spotColor=Color.Black.copy(alpha=.17f))
-            .clip(navShape).background(navFill)
+            .then(backdropBlur).clip(navShape).background(navFill)
             .border(1.dp,navBorder,navShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
             tabs.forEach { (id,icon,label) ->
                 val active=Store.tab==id

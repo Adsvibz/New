@@ -63,6 +63,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.haze
 
 class MainActivity : ComponentActivity() {
 
@@ -154,7 +157,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppNavBar() { com.o2dialer.app.ui.components.O2BottomNavBar() }
+private fun AppNavBar(hazeState: HazeState) { com.o2dialer.app.ui.components.O2BottomNavBar(hazeState) }
 
 @Composable
 fun Root(act: MainActivity) {
@@ -181,6 +184,8 @@ fun Root(act: MainActivity) {
 
     val screenKey = if (Store.tab == 0 && Store.selectedListId != null) 10 else Store.tab
     val reducedMotion = LocalReducedMotion.current
+    // Shared background capture for the floating frosted-glass dock.
+    val navHazeState = remember { HazeState() }
     // The reference keeps its floating navigation visible on campaign details too.
     val showNav = true
     var dockHidden by remember(screenKey) { mutableStateOf(false) }
@@ -212,8 +217,14 @@ fun Root(act: MainActivity) {
         bottomBar = {}
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).nestedScroll(scrollConnection)) {
-            Responsive {
-                AnimatedContent(
+            Box(
+                Modifier.fillMaxSize().haze(
+                    state = navHazeState,
+                    style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
+                )
+            ) {
+                Responsive {
+                    AnimatedContent(
                     targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
                         if (reducedMotion) {
@@ -235,13 +246,14 @@ fun Root(act: MainActivity) {
                         else -> SettingsScreen()
                     }
                 }
+                }
             }
             AnimatedVisibility(
                 visible = showNav && !dockHidden,
                 modifier = Modifier.align(Alignment.BottomCenter),
                 enter = fadeIn(tween(if (reducedMotion) 0 else 300)) + slideInVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() },
                 exit = fadeOut(tween(if (reducedMotion) 0 else 300)) + slideOutVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() }
-            ) { AppNavBar() }
+            ) { AppNavBar(navHazeState) }
             ToastHost(
                 Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = Sp.m, start = Sp.l, end = Sp.l)
             )
