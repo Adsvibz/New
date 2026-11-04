@@ -161,11 +161,11 @@ private fun UpNext(list: CallList, remaining: Int) {
             next.forEachIndexed { i, e ->
                 if (i > 0) Hairline()
                 Row(
-                    Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        Modifier.size(30.dp).clip(CircleShape)
+                        Modifier.size(28.dp).clip(CircleShape)
                             .background(cs.secondary.copy(alpha = 0.10f))
                             .border(1.dp, cs.secondary.copy(alpha = 0.15f), CircleShape),
                         Alignment.Center
@@ -180,11 +180,16 @@ private fun UpNext(list: CallList, remaining: Int) {
                     Spacer(Modifier.width(Sp.m))
                     Column(Modifier.weight(1f)) {
                         Text(
-                            e.name.ifBlank { e.number }, style = MaterialTheme.typography.titleSmall,
+                            e.name.ifBlank { e.number },
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold
+                            ),
                             maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
                         if (e.name.isNotBlank()) NumText(
-                            e.number, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
+                            e.number,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 16.sp),
+                            color = cs.onSurfaceVariant
                         )
                     }
                     IconButton(
@@ -365,7 +370,7 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
 @Composable
 private fun DialerHeaderAction(icon: ImageVector, description: String, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(14.dp)
+    val shape = CircleShape
     Box(
         Modifier.size(44.dp)
             .shadow(4.dp, shape, ambientColor = Color.Black.copy(alpha = .05f), spotColor = Color.Black.copy(alpha = .12f))

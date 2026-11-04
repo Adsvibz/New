@@ -128,9 +128,13 @@ import com.o2dialer.app.ui.theme.*
     val dark=isDarkTheme()
     val count=Store.lists.count { Store.isRunningList(it.id) }
     val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
-    val navShape=RoundedCornerShape(30.dp)
-    val navFill=if(dark) Color(0xFF252932) else Color(0xFFF2F3F6)
-    val navBorder=if(dark) Color.White.copy(alpha=.20f) else Color(0xFFCFD3DA)
+    val navShape=RoundedCornerShape(32.dp)
+    // Translucent gradient glass surface, preserving sharp icon rendering.
+    val navFill=Brush.verticalGradient(
+        if(dark) listOf(Color(0xFF343B49).copy(alpha=.92f),Color(0xFF202733).copy(alpha=.82f))
+        else listOf(Color.White.copy(alpha=.91f),Color(0xFFE9EDF5).copy(alpha=.80f))
+    )
+    val navBorder=if(dark) Color.White.copy(alpha=.30f) else Color.White.copy(alpha=.96f)
     BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),contentAlignment=Alignment.Center) {
         val navItemSize=when {
             maxWidth < 280.dp -> 40.dp
@@ -138,7 +142,7 @@ import com.o2dialer.app.ui.theme.*
             else -> 48.dp
         }
         Row(Modifier.widthIn(max=390.dp).fillMaxWidth()
-            .shadow(14.dp,navShape,ambientColor=Color.Black.copy(alpha=.10f),spotColor=Color.Black.copy(alpha=.18f))
+            .shadow(16.dp,navShape,ambientColor=Color.Black.copy(alpha=.11f),spotColor=Color.Black.copy(alpha=.17f))
             .clip(navShape).background(navFill)
             .border(1.dp,navBorder,navShape).padding(6.dp),horizontalArrangement=Arrangement.SpaceBetween) {
             tabs.forEach { (id,icon,label) ->
