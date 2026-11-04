@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -156,7 +157,7 @@ import com.o2dialer.app.ui.theme.*
                     .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
                     Icon(icon,null,tint=if(active) Color.White else if(dark) cs.onSurface.copy(alpha=.80f) else O2Colors.Ink.copy(alpha=.68f),modifier=Modifier.size(19.dp))
                     // A dot replaces the cramped circular count badge; stays inside the tab's bounds.
-                    if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=4.dp,end=4.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
+                    if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=9.dp,end=9.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
                 }
             }
         }
