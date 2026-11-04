@@ -1,57 +1,46 @@
-@file:OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
-package com.o2dialer.app.ui.theme
+package com.adsvibz.o2dialer.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.*
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.o2dialer.app.R
 
-object O2Type {
-    // Keep each advertised weight equal to the font's actual variable-font axis.
-    // Previously 400/500 were declared but rendered at 600, which could lead to
-    // weight substitution/synthetic bold behaving differently across devices.
-    // The product's minimum English weight is intentionally SemiBold (600).
-    val Latin = FontFamily(
-        Font(R.font.plus_jakarta, FontWeight.SemiBold,
-            variationSettings = FontVariation.Settings(FontVariation.weight(600))),
-        Font(R.font.plus_jakarta, FontWeight.Bold,
-            variationSettings = FontVariation.Settings(FontVariation.weight(700))),
-        Font(R.font.plus_jakarta, FontWeight.ExtraBold,
-            variationSettings = FontVariation.Settings(FontVariation.weight(800)))
+// تعيين Typography موحد ومستقر يمنع تباين الخطوط العشوائي (Bold/Normal) بين الأجهزة
+val AppTypography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,  // تثبيت الوزن صراحةً لمنع الـ Fake Bold
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.SemiBold, 
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
     )
-    val Arabic = FontFamily(
-        Font(R.font.plex_arabic_regular, FontWeight.Normal),
-        Font(R.font.plex_arabic_medium, FontWeight.Medium),
-        Font(R.font.plex_arabic_semibold, FontWeight.SemiBold),
-        Font(R.font.plex_arabic_bold, FontWeight.Bold)
-    )
-    val Mono = FontFamily(Font(R.font.jetbrains_mono))
-
-    fun typography(arabic: Boolean): Typography {
-        val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold, track: TextUnit = 0.sp): TextStyle {
-            // Match the requested weight to an embedded, explicitly declared face.
-            // Never ask Android to manufacture bold faces that we haven't supplied.
-            val resolvedWeight = if (!arabic && weight.weight < 600) FontWeight.SemiBold else weight
-            return TextStyle(
-                fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
-                fontWeight = resolvedWeight,
-                fontSynthesis = FontSynthesis.None,
-                letterSpacing = track
-            )
-        }
-        // Reference headings use controlled tracking; keep Arabic spacing neutral.
-        fun h(size: Int, line: Int) = s(size, line, if (arabic) FontWeight.SemiBold else FontWeight.Bold, if (arabic) 0.sp else (-size * 0.028f).sp)
-        fun t(size: Int, line: Int) = s(size, line, FontWeight.Bold, if (arabic) 0.sp else (-size * 0.02f).sp)
-        return Typography(
-            displayLarge=h(36,44), displayMedium=h(28,36),
-            displaySmall=h(26,34), headlineLarge=h(22,30),
-            headlineMedium=h(22,30), headlineSmall=h(20,28),
-            titleLarge=t(18,26), titleMedium=t(16,24),
-            titleSmall=t(15,22), bodyLarge=s(14,22), bodyMedium=if (arabic) s(14,22) else s(13,20),
-            bodySmall=s(12,18,if (arabic) FontWeight.Medium else FontWeight.Normal), labelLarge=if (arabic) s(13,20,FontWeight.Bold) else s(12,18,FontWeight.Bold),
-            labelMedium=if (arabic) s(12,18,FontWeight.SemiBold) else s(11,16,FontWeight.SemiBold), labelSmall=if (arabic) s(11,17,FontWeight.Medium) else s(10,15,FontWeight.Medium))
-    }
-}
+)
