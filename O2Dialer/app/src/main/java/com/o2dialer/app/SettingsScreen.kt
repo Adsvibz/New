@@ -63,8 +63,9 @@ fun SettingsScreen() {
     val ctx = LocalContext.current
     fun up(f: (Cfg) -> Cfg) = Store.updateCfg(f)
 
+    SettingsAccordion {
     Scaffold(
-        topBar = { BlendBar(L(R.string.ui_settings_f3f3f790), subtitle = L(R.string.ui_settings_summary), showSettings = false, actions = { TextButton(onClick = { Store.welcomed = false }) { Text(L(R.string.ui_guide)) } }) },
+        topBar = { BlendBar(L(R.string.ui_settings_f3f3f790), subtitle = L(R.string.ui_settings_summary), showSettings = false, showLanguage = false, actions = { TextButton(onClick = { Store.welcomed = false }) { Text(L(R.string.ui_guide)) } }) },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -73,7 +74,7 @@ fun SettingsScreen() {
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
-            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Globe, L(R.string.ui_general_509ae930), startOpen = true) {
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Globe, L(R.string.ui_general_509ae930)) {
                 ReferenceSettingChoice(L(R.string.ui_language_a2d96192), listOf("English", "العربية"), c.lang) { i -> up { it.copy(lang = i) } }
                 ReferenceSettingChoice(L(R.string.ui_appearance_d1df9e0b), listOf("System", "Light", "Dark"), c.themeMode) { i -> up { it.copy(themeMode = i) } }
                 com.o2dialer.app.ui.components.ReferenceColorOption()
@@ -151,7 +152,7 @@ fun SettingsScreen() {
 
             UpdateSettingsSection()
 
-            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Security, L(R.string.ui_permissions_background_ba88001d), startOpen = true) {
+            SettingsSection(com.o2dialer.app.ui.components.O2Icons.Security, L(R.string.ui_permissions_background_ba88001d)) {
                 val perms = listOf(
                     L(R.string.ui_calling_e43b29e8) to Manifest.permission.CALL_PHONE,
                     L(R.string.ui_phone_state_a694ebf1) to Manifest.permission.READ_PHONE_STATE,
@@ -186,5 +187,6 @@ fun SettingsScreen() {
 
             Spacer(Modifier.height(Sp.xl))
         }
+    }
     }
 }

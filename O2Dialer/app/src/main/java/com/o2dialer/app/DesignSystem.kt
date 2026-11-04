@@ -680,7 +680,8 @@ private fun LivePill() {
 @Composable
 fun BlendBar(
     title: String, onBack: (() -> Unit)? = null, showSettings: Boolean = false,
-    subtitle: String? = null, actions: @Composable RowScope.() -> Unit = {}
+    subtitle: String? = null, showLanguage: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     Column(
         Modifier.fillMaxWidth().statusBarsPadding()
@@ -695,8 +696,10 @@ fun BlendBar(
                 Text(title,style=MaterialTheme.typography.headlineLarge,maxLines=2,overflow=TextOverflow.Ellipsis)
                 if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)
             }
-            SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{Store.updateCfg {it.copy(lang=1-it.lang)}})
-            Spacer(Modifier.width(Sp.s))
+            if (showLanguage) {
+                SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{Store.updateCfg {it.copy(lang=1-it.lang)}})
+                Spacer(Modifier.width(Sp.s))
+            }
             if (Store.campActive() && Store.tab != 1) {
                 LivePill()
                 Spacer(Modifier.width(Sp.s))

@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun UpdateSettingsSection() {
     val ctx = LocalContext.current
-    SettingsSection(com.o2dialer.app.ui.components.O2Icons.SystemUpdate, L(R.string.ui_app_updates_dda8813b), startOpen = true) {
+    SettingsSection(com.o2dialer.app.ui.components.O2Icons.SystemUpdate, L(R.string.ui_app_updates_dda8813b)) {
         Text(L(R.string.ui_installed_b23b63cd, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
             style = MaterialTheme.typography.bodyMedium)
         Text(L(R.string.ui_checks_automatically_when_you_open_the_a892e188),

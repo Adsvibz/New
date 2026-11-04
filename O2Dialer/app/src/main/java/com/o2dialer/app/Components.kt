@@ -6,6 +6,7 @@ import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,6 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -194,19 +198,99 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
 @Composable
 fun StageSheet(listId: String, entryId: String) { ReferenceStageSheet(listId, entryId) }
 
-// ============================================================ settings widgets
+// ============================================================ settings accordion
+// A single-open accordion provides a clean all-collapsed entry state on every visit.
+private val LocalSettingsOpenSection = staticCompositionLocalOf<MutableState<String?>?> { null }
+
+@Composable
+fun SettingsAccordion(content: @Composable () -> Unit) {
+    val openSection = remember { mutableStateOf<String?>(null) }
+    CompositionLocalProvider(LocalSettingsOpenSection provides openSection) {
+        content()
+    }
+}
+
 @Composable
 fun SettingsSection(
-    icon: ImageVector, title: String, startOpen: Boolean = true,
+    icon: ImageVector, title: String, startOpen: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = cs.surface,
-        contentColor = cs.onSurface, tonalElevation = 0.dp, shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, cs.outlineVariant)) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(title, fontSize = 13.5.sp, fontWeight = FontWeight.Bold, letterSpacing = (-.3).sp)
-            content()
+    val reducedMotion = LocalReducedMotion.current
+    val controlled = LocalSettingsOpenSection.current
+    var independentOpen by remember { mutableStateOf(startOpen) }
+    val expanded = if (controlled != null) controlled.value == title else independentOpen
+    val onToggle = {
+        if (controlled != null) controlled.value = if (expanded) null else title
+        else independentOpen = !independentOpen
+    }
+    val shape = RoundedCornerShape(22.dp)
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(if (reducedMotion) 0 else 240, easing = com.o2dialer.app.ui.components.ReferenceEase),
+        label = "settingsSectionChevron"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = shape,
+        color = cs.surface,
+        contentColor = cs.onSurface,
+        tonalElevation = 0.dp,
+        shadowElevation = if (expanded) 2.dp else 0.dp,
+        border = BorderStroke(1.dp, if (expanded) cs.outline.copy(alpha = .42f) else cs.outlineVariant)
+    ) {
+        Column {
+            Row(
+                Modifier.fillMaxWidth()
+                    .clip(shape)
+                    .semantics { stateDescription = if (expanded) T("Expanded", "مفتوح") else T("Collapsed", "مغلق") }
+                    .clickable(role = Role.Button, onClick = onToggle)
+                    .heightIn(min = 64.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier.size(38.dp).clip(RoundedCornerShape(13.dp))
+                        .background(cs.onSurface.copy(alpha = .055f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, Modifier.size(19.dp), tint = cs.onSurface.copy(alpha = .78f))
+                }
+                Text(
+                    title,
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-.2).sp
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    Icons.Rounded.KeyboardArrowDown,
+                    null,
+                    Modifier.size(21.dp).rotate(rotation),
+                    tint = cs.onSurfaceVariant
+                )
+            }
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(animationSpec = tween(if (reducedMotion) 0 else 280, easing = com.o2dialer.app.ui.components.ReferenceEase)) +
+                    fadeIn(animationSpec = tween(if (reducedMotion) 0 else 190)),
+                exit = shrinkVertically(animationSpec = tween(if (reducedMotion) 0 else 220, easing = com.o2dialer.app.ui.components.ReferenceEase)) +
+                    fadeOut(animationSpec = tween(if (reducedMotion) 0 else 140))
+            ) {
+                Column(
+                    Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    HorizontalDivider(color = cs.outlineVariant.copy(alpha = .7f))
+                    content()
+                }
+            }
         }
     }
 }
