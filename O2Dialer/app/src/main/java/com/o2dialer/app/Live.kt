@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -181,17 +182,24 @@ private fun UpNext(list: CallList, remaining: Int) {
                     Column(Modifier.weight(1f)) {
                         Text(
                             e.name.ifBlank { e.number },
-                            // Match the main Live contact name's font family and Bold weight;
-                            // retain the compact Up Next text scale.
+                            // Same embedded font family as the main Live name, at a quieter scale.
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.Bold
+                                fontSize = 12.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold
                             ),
                             maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
-                        if (e.name.isNotBlank()) NumText(
+                        if (e.name.isNotBlank()) Text(
                             e.number,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 16.sp),
-                            color = cs.onSurfaceVariant
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 11.5.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                textDirection = TextDirection.Ltr,
+                                fontFeatureSettings = "tnum"
+                            ),
+                            color = cs.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     IconButton(

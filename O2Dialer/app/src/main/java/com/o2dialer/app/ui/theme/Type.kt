@@ -16,6 +16,8 @@ import com.o2dialer.app.R
  */
 object O2Type {
     val Latin = FontFamily(
+        // True static 500 face for compact contact numbers; no synthesized weight.
+        Font(R.font.plus_jakarta_medium, FontWeight.Medium),
         Font(R.font.plus_jakarta_semibold, FontWeight.SemiBold),
         Font(R.font.plus_jakarta_bold, FontWeight.Bold),
         Font(R.font.plus_jakarta_extrabold, FontWeight.ExtraBold)
@@ -39,8 +41,8 @@ object O2Type {
             weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold,
             track: TextUnit = 0.sp
         ): TextStyle {
-            // The English product design uses 600 as its minimum actual weight.
-            // Avoid advertising a weight absent from the packaged static font files.
+            // Most English UI uses 600+, with an explicit 500 face for compact queue numbers.
+            // Retain the global minimum so existing typography outside Up Next stays unchanged.
             val resolvedWeight = if (!arabic && weight.weight < 600) FontWeight.SemiBold else weight
             return TextStyle(
                 fontFamily = family,
