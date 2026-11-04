@@ -375,11 +375,12 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
                 // Place campaign selection alongside the title; ellipsize long names.
                 Row(
                     Modifier.weight(1f).clickable(onClick = onPicker),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         selected?.name ?: L(R.string.ref_select_campaign),
-                        Modifier.weight(1f),
+                        Modifier.weight(1f, fill = false),
                         fontSize = 12.sp,
                         color = cs.onSurfaceVariant,
                         maxLines = 1,
