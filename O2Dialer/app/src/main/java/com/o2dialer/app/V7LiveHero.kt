@@ -9,10 +9,13 @@ import com.o2dialer.app.ui.components.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontSynthesis
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.o2dialer.app.ui.theme.O2Colors
+import com.o2dialer.app.ui.theme.O2Type
 
 @Composable fun V7LiveHero(state: CampState,list: CallList,progress: Prog,now: Long, controls: @Composable () -> Unit = {}) {
     val next=remember(state.queuedIds,list.entries) { queuedEntries(state,list).firstOrNull() }
@@ -38,18 +41,30 @@ import com.o2dialer.app.ui.theme.O2Colors
                 lineHeight = if (longName) 25.sp else 27.sp,
                 textAlign = TextAlign.Center, maxLines = 3, overflow = TextOverflow.Ellipsis
             )
-            if (number.isNotBlank()) NumText(
-                number,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 15.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Use one physical Medium 500 face and identical metrics for both details.
+            // Text instead of NumText avoids forcing the JetBrains Mono font.
+            val detailStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = O2Type.Latin,
+                fontWeight = FontWeight.Medium,
+                fontSynthesis = FontSynthesis.None,
+                fontSize = 15.sp,
+                lineHeight = 21.sp,
+                textDirection = TextDirection.Ltr,
+                fontFeatureSettings = "tnum"
             )
-            if (seconds > 0) NumText(
+            if (number.isNotBlank()) Text(
+                number,
+                style = detailStyle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (seconds > 0) Text(
                 fmtDur(seconds),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold
-                )
+                style = detailStyle,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
             )
             if(current && state.status != CS.PAUSED) ReferenceCallingWave()
             controls()
