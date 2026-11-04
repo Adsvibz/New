@@ -179,7 +179,11 @@ private fun UpNext(list: CallList, remaining: Int) {
                         )
                     }
                     Spacer(Modifier.width(Sp.m))
-                    Column(Modifier.weight(1f)) {
+                    // A discreet gap separates the queued contact name from its number.
+                    Column(
+                        Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
                         Text(
                             e.name.ifBlank { e.number },
                             // Same embedded font family as the main Live name, at a quieter scale.
