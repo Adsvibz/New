@@ -1,11 +1,13 @@
 package com.o2dialer.app
 
 import android.database.ContentObserver
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,7 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
 /** Shared timings. Compose also applies the system animator duration scale. */
@@ -65,40 +71,72 @@ object LanguageTransition {
     }
 }
 
+/**
+ * Direction-aware focus transition: a very short exit, then the newly localized
+ * content resolves from a 12dp offset and gentle blur. No whole-screen zoom.
+ * The source canvas remains stable; only the interactive content moves.
+ */
 @Composable
 fun LanguageTransitionHost(content: @Composable () -> Unit) {
     val requested = LanguageTransition.requestedLanguage
     val reducedMotion = LocalReducedMotion.current
+    val density = LocalDensity.current.density
     val opacity = remember { Animatable(1f) }
-    val scale = remember { Animatable(1f) }
+    val horizontalDp = remember { Animatable(0f) }
+    val softnessDp = remember { Animatable(0f) }
     var switching by remember { mutableStateOf(false) }
 
     LaunchedEffect(requested) {
-        if (requested != null) {
-            if (requested != Store.cfg.lang) {
-                switching = true
-                if (!reducedMotion) coroutineScope {
-                    launch { opacity.animateTo(0f, tween(160, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
-                    launch { scale.animateTo(.985f, tween(160, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
-                }
-                Store.updateCfg { it.copy(lang = requested) }
-                if (!reducedMotion) coroutineScope {
-                    launch { opacity.animateTo(1f, tween(300, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
-                    launch { scale.animateTo(1f, tween(300, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
-                }
-                switching = false
+        val target = requested ?: return@LaunchedEffect
+        if (target == Store.cfg.lang) {
+            LanguageTransition.clear(target)
+            return@LaunchedEffect
+        }
+        val animate = LanguageMotionPolicy.shouldAnimate(Store.cfg.lang, target, reducedMotion)
+        switching = true
+        try {
+            if (animate) coroutineScope {
+                launch { opacity.animateTo(0f, tween(LanguageMotionPolicy.EXIT_MS, easing = FastOutLinearInEasing)) }
+                launch { horizontalDp.animateTo(LanguageMotionPolicy.exitOffsetDp(target), tween(LanguageMotionPolicy.EXIT_MS, easing = FastOutLinearInEasing)) }
+                launch { softnessDp.animateTo(LanguageMotionPolicy.BLUR_DP, tween(LanguageMotionPolicy.EXIT_MS)) }
             }
-            LanguageTransition.clear(requested)
+
+            // Swap language and RTL layout direction at the invisible midpoint.
+            Store.updateCfg { it.copy(lang = target) }
+
+            if (animate) {
+                withFrameNanos { } // Let the translated text/layout settle before revealing.
+                horizontalDp.snapTo(LanguageMotionPolicy.enterOffsetDp(target))
+                coroutineScope {
+                    launch { opacity.animateTo(1f, tween(LanguageMotionPolicy.ENTER_MS, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
+                    launch { horizontalDp.animateTo(0f, tween(LanguageMotionPolicy.ENTER_MS, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
+                    launch { softnessDp.animateTo(0f, tween(230, easing = com.o2dialer.app.ui.components.ReferenceEase)) }
+                }
+            }
+        } finally {
+            // Never leave the UI translucent if a second request cancels this animation.
+            withContext(NonCancellable) {
+                opacity.snapTo(1f)
+                horizontalDp.snapTo(0f)
+                softnessDp.snapTo(0f)
+            }
+            switching = false
+            LanguageTransition.clear(target)
         }
     }
 
     Box(Modifier.fillMaxSize()) {
-        Box(Modifier.fillMaxSize().graphicsLayer {
-            alpha = opacity.value
-            scaleX = scale.value
-            scaleY = scale.value
-        }) { content() }
-        // Ignore taps during the brief language transition.
+        val blurEffect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && softnessDp.value > .25f) {
+            Modifier.blur(softnessDp.value.dp)
+        } else Modifier
+        Box(
+            Modifier.fillMaxSize()
+                .graphicsLayer {
+                    alpha = opacity.value
+                    translationX = horizontalDp.value * density
+                }
+                .then(blurEffect)
+        ) { content() }
         if (switching) {
             Box(
                 Modifier.fillMaxSize().clickable(

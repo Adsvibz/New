@@ -19,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -75,21 +74,21 @@ fun SettingsScreen() {
                 showLanguage = false,
                 actions = {
                     val cs = MaterialTheme.colorScheme
-                    val shape = RoundedCornerShape(14.dp)
                     OutlinedButton(
                         onClick = { Store.welcomed = false },
-                        modifier = Modifier.height(40.dp).shadow(3.dp, shape),
-                        shape = shape,
-                        border = BorderStroke(1.dp, cs.outline.copy(alpha = .42f)),
+                        modifier = Modifier.height(36.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, cs.outline.copy(alpha = .28f)),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = cs.surface,
+                            containerColor = cs.surfaceVariant.copy(alpha = .80f),
                             contentColor = cs.onSurface
                         ),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
+                        contentPadding = PaddingValues(horizontal = 14.dp)
                     ) {
-                        Icon(com.o2dialer.app.ui.components.O2Icons.BookOpen, null, Modifier.size(15.dp))
-                        Spacer(Modifier.width(7.dp))
-                        Text(L(R.string.ui_guide), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            L(R.string.ui_guide),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
                     }
                 }
             )
