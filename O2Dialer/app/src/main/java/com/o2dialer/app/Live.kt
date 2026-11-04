@@ -366,25 +366,39 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
     val cs = MaterialTheme.colorScheme
     Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(L(R.string.ui_dialer_bd42b0f9), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                // Keep the semantic status alongside the Dialer title.
-                Box(Modifier.clickable(role = Role.Button, onClick = onOperational)) {
-                    O2StatusBadge(
-                        text = if (state.status == CS.IDLE && selected != null)
-                            L(R.string.ui_ready_0c93aede) else sessionLabel(state),
-                        color = when {
-                            state.error -> cs.error
-                            state.status == CS.PAUSED -> Sem.warning
-                            else -> O2Colors.Accent
-                        }
+                // Place campaign selection alongside the title; ellipsize long names.
+                Row(
+                    Modifier.weight(1f).clickable(onClick = onPicker),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        selected?.name ?: L(R.string.ref_select_campaign),
+                        Modifier.weight(1f),
+                        fontSize = 12.sp,
+                        color = cs.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = cs.onSurfaceVariant)
                 }
             }
-            // Campaign picker sits beneath the title, without changing picker behavior.
-            Row(Modifier.clickable(onClick = onPicker), verticalAlignment = Alignment.CenterVertically) {
-                Text(selected?.name ?: L(R.string.ref_select_campaign), Modifier.weight(1f, fill = false), fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = cs.onSurfaceVariant)
+            // The colored campaign state now sits directly underneath Dialer.
+            Box(Modifier.clickable(role = Role.Button, onClick = onOperational)) {
+                O2StatusBadge(
+                    text = if (state.status == CS.IDLE && selected != null)
+                        L(R.string.ui_ready_0c93aede) else sessionLabel(state),
+                    color = when {
+                        state.error -> cs.error
+                        state.status == CS.PAUSED -> Sem.warning
+                        else -> O2Colors.Accent
+                    }
+                )
             }
         }
         DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { LanguageTransition.toggle() }
