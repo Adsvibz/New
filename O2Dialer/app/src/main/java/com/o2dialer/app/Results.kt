@@ -171,7 +171,6 @@ private fun ResultRow(e: Entry, listId: String, isFirst: Boolean, isLast: Boolea
 
 @Composable
 fun ResultsScreen(act: MainActivity) {
-    val ctx=LocalContext.current
     val id=Store.resultsListId?.takeIf { id -> Store.lists.any { it.id==id } }
         ?: Store.runListId?.takeIf { id -> Store.lists.any { it.id==id } } ?: Store.lists.firstOrNull()?.id
     val list=Store.lists.find { it.id==id }
@@ -179,8 +178,9 @@ fun ResultsScreen(act: MainActivity) {
     var stage by rememberSaveable(id) { mutableIntStateOf(-1) }
     var query by rememberSaveable(id) { mutableStateOf("") }
     var picker by remember { mutableStateOf(false) }
+    var sharing by rememberSaveable(id) { mutableStateOf(false) }
     Scaffold(topBar={ BlendBar(L(R.string.ui_results_e87ed283),subtitle=list?.name,actions={
-        if(list!=null) SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Share,L(R.string.ui_share_report_28dd6cbd),{shareText(ctx,Store.listReport(list))})
+        if(list!=null) SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Share,L(R.string.ui_share_report_28dd6cbd),{ sharing = true })
     }) },containerColor=Color.Transparent) { pad ->
         if(list==null) {
             EmptyState(com.o2dialer.app.ui.components.O2Icons.Chart,L(R.string.ui_no_results_yet_8f72d7a5),
@@ -250,6 +250,7 @@ fun ResultsScreen(act: MainActivity) {
             }
         }
     }
+    if (sharing && list != null) ReferenceShareModal(list, offerSystemShare = true) { sharing = false }
 }
 
 // ============================================================ call log

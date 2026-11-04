@@ -56,7 +56,7 @@ fun ReferenceSettingNumber(title: String, value: Int, min: Int, max: Int, modifi
     var input by remember(value) { mutableStateOf(value.toString()) }
     Column(modifier) {
         Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = cs.onSurfaceVariant,
-            maxLines = 1, overflow = TextOverflow.Ellipsis)
+            minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
         BasicTextField(input, { next ->
             if (next.isEmpty()) input = next

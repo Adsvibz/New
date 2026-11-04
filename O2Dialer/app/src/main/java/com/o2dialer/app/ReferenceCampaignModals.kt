@@ -121,7 +121,7 @@ fun ReferenceDuplicateModal(list: CallList, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun ReferenceShareModal(list: CallList, onDismiss: () -> Unit) {
+fun ReferenceShareModal(list: CallList, offerSystemShare: Boolean = false, onDismiss: () -> Unit) {
     if (!License.canExport) { LaunchedEffect(Unit) { License.denyExport(); onDismiss() }; return }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
@@ -155,6 +155,13 @@ fun ReferenceShareModal(list: CallList, onDismiss: () -> Unit) {
             Box(Modifier.fillMaxWidth().heightIn(max = 192.dp).background(cs.surfaceVariant, RoundedCornerShape(12.dp))
                 .border(1.dp, cs.outline, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState()).horizontalScroll(rememberScrollState()).padding(12.dp)) {
                 Text(csv, fontFamily = O2Type.Mono, fontSize = 10.5.sp, softWrap = false)
+            }
+        }
+        if (offerSystemShare) {
+            OutlinedButton({ shareText(ctx, csv) }, Modifier.fillMaxWidth().padding(top = 12.dp),
+                enabled = !saving, shape = RoundedCornerShape(12.dp)) {
+                Icon(O2Icons.Share, null, Modifier.size(14.dp)); Spacer(Modifier.width(6.dp))
+                Text(T("Share via apps", "المشاركة عبر التطبيقات"), fontSize = 12.sp)
             }
         }
         Spacer(Modifier.height(12.dp)); HorizontalDivider(color = cs.outlineVariant)
