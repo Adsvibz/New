@@ -30,7 +30,6 @@ import com.o2dialer.app.ui.theme.O2Colors
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            O2StatusBadge(label,if(state.error) MaterialTheme.colorScheme.error else if(state.status==CS.PAUSED) Sem.warning else O2Colors.Accent)
             Text(if(finished) L(R.string.ui_session_summary_079d759d) else if(current) L(R.string.ui_current_contact_a14c7824) else L(R.string.ui_up_next_d350fa10),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 contactName, Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -54,7 +53,6 @@ import com.o2dialer.app.ui.theme.O2Colors
             )
             if(current && state.status != CS.PAUSED) ReferenceCallingWave()
             controls()
-            if(state.message.isNotBlank()) Text(state.message,textAlign=TextAlign.Center,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
