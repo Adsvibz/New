@@ -4,6 +4,7 @@ package com.o2dialer.app.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.*
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.o2dialer.app.R
 
@@ -20,16 +21,19 @@ object O2Type {
     val Mono = FontFamily(Font(R.font.jetbrains_mono))
     fun typography(arabic: Boolean): Typography {
         val family = if (arabic) Arabic else Latin
-        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold) = TextStyle(
+        fun s(size: Int, line: Int, weight: FontWeight = if (arabic) FontWeight.SemiBold else FontWeight.Bold, track: TextUnit = 0.sp) = TextStyle(
             fontFamily = family, fontSize = size.sp, lineHeight = line.sp,
             fontWeight = weight,
-            letterSpacing = 0.sp)
+            letterSpacing = track)
+        // Reference headings sit closer to 720-760 with about -0.028em tracking; tracking is Latin-only.
+        fun h(size: Int, line: Int) = s(size, line, if (arabic) FontWeight.SemiBold else FontWeight.Bold, if (arabic) 0.sp else (-size * 0.028f).sp)
+        fun t(size: Int, line: Int) = s(size, line, FontWeight.Bold, if (arabic) 0.sp else (-size * 0.02f).sp)
         return Typography(
-            displayLarge=s(36,44,FontWeight.ExtraBold), displayMedium=s(28,36,FontWeight.ExtraBold),
-            displaySmall=s(26,34,FontWeight.ExtraBold), headlineLarge=s(22,30,FontWeight.ExtraBold),
-            headlineMedium=s(22,30,FontWeight.ExtraBold), headlineSmall=s(20,28,FontWeight.Bold),
-            titleLarge=s(18,26,FontWeight.Bold), titleMedium=s(16,24,FontWeight.Bold),
-            titleSmall=s(15,22,FontWeight.Bold), bodyLarge=s(14,22), bodyMedium=if (arabic) s(14,22) else s(13,20),
+            displayLarge=h(36,44), displayMedium=h(28,36),
+            displaySmall=h(26,34), headlineLarge=h(22,30),
+            headlineMedium=h(22,30), headlineSmall=h(20,28),
+            titleLarge=t(18,26), titleMedium=t(16,24),
+            titleSmall=t(15,22), bodyLarge=s(14,22), bodyMedium=if (arabic) s(14,22) else s(13,20),
             bodySmall=s(12,18,if (arabic) FontWeight.Medium else FontWeight.Normal), labelLarge=if (arabic) s(13,20,FontWeight.Bold) else s(12,18,FontWeight.Bold),
             labelMedium=if (arabic) s(12,18,FontWeight.SemiBold) else s(11,16,FontWeight.SemiBold), labelSmall=if (arabic) s(11,17,FontWeight.Medium) else s(10,15,FontWeight.Medium))
     }

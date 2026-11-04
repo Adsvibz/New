@@ -55,7 +55,7 @@ import com.o2dialer.app.ui.theme.*
         Column(Modifier.fillMaxWidth().padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(label,style=MaterialTheme.typography.bodySmall,color=if(hero) Color.White.copy(alpha=.9f) else MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth(), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text(value,Modifier.weight(1f),style=MaterialTheme.typography.displayMedium,fontWeight=FontWeight.ExtraBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                Text(value,Modifier.weight(1f),style=MaterialTheme.typography.displayMedium,maxLines=1,overflow=TextOverflow.Ellipsis)
                 if(hero && progress!=null) Row(Modifier.background(Color.White.copy(alpha=.2f),CircleShape).padding(horizontal=10.dp,vertical=2.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                     Icon(O2Icons.TrendingUp,null,Modifier.size(12.dp))
                     Text("${(progress*100).toInt()}%",fontSize=11.sp,fontWeight=FontWeight.SemiBold)
