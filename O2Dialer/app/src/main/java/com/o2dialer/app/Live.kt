@@ -181,8 +181,10 @@ private fun UpNext(list: CallList, remaining: Int) {
                     Column(Modifier.weight(1f)) {
                         Text(
                             e.name.ifBlank { e.number },
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold
+                            // Match the main Live contact name's font family and Bold weight;
+                            // retain the compact Up Next text scale.
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontSize = 13.sp, lineHeight = 19.sp, fontWeight = FontWeight.Bold
                             ),
                             maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
