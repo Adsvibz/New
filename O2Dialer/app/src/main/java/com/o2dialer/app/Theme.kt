@@ -77,7 +77,12 @@ private object O2PressedContentIndication : Indication {
         return remember(factor) {
             object : IndicationInstance {
                 override fun ContentDrawScope.drawIndication() {
-                    withTransform({ scale(factor, factor) }) { drawContent() }
+                    // The transform's block uses DrawScope, so retain the outer
+                    // ContentDrawScope explicitly to draw the clickable content.
+                    val contentScope = this
+                    withTransform({ scale(factor, factor) }) {
+                        contentScope.drawContent()
+                    }
                 }
             }
         }
