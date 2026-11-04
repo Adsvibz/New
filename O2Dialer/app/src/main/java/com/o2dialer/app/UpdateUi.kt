@@ -2,10 +2,12 @@ package com.o2dialer.app
 
 import android.app.Activity
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -13,6 +15,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun UpdateSettingsSection() {
     val ctx = LocalContext.current
+    val updateTouch = remember { MutableInteractionSource() }
+    val checkTouch = remember { MutableInteractionSource() }
     SettingsSection(com.o2dialer.app.ui.components.O2Icons.SystemUpdate, L(R.string.ui_app_updates_dda8813b)) {
         Text(L(R.string.ui_installed_b23b63cd, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
             style = MaterialTheme.typography.bodyMedium)
@@ -21,13 +25,15 @@ fun UpdateSettingsSection() {
         if (AppUpdates.available != null) {
             if (Store.campActive()) Text(L(R.string.ui_stop_or_finish_the_campaign_before_upd_08aa8750),
                 style = MaterialTheme.typography.bodySmall)
-            Button(onClick = { AppUpdates.open() }, enabled = !Store.campActive(), modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = { AppUpdates.open() }, enabled = !Store.campActive(),
+                interactionSource = updateTouch, modifier = Modifier.fillMaxWidth().pressScale(updateTouch)) {
                 Text(if (AppUpdates.ready) L(R.string.ui_update_ready_95c3cd4f) else L(R.string.ui_view_update_68941ba7))
             }
         }
         OutlinedButton(onClick = { AppUpdates.check(ctx, manual = true) },
             enabled = !AppUpdates.checking && !AppUpdates.downloading && !AppUpdates.verifying,
-            modifier = Modifier.fillMaxWidth()) {
+            interactionSource = checkTouch,
+            modifier = Modifier.fillMaxWidth().pressScale(checkTouch)) {
             Text(if (AppUpdates.checking) L(R.string.ui_checking_49631f22) else L(R.string.ui_check_for_updates_5ddbcd94))
         }
     }

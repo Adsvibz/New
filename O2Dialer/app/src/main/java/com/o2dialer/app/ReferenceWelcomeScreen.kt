@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
@@ -24,18 +25,24 @@ fun ReferenceWelcomeScreen() {
     var page by remember { mutableIntStateOf(0) }
     val cs = MaterialTheme.colorScheme
     val reduced = LocalReducedMotion.current
+    val languageTouch = remember { MutableInteractionSource() }
+    val skipTouch = remember { MutableInteractionSource() }
+    val backTouch = remember { MutableInteractionSource() }
+    val continueTouch = remember { MutableInteractionSource() }
     BackHandler(page > 0) { page-- }
     Column(Modifier.fillMaxSize().safeDrawingPadding()) {
         Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(10.dp).background(O2Colors.Accent, CircleShape))
             Text("O2Dialer 7.0", Modifier.weight(1f), fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            TextButton({ LanguageTransition.toggle() }, shape = CircleShape,
+            TextButton({ LanguageTransition.toggle() }, modifier = Modifier.pressScale(languageTouch),
+                interactionSource = languageTouch, shape = CircleShape,
                 colors = ButtonDefaults.textButtonColors(containerColor = cs.surface.copy(alpha = .75f), contentColor = cs.onSurface), contentPadding = PaddingValues(horizontal = 12.dp)) {
                 Icon(O2Icons.Globe, null, Modifier.size(14.dp)); Spacer(Modifier.width(6.dp))
                 Text(if (Store.cfg.lang == 1) "English" else "العربية", fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold)
             }
-            TextButton({ Store.finishWelcome() }, contentPadding = PaddingValues(horizontal = 12.dp)) { Text(WelcomeCopy("Skip"), fontSize = 11.5.sp, color = cs.onSurfaceVariant) }
+            TextButton({ Store.finishWelcome() }, modifier = Modifier.pressScale(skipTouch),
+                interactionSource = skipTouch, contentPadding = PaddingValues(horizontal = 12.dp)) { Text(WelcomeCopy("Skip"), fontSize = 11.5.sp, color = cs.onSurfaceVariant) }
         }
         AnimatedContent(page, Modifier.weight(1f), transitionSpec = {
             (fadeIn(tween(if (reduced) 0 else 450)) + slideInVertically(tween(if (reduced) 0 else 450, easing = ReferenceEase)) { 18 } +
@@ -84,11 +91,13 @@ fun ReferenceWelcomeScreen() {
                         .clickable { page = index })
                 }
             }
-            if (page > 0) TextButton({ page-- }, shape = CircleShape, colors = ButtonDefaults.textButtonColors(containerColor = cs.onSurface.copy(alpha = .06f), contentColor = cs.onSurface)) {
+            if (page > 0) TextButton({ page-- }, modifier = Modifier.pressScale(backTouch),
+                interactionSource = backTouch, shape = CircleShape, colors = ButtonDefaults.textButtonColors(containerColor = cs.onSurface.copy(alpha = .06f), contentColor = cs.onSurface)) {
                 Icon(O2Icons.Back, null, Modifier.size(14.dp)); Text(WelcomeCopy("Back"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.width(8.dp))
-            Button({ if (page == 2) Store.finishWelcome() else page++ }, shape = CircleShape,
+            Button({ if (page == 2) Store.finishWelcome() else page++ }, modifier = Modifier.pressScale(continueTouch),
+                interactionSource = continueTouch, shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = if (page == 2) O2Colors.Accent else O2Colors.Ink, contentColor = Color.White), contentPadding = PaddingValues(horizontal = 20.dp)) {
                 Text(WelcomeCopy(if (page == 2) "Get Started" else "Continue"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(6.dp)); Icon(O2Icons.Forward, null, Modifier.size(14.dp))

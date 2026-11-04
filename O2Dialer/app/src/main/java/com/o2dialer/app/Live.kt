@@ -26,6 +26,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -236,10 +237,12 @@ private fun ReadyHero(selected: CallList?, p: Prog?, act: MainActivity) {
             Text(selected?.name ?: L(R.string.ref_no_campaign_selected), Modifier.padding(top = 4.dp), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(if (p == null) L(R.string.ref_pick_campaign_hint) else if(p.total == 0) L(R.string.ref_empty_campaign_hint) else L(R.string.ref_ready_remaining, p.remaining, p.total) + " · " + (if(selected?.simSlot == -1) L(R.string.ui_default_sim_bf6ca60e) else "SIM " + ((selected?.simSlot ?: 0) + 1)),
                 Modifier.padding(top = 4.dp, bottom = 16.dp), fontSize = 12.sp, color = cs.onSurfaceVariant, textAlign = TextAlign.Center)
+            val startTouch = remember { MutableInteractionSource() }
             if (selected != null && p != null) Button({
                 if (p.total == 0) { Store.selectedListId = selected.id; Store.tab = 0 }
                 else act.startCampaign(selected.id, p.called > 0 && p.remaining == 0)
-            }, Modifier.heightIn(min = 46.dp), shape = CircleShape, colors = ButtonDefaults.buttonColors(containerColor = O2Colors.Ink, contentColor = Color.White), contentPadding = PaddingValues(horizontal = 24.dp)) {
+            }, Modifier.heightIn(min = 46.dp).pressScale(startTouch), shape = CircleShape,
+                interactionSource = startTouch, colors = ButtonDefaults.buttonColors(containerColor = O2Colors.Ink, contentColor = Color.White), contentPadding = PaddingValues(horizontal = 24.dp)) {
                 Icon(if(p.total == 0) O2Icons.PersonAdd else O2Icons.Phone, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(L(if(p.total == 0) R.string.ref_add_contacts else if(p.remaining == 0) R.string.ui_restart_campaign_062996bf else if(p.called > 0) R.string.ui_resume_1c6804ad else R.string.ui_start_campaign_28d1c94b), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)

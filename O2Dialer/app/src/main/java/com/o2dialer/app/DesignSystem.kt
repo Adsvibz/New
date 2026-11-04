@@ -441,8 +441,12 @@ fun Banner(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        if (actionText != null && onAction != null) TextButton(onClick = onAction) {
-            Text(actionText, color = fg, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+        if (actionText != null && onAction != null) {
+            val actionTouch = remember { MutableInteractionSource() }
+            TextButton(onClick = onAction, modifier = Modifier.pressScale(actionTouch),
+                interactionSource = actionTouch) {
+                Text(actionText, color = fg, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+            }
         }
     }
 }
@@ -735,7 +739,9 @@ fun BDialog(
                 compact = true, enabled = confirmEnabled)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(dismissText, style = MaterialTheme.typography.labelLarge) }
+            val cancelTouch = remember { MutableInteractionSource() }
+            TextButton(onClick = onDismiss, modifier = Modifier.pressScale(cancelTouch),
+                interactionSource = cancelTouch) { Text(dismissText, style = MaterialTheme.typography.labelLarge) }
         }
     )
 }
@@ -771,7 +777,11 @@ fun BSheet(
                     if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall,
                         color = cs.onSurfaceVariant)
                 }
-                IconButton(onClick = onDismiss) { Icon(com.o2dialer.app.ui.components.O2Icons.Close, L(R.string.ui_close_115c64b0), tint = cs.onSurfaceVariant) }
+                val closeTouch = remember { MutableInteractionSource() }
+                IconButton(onClick = onDismiss, modifier = Modifier.pressScale(closeTouch),
+                    interactionSource = closeTouch) {
+                    Icon(com.o2dialer.app.ui.components.O2Icons.Close, L(R.string.ui_close_115c64b0), tint = cs.onSurfaceVariant)
+                }
             }
             Column(
                 Modifier.weight(1f, fill = false).fillMaxWidth()

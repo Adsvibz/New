@@ -166,8 +166,9 @@ import com.o2dialer.app.ui.theme.*
                 val interaction = remember { MutableInteractionSource() }
                 LaunchedEffect(active, reduced) {
                     if (active && !reduced) {
-                        pop.snapTo(.82f)
-                        pop.animateTo(1f, keyframes { durationMillis = 320; .82f at 0; 1.08f at 192 using ReferenceEase; 1f at 320 })
+                        // The selected tab settles gently instead of bouncing after release.
+                        pop.snapTo(.975f)
+                        pop.animateTo(1f, tween(145, easing = ReferenceEase))
                     } else pop.snapTo(1f)
                 }
                 Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, TouchFeedback.COMPACT_SCALE).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)

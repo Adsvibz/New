@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,9 +75,11 @@ fun SettingsScreen() {
                 showLanguage = false,
                 actions = {
                     val cs = MaterialTheme.colorScheme
+                    val guideTouch = remember { MutableInteractionSource() }
                     OutlinedButton(
                         onClick = { Store.welcomed = false },
-                        modifier = Modifier.height(36.dp),
+                        modifier = Modifier.height(36.dp).pressScale(guideTouch),
+                        interactionSource = guideTouch,
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, cs.outline.copy(alpha = .28f)),
                         colors = ButtonDefaults.outlinedButtonColors(

@@ -3,6 +3,14 @@ package com.o2dialer.app
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.IndicationInstance
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +26,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -30,12 +40,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.core.view.WindowCompat
 
 /**
- * A restrained touch wash for Material controls and plain clickable elements.
- * Retain tactile feedback without the stock gray overlay.
+ * No pressed overlay at all, including Material 3 buttons, switches and dialogs.
+ * Their normal visual colors are preserved; only the gray touch wash is removed.
  */
-private object O2QuietRippleTheme : RippleTheme {
+private object O2NoRippleTheme : RippleTheme {
     @Composable
-    override fun defaultColor(): Color = LocalContentColor.current
+    override fun defaultColor(): Color = Color.Transparent
 
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleAlpha(
@@ -44,6 +54,34 @@ private object O2QuietRippleTheme : RippleTheme {
         hoveredAlpha = TouchFeedback.HOVER_ALPHA,
         draggedAlpha = TouchFeedback.DRAG_ALPHA
     )
+}
+
+/**
+ * Foundation's default clickable/selectable/toggleable indication.
+ * Scale the pressed content instead of drawing any ripple, tint, or shadow.
+ * Does not affect hit targets, layout size, or accessibility semantics.
+ */
+private object O2PressedContentIndication : Indication {
+    @Composable
+    override fun rememberUpdatedInstance(interactionSource: InteractionSource): IndicationInstance {
+        val pressed by interactionSource.collectIsPressedAsState()
+        val reducedMotion = LocalReducedMotion.current
+        val factor by animateFloatAsState(
+            targetValue = if (pressed && !reducedMotion) TouchFeedback.BUTTON_SCALE else 1f,
+            animationSpec = tween(
+                durationMillis = if (pressed) TouchFeedback.PRESS_MS else TouchFeedback.RELEASE_MS,
+                easing = FastOutSlowInEasing
+            ),
+            label = "defaultPressDepth"
+        )
+        return remember(factor) {
+            object : IndicationInstance {
+                override fun ContentDrawScope.drawIndication() {
+                    withTransform({ scale(factor, factor) }) { drawContent() }
+                }
+            }
+        }
+    }
 }
 
 /** Visible product name. Change it here to rebrand every screen. */
@@ -156,7 +194,10 @@ fun AppTheme(content: @Composable () -> Unit) {
         colorScheme = cleanScheme, typography = ty,
         shapes = com.o2dialer.app.ui.theme.O2Shape.Material
     ) {
-        CompositionLocalProvider(LocalRippleTheme provides O2QuietRippleTheme) {
+        CompositionLocalProvider(
+            LocalRippleTheme provides O2NoRippleTheme,
+            LocalIndication provides O2PressedContentIndication
+        ) {
             com.o2dialer.app.ui.components.ReferenceViewport {
                 com.o2dialer.app.ui.components.O2Canvas(dark) { content() }
             }

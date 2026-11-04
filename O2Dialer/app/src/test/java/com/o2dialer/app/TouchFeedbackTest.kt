@@ -1,20 +1,21 @@
 package com.o2dialer.app
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TouchFeedbackTest {
-    @Test fun touchResponseStaysFastAndSubtle() {
-        assertTrue(TouchFeedback.PRESS_MS in 85..125)
+    @Test fun pressFeelsLikeAnActualButtonDepressionAndImmediatelyReleases() {
+        assertTrue(TouchFeedback.PRESS_MS in 70..110)
         assertTrue(TouchFeedback.RELEASE_MS in 100..155)
-        assertTrue(TouchFeedback.BUTTON_SCALE in 0.980f..0.995f)
-        assertTrue(TouchFeedback.COMPACT_SCALE in 0.970f..0.990f)
+        assertTrue(TouchFeedback.BUTTON_SCALE in 0.955f..0.975f)
+        assertTrue(TouchFeedback.COMPACT_SCALE in 0.950f..0.975f)
     }
 
-    @Test fun rippleIsDiscreetButVisible() {
-        assertTrue(TouchFeedback.PRESS_ALPHA > 0f)
-        assertTrue(TouchFeedback.PRESS_ALPHA < 0.075f)
-        assertTrue(TouchFeedback.FOCUS_ALPHA <= 0.07f)
-        assertTrue(TouchFeedback.HOVER_ALPHA <= TouchFeedback.PRESS_ALPHA)
+    @Test fun everyRippleAndHighlightIsExactlyZero() {
+        assertEquals(0f, TouchFeedback.PRESS_ALPHA, 0f)
+        assertEquals(0f, TouchFeedback.FOCUS_ALPHA, 0f)
+        assertEquals(0f, TouchFeedback.HOVER_ALPHA, 0f)
+        assertEquals(0f, TouchFeedback.DRAG_ALPHA, 0f)
     }
 }
