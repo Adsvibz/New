@@ -374,18 +374,20 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
                 Text(L(R.string.ui_dialer_bd42b0f9), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
                 // Use the same semantic, colored status badge formerly shown inside the hero.
                 // Idle selection keeps its existing Ready label.
-                O2StatusBadge(
-                    text = if (state.status == CS.IDLE && selected != null)
-                        L(R.string.ui_ready_0c93aede) else sessionLabel(state),
-                    color = when {
-                        state.error -> cs.error
-                        state.status == CS.PAUSED -> Sem.warning
-                        else -> O2Colors.Accent
-                    }
-                )
+                // Keep operational details available via the status badge, not an extra header icon.
+                Box(Modifier.clickable(role = Role.Button, onClick = onOperational)) {
+                    O2StatusBadge(
+                        text = if (state.status == CS.IDLE && selected != null)
+                            L(R.string.ui_ready_0c93aede) else sessionLabel(state),
+                        color = when {
+                            state.error -> cs.error
+                            state.status == CS.PAUSED -> Sem.warning
+                            else -> O2Colors.Accent
+                        }
+                    )
+                }
             }
         }
-        DialerHeaderAction(O2Icons.AlertCircle, L(R.string.ref_operational_status), onOperational)
         DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { Store.updateCfg { it.copy(lang = 1 - it.lang) } }
     }
 }
