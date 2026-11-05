@@ -254,52 +254,146 @@ private fun ReadyHero(selected: CallList?, p: Prog?, act: MainActivity) {
 @Composable
 private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
     val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                L(R.string.ui_choose_a_campaign_eb7e0334),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = Sp.s, vertical = Sp.s)
-            )
-            Store.lists.forEach { l ->
-                val lp = Store.prog(l)
-                val on = l.id == selected
-                val bg by androidx.compose.animation.animateColorAsState(
-                    if (on) cs.primary.copy(alpha = 0.09f) else Color.Transparent, tween(220), label = "pickBg"
+    val campaigns = Store.lists
+
+    // The sheet owns the heading. One clean surface and a single set of selection rows.
+    Column(
+        Modifier.fillMaxWidth().padding(bottom = Sp.s),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (campaigns.isEmpty()) {
+            Column(
+                Modifier.fillMaxWidth().padding(vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    O2Icons.FolderOpen,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = cs.onSurfaceVariant
                 )
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(Rd.s)).background(bg)
-                        .selectable(selected = on, role = Role.RadioButton) { onSelect(l.id) }
-                        .heightIn(min = 58.dp).padding(horizontal = Sp.m),
-                    verticalAlignment = Alignment.CenterVertically
+                Text(
+                    T("No campaigns yet", "لا توجد حملات بعد"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = cs.onSurfaceVariant
+                )
+            }
+        }
+
+        campaigns.forEach { campaign ->
+            key(campaign.id) {
+                val progress = Store.prog(campaign)
+                val isSelected = campaign.id == selected
+                val interaction = remember { MutableInteractionSource() }
+                val shape = RoundedCornerShape(18.dp)
+                val rowColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) cs.primary.copy(alpha = .065f)
+                                  else cs.surfaceVariant.copy(alpha = .28f),
+                    animationSpec = tween(if (LocalReducedMotion.current) 0 else 180),
+                    label = "campaignPickerSurface"
+                )
+                val outlineColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) cs.primary.copy(alpha = .42f)
+                                  else cs.outlineVariant,
+                    animationSpec = tween(if (LocalReducedMotion.current) 0 else 180),
+                    label = "campaignPickerBorder"
+                )
+
+                Column(
+                    Modifier.fillMaxWidth()
+                        .pressScale(interaction, TouchFeedback.BUTTON_SCALE)
+                        .clip(shape)
+                        .background(rowColor)
+                        .border(1.dp, outlineColor, shape)
+                        .selectable(
+                            selected = isSelected,
+                            interactionSource = interaction,
+                            indication = null,
+                            role = Role.RadioButton,
+                            onClick = { onSelect(campaign.id) }
+                        )
+                        .padding(horizontal = 15.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Box(
-                        Modifier.size(20.dp).clip(CircleShape)
-                            .border(1.5.dp, if (on) cs.primary else cs.outline, CircleShape),
-                        Alignment.Center
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val dot by androidx.compose.animation.core.animateFloatAsState(
-                            if (on) 1f else 0f, Motion.gentle(), label = "dot"
-                        )
-                        if (dot > 0.01f) Box(
-                            Modifier.size(10.dp).graphicsLayer { scaleX = dot; scaleY = dot }
-                                .clip(CircleShape).background(cs.primary)
-                        )
+                        Box(
+                            Modifier.size(42.dp)
+                                .clip(RoundedCornerShape(13.dp))
+                                .background(
+                                    if (isSelected) cs.primary.copy(alpha = .12f)
+                                    else cs.onSurface.copy(alpha = .045f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                O2Icons.FolderOpen,
+                                contentDescription = null,
+                                modifier = Modifier.size(19.dp),
+                                tint = if (isSelected) cs.primary else cs.onSurfaceVariant
+                            )
+                        }
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                campaign.name,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = cs.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                L(R.string.ui_contacts_left_6c292586, progress.total, progress.remaining),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = cs.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            if (isSelected) {
+                                Box(
+                                    Modifier.size(23.dp).clip(CircleShape)
+                                        .background(cs.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        O2Icons.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = cs.onPrimary
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    "${progress.pct}%",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                    color = cs.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
-                    Spacer(Modifier.width(Sp.m))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            l.name, style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            L(R.string.ui_contacts_left_6c292586, lp.total, lp.remaining),
-                            style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                        )
-                    }
-                    Text(
-                        "${lp.pct}%", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = if (on) cs.primary else cs.onSurfaceVariant
+                    LinearProgressIndicator(
+                        progress = progress.pct / 100f,
+                        modifier = Modifier.fillMaxWidth().height(3.dp)
+                            .clip(CircleShape),
+                        color = if (isSelected) cs.primary
+                                else cs.onSurfaceVariant.copy(alpha = .43f),
+                        trackColor = cs.onSurface.copy(alpha = .055f)
                     )
                 }
             }
