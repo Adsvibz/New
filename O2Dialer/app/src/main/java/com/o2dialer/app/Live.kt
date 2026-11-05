@@ -214,10 +214,9 @@ private fun UpNext(list: CallList, remaining: Int) {
                         ) {
                             Text(
                                 "0${i + 1}",
-                                style = MaterialTheme.typography.labelSmall.copy(
+                                style = MaterialTheme.typography.bodyLarge.copy(
                                     fontSize = 10.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontFeatureSettings = "tnum"
+                                    fontWeight = FontWeight.SemiBold
                                 ),
                                 color = Brand
                             )
@@ -241,12 +240,11 @@ private fun UpNext(list: CallList, remaining: Int) {
                             if (entry.name.isNotBlank()) {
                                 Text(
                                     entry.number,
-                                    style = MaterialTheme.typography.labelSmall.copy(
+                                    style = MaterialTheme.typography.bodyLarge.copy(
                                         fontSize = 11.5.sp,
                                         lineHeight = 16.sp,
                                         fontWeight = FontWeight.Medium,
-                                        textDirection = TextDirection.Ltr,
-                                        fontFeatureSettings = "tnum"
+                                        textDirection = TextDirection.Ltr
                                     ),
                                     color = cs.onSurfaceVariant,
                                     maxLines = 1,
