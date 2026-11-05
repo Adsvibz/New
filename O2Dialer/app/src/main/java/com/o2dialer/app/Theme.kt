@@ -152,17 +152,12 @@ fun readable(c: Color): Color {
 }
 
 /**
- * The selected app color softly accents secondary/decorative icons.
- * Keep text, destructive controls and semantic states independent.
- * Reactive: ReferenceAppearance.selected reads its Compose colorId state.
+ * Accessory icons use the exact App Color swatch (no gray mixing or lightening).
+ * Reading ReferenceAppearance through Brand keeps Compose updates reactive.
+ * Semantic icons / white icons on filled buttons retain their own functional tints.
  */
 @Composable
-fun subtleAccentIconColor(): Color =
-    lerp(
-        MaterialTheme.colorScheme.onSurfaceVariant,
-        readable(com.o2dialer.app.ui.theme.O2Colors.Accent),
-        0.72f
-    )
+fun subtleAccentIconColor(): Color = Brand
 
 private val LightC get() = com.o2dialer.app.ui.theme.O2Colors.Light
 val NocturneDark get() = com.o2dialer.app.ui.theme.O2Colors.Dark

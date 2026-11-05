@@ -404,7 +404,7 @@ fun IconTile(icon: ImageVector, color: Color = Brand, size: Dp = 42.dp) {
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(1.dp, color.copy(alpha = 0.16f), shape), Alignment.Center
     ) {
-        Icon(icon, null, tint = readable(color), modifier = Modifier.size(size * 0.46f))
+        Icon(icon, null, tint = color, modifier = Modifier.size(size * 0.46f))
     }
 }
 

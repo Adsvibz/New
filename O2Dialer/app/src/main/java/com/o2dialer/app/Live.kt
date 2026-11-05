@@ -208,8 +208,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                             Modifier.size(32.dp)
                                 .clip(RoundedCornerShape(11.dp))
                                 .background(
-                                    if (first) cs.primary.copy(alpha = .095f)
-                                    else cs.onSurface.copy(alpha = .045f)
+                                    Brand.copy(alpha = if (first) .095f else .055f)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -220,7 +219,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                                     fontWeight = FontWeight.SemiBold,
                                     fontFeatureSettings = "tnum"
                                 ),
-                                color = if (first) cs.primary else cs.onSurfaceVariant
+                                color = Brand
                             )
                         }
 

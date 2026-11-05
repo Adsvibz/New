@@ -174,10 +174,7 @@ import com.o2dialer.app.ui.theme.*
                 Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, TouchFeedback.COMPACT_SCALE).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
                     .semantics { contentDescription=if(id==0 && count>0) "$label ($count)" else label; selected=active; role=Role.Tab }
                     .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
-                    Icon(icon,null,tint=if(active) Color.White else lerp(
-                        if(dark) cs.onSurface.copy(alpha=.80f) else O2Colors.Ink.copy(alpha=.68f),
-                        subtleAccentIconColor(), .48f
-                    ),modifier=Modifier.size(19.dp))
+                    Icon(icon,null,tint=if(active) Color.White else subtleAccentIconColor(),modifier=Modifier.size(19.dp))
                     // A dot replaces the cramped circular count badge; stays inside the tab's bounds.
                     if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=9.dp,end=9.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
                 }
