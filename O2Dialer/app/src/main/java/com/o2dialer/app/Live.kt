@@ -99,19 +99,38 @@ private fun CallControls(paused: Boolean) {
 }
 
 // ====================================================================== run setup + queue
+/** A compact, typography-first setting in the Dialer summary strip. */
 @Composable
-private fun SetupItem(icon: ImageVector, value: String, caption: String, modifier: Modifier) {
+private fun SetupSummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
     Column(
-        modifier, horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(3.dp)
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Icon(icon, null, tint = subtleAccentIconColor(), modifier = Modifier.size(14.dp))
-            Text(value, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-        }
         Text(
-            caption, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1,
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
+                fontWeight = FontWeight.Medium
+            ),
+            color = colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            minLines = 2,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontSize = 15.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = colors.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -119,25 +138,32 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
 
 @Composable
 private fun RunSetupPanel() {
-    val s = Store.cfg
-    val gap = if (s.randomDelay) "${s.delaySec}–${maxOf(s.delaySec, s.delayMaxSec)}" + L(R.string.ui_s_5cc34057) else "${s.delaySec}" + L(R.string.ui_s_5cc34057)
+    val settings = Store.cfg
+    val gap = if (settings.randomDelay) {
+        "${settings.delaySec}–${maxOf(settings.delaySec, settings.delayMaxSec)}" + L(R.string.ui_s_5cc34057)
+    } else {
+        "${settings.delaySec}" + L(R.string.ui_s_5cc34057)
+    }
+    // Reuse the same restrained, tappable panel surface as the other Dialer cards.
     Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
-            verticalAlignment = Alignment.CenterVertically
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 15.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SetupItem(com.o2dialer.app.ui.components.O2Icons.Timer, gap, L(R.string.ui_between_calls_7801b436), Modifier.weight(1f))
-            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            SetupItem(
-                com.o2dialer.app.ui.components.O2Icons.Reset, "${s.retries}",
-                if (s.retries == 0) L(R.string.ui_no_retries_52c2a155) else L(R.string.ui_retries_19789c94),
-                Modifier.weight(1f)
+            SetupSummaryItem(
+                L(R.string.ui_between_calls_7801b436), gap, Modifier.weight(1f)
             )
-            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            SetupItem(
-                if (s.autoSpeaker) com.o2dialer.app.ui.components.O2Icons.MicOff else com.o2dialer.app.ui.components.O2Icons.Mic,
-                if (s.autoSpeaker) L(R.string.ui_auto_mute_ea78d27f) else L(R.string.ui_phone_657e04de),
-                L(R.string.ui_audio_preference_9f693631), Modifier.weight(1f)
+            SetupSummaryItem(
+                if (settings.retries == 0) L(R.string.ui_no_retries_52c2a155)
+                else L(R.string.ui_retries_19789c94),
+                "${settings.retries}", Modifier.weight(1f)
+            )
+            SetupSummaryItem(
+                L(R.string.ui_audio_preference_9f693631),
+                if (settings.autoSpeaker) L(R.string.ui_auto_mute_ea78d27f)
+                else L(R.string.ui_phone_657e04de),
+                Modifier.weight(1f)
             )
         }
     }
