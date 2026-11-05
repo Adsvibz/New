@@ -106,7 +106,7 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
+            Icon(icon, null, tint = subtleAccentIconColor(), modifier = Modifier.size(14.dp))
             Text(value, style = MaterialTheme.typography.titleSmall, maxLines = 1)
         }
         Text(
@@ -330,7 +330,7 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
                     O2Icons.FolderOpen,
                     contentDescription = null,
                     modifier = Modifier.size(26.dp),
-                    tint = cs.onSurfaceVariant
+                    tint = subtleAccentIconColor()
                 )
                 Text(
                     T("No campaigns yet", "لا توجد حملات بعد"),
@@ -384,8 +384,8 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
                             Modifier.size(42.dp)
                                 .clip(RoundedCornerShape(13.dp))
                                 .background(
-                                    if (isSelected) cs.primary.copy(alpha = .12f)
-                                    else cs.onSurface.copy(alpha = .045f)
+                                    if (isSelected) Brand.copy(alpha = .10f)
+                                    else Brand.copy(alpha = .06f)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -393,7 +393,7 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
                                 O2Icons.FolderOpen,
                                 contentDescription = null,
                                 modifier = Modifier.size(19.dp),
-                                tint = if (isSelected) cs.primary else cs.onSurfaceVariant
+                                tint = subtleAccentIconColor()
                             )
                         }
                         Column(
@@ -542,7 +542,7 @@ private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicke
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = cs.onSurfaceVariant)
+                    Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = subtleAccentIconColor())
                 }
             }
             // The colored campaign state now sits directly underneath Dialer.
@@ -576,6 +576,6 @@ private fun DialerHeaderAction(icon: ImageVector, description: String, onClick: 
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, description, Modifier.size(18.dp), tint = cs.onSurface)
+        Icon(icon, description, Modifier.size(18.dp), tint = subtleAccentIconColor())
     }
 }

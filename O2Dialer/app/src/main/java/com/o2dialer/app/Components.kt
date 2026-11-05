@@ -255,10 +255,10 @@ fun SettingsSection(
             ) {
                 Box(
                     Modifier.size(38.dp).clip(RoundedCornerShape(13.dp))
-                        .background(cs.onSurface.copy(alpha = .055f)),
+                        .background(Brand.copy(alpha = .075f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, null, Modifier.size(19.dp), tint = cs.onSurface.copy(alpha = .78f))
+                    Icon(icon, null, Modifier.size(19.dp), tint = subtleAccentIconColor())
                 }
                 Text(
                     title,

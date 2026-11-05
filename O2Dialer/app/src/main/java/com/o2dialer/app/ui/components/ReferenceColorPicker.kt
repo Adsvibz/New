@@ -38,7 +38,7 @@ fun ReferenceColorOption() {
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(16.dp).background(selected.color, CircleShape))
             Text(L(selected.label), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Icon(O2Icons.ChevronRight, null, Modifier.size(14.dp))
+            Icon(O2Icons.ChevronRight, null, Modifier.size(14.dp), tint = subtleAccentIconColor())
         }
     }
     if (opened) ReferenceColorPicker { opened = false }

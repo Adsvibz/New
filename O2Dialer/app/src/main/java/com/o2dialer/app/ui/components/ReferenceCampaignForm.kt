@@ -41,7 +41,7 @@ fun ReferenceSimPicker(selected: Int, onSelect: (Int) -> Unit) {
                 .selectable(active, role = Role.RadioButton, onClick = { onSelect(index - 1) })
                 .padding(10.dp)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(O2Icons.Smartphone, null, Modifier.size(14.dp), tint = if (active) Color.White else cs.onSurfaceVariant)
+                    Icon(O2Icons.Smartphone, null, Modifier.size(14.dp), tint = if (active) Color.White else subtleAccentIconColor())
                     Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                         color = if (active) Color.White else cs.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }

@@ -39,7 +39,7 @@ fun ReferenceModal(onDismiss: () -> Unit, width: Dp = 384.dp, content: @Composab
 @Composable
 private fun ReferenceModalHeader(title: String, onDismiss: () -> Unit, icon: ImageVector? = null) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (icon != null) Icon(icon, null, Modifier.size(16.dp))
+        if (icon != null) Icon(icon, null, Modifier.size(16.dp), tint = subtleAccentIconColor())
         Text(title, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         IconButton(onDismiss, Modifier.size(24.dp)) { Icon(O2Icons.Close, L(R.string.ref_close), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     }

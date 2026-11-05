@@ -41,7 +41,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                 ReferenceDetailPill(L(R.string.ui_edit_campaign_7f55beab), O2Icons.Edit, { action = "edit" }, !running)
                 Box {
                     IconButton({ menu = true }, Modifier.size(44.dp).background(cs.surface.copy(alpha = .6f), CircleShape)) {
-                        Icon(O2Icons.More, L(R.string.ui_campaign_actions_19a76975), Modifier.size(16.dp))
+                        Icon(O2Icons.More, L(R.string.ui_campaign_actions_19a76975), Modifier.size(16.dp), tint = subtleAccentIconColor())
                     }
                     DropdownMenu(menu, { menu = false }) {
                         if (list.entries.distinctBy { it.number }.size < list.entries.size) DropdownMenuItem({ Text(L(R.string.ui_remove_duplicates_f4f71e9f), fontSize = 12.5.sp) }, { menu = false; action = "dedupe" }, enabled = !running)
@@ -97,7 +97,9 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
                             Row(Modifier.weight(1f).clip(RoundedCornerShape(20.dp)).background(cs.surface.copy(alpha = .6f))
                                 .clickable { onTool(key) }.heightIn(min = 52.dp).padding(horizontal = 12.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Box(Modifier.size(32.dp).background(cs.onSurface.copy(alpha = .05f), CircleShape), contentAlignment = Alignment.Center) { Icon(icon, null, Modifier.size(16.dp)) }
+                                Box(Modifier.size(32.dp).background(Brand.copy(alpha = .075f), CircleShape), contentAlignment = Alignment.Center) {
+                                    Icon(icon, null, Modifier.size(16.dp), tint = subtleAccentIconColor())
+                                }
                                 Text(L(label), fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
@@ -161,7 +163,7 @@ private fun ReferenceDetailStat(modifier: Modifier, title: String, value: Int, s
 private fun ReferenceDetailPill(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit, enabled: Boolean = true) {
     TextButton(onClick, enabled = enabled, modifier = Modifier.heightIn(min = 44.dp), shape = CircleShape,
         colors = ButtonDefaults.textButtonColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = .6f), contentColor = MaterialTheme.colorScheme.onSurface), contentPadding = PaddingValues(horizontal = 14.dp)) {
-        Icon(icon, null, Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Icon(icon, null, Modifier.size(16.dp), tint = subtleAccentIconColor()); Spacer(Modifier.width(6.dp)); Text(text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -182,9 +184,9 @@ private fun ReferenceContactRow(entry: Entry, listId: String, onEdit: () -> Unit
             if (entry.feedback.isNotBlank()) Text("“${entry.feedback}”", fontSize = 12.sp, color = cs.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            IconButton({ Store.stageTarget = listId to entry.id }, Modifier.size(32.dp)) { Icon(O2Icons.Tag, L(R.string.ui_stage_71ed493b), Modifier.size(14.dp), tint = cs.onSurfaceVariant) }
+            IconButton({ Store.stageTarget = listId to entry.id }, Modifier.size(32.dp)) { Icon(O2Icons.Tag, L(R.string.ui_stage_71ed493b), Modifier.size(14.dp), tint = subtleAccentIconColor()) }
             IconButton({ openWhatsApp(ctx, entry.number) }, Modifier.size(32.dp)) { Icon(O2Icons.Chat, "WhatsApp", Modifier.size(14.dp), tint = cs.onSurfaceVariant) }
-            IconButton(onEdit, Modifier.size(32.dp), enabled = Store.canEditEntry(listId, entry.id)) { Icon(O2Icons.Edit, L(R.string.ui_edit_contact_45dfbdc5), Modifier.size(14.dp), tint = cs.onSurfaceVariant) }
+            IconButton(onEdit, Modifier.size(32.dp), enabled = Store.canEditEntry(listId, entry.id)) { Icon(O2Icons.Edit, L(R.string.ui_edit_contact_45dfbdc5), Modifier.size(14.dp), tint = subtleAccentIconColor()) }
             IconButton({ deleting = true }, Modifier.size(32.dp), enabled = Store.canEditEntry(listId, entry.id)) { Icon(O2Icons.Trash, L(R.string.ui_delete_number_d6acf881), Modifier.size(14.dp), tint = cs.onSurfaceVariant) }
         }
     }

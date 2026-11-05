@@ -151,6 +151,19 @@ fun readable(c: Color): Color {
     return if (dark) lerp(c, Color.White, 0.30f) else lerp(c, Color.Black, 0.42f)
 }
 
+/**
+ * The selected app color softly accents secondary/decorative icons.
+ * Keep text, destructive controls and semantic states independent.
+ * Reactive: ReferenceAppearance.selected reads its Compose colorId state.
+ */
+@Composable
+fun subtleAccentIconColor(): Color =
+    lerp(
+        MaterialTheme.colorScheme.onSurfaceVariant,
+        readable(com.o2dialer.app.ui.theme.O2Colors.Accent),
+        0.72f
+    )
+
 private val LightC get() = com.o2dialer.app.ui.theme.O2Colors.Light
 val NocturneDark get() = com.o2dialer.app.ui.theme.O2Colors.Dark
 

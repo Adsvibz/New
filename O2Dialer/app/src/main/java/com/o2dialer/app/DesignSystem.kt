@@ -214,7 +214,7 @@ fun BButton(
 @Composable
 fun SoftIconButton(
     icon: ImageVector, desc: String, onClick: () -> Unit, modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
+    tint: Color = Color.Unspecified,
     container: Color = MaterialTheme.colorScheme.surface
 ) {
     val cs = MaterialTheme.colorScheme
@@ -227,7 +227,8 @@ fun SoftIconButton(
             .clickable(interactionSource = src, indication = null, role = Role.Button, onClick = onClick),
         Alignment.Center
     ) {
-        Icon(icon, desc, tint = tint, modifier = Modifier.size(19.dp))
+        Icon(icon, desc, tint = if (tint == Color.Unspecified) subtleAccentIconColor() else tint,
+            modifier = Modifier.size(19.dp))
     }
 }
 
@@ -296,7 +297,7 @@ fun BTextField(
                 Text(placeholder, color = cs.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
             } } else null,
             leadingIcon = if (leading != null) { {
-                Icon(leading, null, modifier = Modifier.size(20.dp), tint = cs.onSurfaceVariant)
+                Icon(leading, null, modifier = Modifier.size(20.dp), tint = subtleAccentIconColor())
             } } else null,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType,
                 imeAction = if (singleLine) androidx.compose.ui.text.input.ImeAction.Done else androidx.compose.ui.text.input.ImeAction.Default),
@@ -396,7 +397,7 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun IconTile(icon: ImageVector, color: Color = MaterialTheme.colorScheme.primary, size: Dp = 42.dp) {
+fun IconTile(icon: ImageVector, color: Color = Brand, size: Dp = 42.dp) {
     val shape = RoundedCornerShape(size * 0.32f)
     Box(
         Modifier.size(size).clip(shape)
@@ -512,8 +513,8 @@ fun EmptyState(
                 drawCircle(cs.primary.copy(alpha = 0.08f), radius = c * 0.76f)
                 drawCircle(cs.secondary.copy(alpha = 0.10f), radius = c * 0.54f)
             }
-            Box(Modifier.size(62.dp).clip(CircleShape).background(cs.primary.copy(alpha = 0.10f)), Alignment.Center) {
-                Icon(icon, null, tint = cs.primary, modifier = Modifier.size(27.dp))
+            Box(Modifier.size(62.dp).clip(CircleShape).background(Brand.copy(alpha = .08f)), Alignment.Center) {
+                Icon(icon, null, tint = subtleAccentIconColor(), modifier = Modifier.size(27.dp))
             }
         }
         Spacer(Modifier.height(Sp.xl))
@@ -631,7 +632,7 @@ fun ActionChip(icon: ImageVector, label: String, onClick: () -> Unit) {
             .heightIn(min = 48.dp).padding(horizontal = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, tint = cs.primary, modifier = Modifier.size(16.dp))
+        Icon(icon, null, tint = subtleAccentIconColor(), modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(7.dp))
         Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
     }

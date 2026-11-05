@@ -108,7 +108,7 @@ import com.o2dialer.app.ui.theme.*
     val cs = MaterialTheme.colorScheme
     Row(modifier.fillMaxWidth().height(44.dp).background(cs.onSurface.copy(alpha=.04f), CircleShape).padding(horizontal=14.dp),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        Icon(O2Icons.Search,null,Modifier.size(16.dp),tint=cs.onSurfaceVariant)
+        Icon(O2Icons.Search,null,Modifier.size(16.dp),tint=subtleAccentIconColor())
         androidx.compose.foundation.text.BasicTextField(value,onChange,Modifier.weight(1f),singleLine=true,
             textStyle=MaterialTheme.typography.bodyMedium.copy(fontSize=12.5.sp,color=cs.onSurface),cursorBrush=SolidColor(cs.onSurface),
             decorationBox={ field -> Box { if(value.isEmpty()) Text(placeholder,fontSize=12.5.sp,color=cs.onSurfaceVariant,maxLines=1,overflow=TextOverflow.Ellipsis); field() } })
@@ -174,7 +174,10 @@ import com.o2dialer.app.ui.theme.*
                 Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, TouchFeedback.COMPACT_SCALE).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
                     .semantics { contentDescription=if(id==0 && count>0) "$label ($count)" else label; selected=active; role=Role.Tab }
                     .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
-                    Icon(icon,null,tint=if(active) Color.White else if(dark) cs.onSurface.copy(alpha=.80f) else O2Colors.Ink.copy(alpha=.68f),modifier=Modifier.size(19.dp))
+                    Icon(icon,null,tint=if(active) Color.White else lerp(
+                        if(dark) cs.onSurface.copy(alpha=.80f) else O2Colors.Ink.copy(alpha=.68f),
+                        subtleAccentIconColor(), .48f
+                    ),modifier=Modifier.size(19.dp))
                     // A dot replaces the cramped circular count badge; stays inside the tab's bounds.
                     if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=9.dp,end=9.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
                 }
