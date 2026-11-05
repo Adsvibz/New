@@ -145,86 +145,155 @@ private fun RunSetupPanel() {
 
 @Composable
 private fun UpNext(list: CallList, remaining: Int) {
-    val next = remember(Store.camp.queuedIds, Store.camp.status, list.entries) { (if(Store.campActive() && Store.camp.listId == list.id) queuedEntries(Store.camp, list) else list.entries.filter { it.status == St.PENDING }).take(3) }
+    val next = remember(Store.camp.queuedIds, Store.camp.status, list.entries) {
+        (if (Store.campActive() && Store.camp.listId == list.id)
+            queuedEntries(Store.camp, list)
+        else list.entries.filter { it.status == St.PENDING }).take(3)
+    }
     var removing by remember { mutableStateOf<Entry?>(null) }
     if (next.isEmpty()) return
+
     val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(start = Sp.l, end = Sp.s, top = Sp.l, bottom = Sp.xs)) {
-            Row(Modifier.padding(end = Sp.s), verticalAlignment = Alignment.CenterVertically) {
-                Text(L(R.string.ui_up_next_d350fa10), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.weight(1f))
+    val container = RoundedCornerShape(22.dp)
+
+    Column(
+        Modifier.fillMaxWidth()
+            .clip(container)
+            .background(cs.surface)
+            .border(1.dp, cs.outlineVariant.copy(alpha = .68f), container)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(13.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                L(R.string.ui_up_next_d350fa10),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-.2).sp
+                ),
+                color = cs.onSurface
+            )
+            Box(
+                Modifier.clip(CircleShape)
+                    .background(cs.onSurface.copy(alpha = .045f))
+                    .border(1.dp, cs.outlineVariant.copy(alpha = .65f), CircleShape)
+                    .padding(horizontal = 11.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     L(R.string.ui_left_f72bcd83, remaining),
-                    style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                    color = cs.onSurfaceVariant,
+                    maxLines = 1
                 )
             }
-            Spacer(Modifier.height(Sp.s))
-            next.forEachIndexed { i, e ->
-                if (i > 0) Hairline()
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        Modifier.size(28.dp).clip(CircleShape)
-                            .background(cs.secondary.copy(alpha = 0.10f))
-                            .border(1.dp, cs.secondary.copy(alpha = 0.15f), CircleShape),
-                        Alignment.Center
+        }
+
+        Column(
+            Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            next.forEachIndexed { i, entry ->
+                key(entry.id) {
+                    val first = i == 0
+                    val removeTouch = remember { MutableInteractionSource() }
+                    val rowShape = RoundedCornerShape(15.dp)
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .clip(rowShape)
+                            .background(
+                                if (first) cs.primary.copy(alpha = .055f)
+                                else Color.Transparent
+                            )
+                            .padding(start = 10.dp, end = 5.dp, top = 11.dp, bottom = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(11.dp)
                     ) {
-                        Text(
-                            "0${i + 1}", style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold, fontSize = 9.sp
-                            ),
-                            color = cs.secondary
-                        )
-                    }
-                    Spacer(Modifier.width(Sp.m))
-                    // A discreet gap separates the queued contact name from its number.
-                    Column(
-                        Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
-                    ) {
-                        Text(
-                            e.name.ifBlank { e.number },
-                            // Same embedded font family as the main Live name, at a quieter scale.
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontSize = 12.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold
-                            ),
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                        if (e.name.isNotBlank()) Text(
-                            e.number,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 11.5.sp,
-                                lineHeight = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                textDirection = TextDirection.Ltr,
-                                fontFeatureSettings = "tnum"
-                            ),
-                            color = cs.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            removing = e
-                        },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            com.o2dialer.app.ui.components.O2Icons.Close, L(R.string.ui_remove_from_the_queue_6ec0b8d7),
-                            tint = cs.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)
-                        )
+                        Box(
+                            Modifier.size(32.dp)
+                                .clip(RoundedCornerShape(11.dp))
+                                .background(
+                                    if (first) cs.primary.copy(alpha = .095f)
+                                    else cs.onSurface.copy(alpha = .045f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "0${i + 1}",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFeatureSettings = "tnum"
+                                ),
+                                color = if (first) cs.primary else cs.onSurfaceVariant
+                            )
+                        }
+
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                entry.name.ifBlank { entry.number },
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 12.5.sp,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = cs.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (entry.name.isNotBlank()) {
+                                Text(
+                                    entry.number,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 11.5.sp,
+                                        lineHeight = 16.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        textDirection = TextDirection.Ltr,
+                                        fontFeatureSettings = "tnum"
+                                    ),
+                                    color = cs.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = { removing = entry },
+                            modifier = Modifier.size(38.dp).pressScale(removeTouch),
+                            interactionSource = removeTouch
+                        ) {
+                            Icon(
+                                O2Icons.Close,
+                                contentDescription = L(R.string.ui_remove_from_the_queue_6ec0b8d7),
+                                tint = cs.onSurfaceVariant.copy(alpha = .67f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }
         }
     }
-    removing?.let { entry -> ConfirmDialog(L(R.string.ui_remove_from_this_campaign_465db9c6, entry.name.ifBlank { entry.number }), { removing = null }) {
-        Store.deleteEntry(list.id, entry.id); removing = null
-    } }
+
+    removing?.let { entry ->
+        ConfirmDialog(
+            L(R.string.ui_remove_from_this_campaign_465db9c6, entry.name.ifBlank { entry.number }),
+            { removing = null }
+        ) {
+            Store.deleteEntry(list.id, entry.id)
+            removing = null
+        }
+    }
 }
 
 // ====================================================================== idle launcher
