@@ -174,15 +174,15 @@ private fun RunSetupPanel() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         SetupInlineFact(
-            Icons.Rounded.Repeat, "${settings.retries + 1}",
+            O2Icons.Refresh, "${settings.retries + 1}",
             T("Attempts", "محاولات"), Modifier.weight(1f)
         )
         SetupInlineFact(
-            Icons.Rounded.Timer, delay,
+            O2Icons.Timer, delay,
             T("Delay", "الفاصل"), Modifier.weight(1f)
         )
         SetupInlineFact(
-            Icons.Rounded.AccessTime, duration,
+            O2Icons.Clock, duration,
             T("Duration", "المدة"), Modifier.weight(1f)
         )
     }
