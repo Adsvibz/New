@@ -136,16 +136,18 @@ import com.o2dialer.app.ui.theme.*
     // Actual backdrop blur, NOT a tinted gradient. Haze samples the Compose
     // content behind this dock; icons remain sharp because only the source is blurred.
     val blurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val glassTint = if (dark) Color(0xFF242A36).copy(alpha = .40f)
-                    else Color.White.copy(alpha = .38f)
+    // A slightly more transparent frosted surface. Keep it pale in dark mode
+    // too, so the requested black navigation icons remain legible.
+    val glassTint = Color.White.copy(alpha = if (dark) .78f else .32f)
     val glassStyle = HazeStyle(tint = glassTint, blurRadius = 24.dp, noiseFactor = .09f)
     val backdropBlur = if (blurSupported) Modifier.hazeChild(hazeState, shape = navShape, style = glassStyle)
                        else Modifier
     // Android 11 and older use a more opaque surface instead of pretending a gradient is blur.
     val navFill = if (blurSupported) {
-        if (dark) Color(0xFF283241).copy(alpha = .10f) else Color.White.copy(alpha = .12f)
+        Color.White.copy(alpha = if (dark) .14f else .09f)
     } else {
-        if (dark) Color(0xFF242A34).copy(alpha = .94f) else Color(0xFFF5F6FA).copy(alpha = .96f)
+        // Older Android versions cannot blur: use a readable translucent fallback.
+        Color.White.copy(alpha = if (dark) .89f else .91f)
     }
     val navBorder = if (dark) Color.White.copy(alpha = .25f)
                     else Color.White.copy(alpha = .85f)
@@ -171,10 +173,10 @@ import com.o2dialer.app.ui.theme.*
                         pop.animateTo(1f, tween(145, easing = ReferenceEase))
                     } else pop.snapTo(1f)
                 }
-                Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, TouchFeedback.COMPACT_SCALE).clip(CircleShape).background(if(active) O2Colors.Ink.copy(alpha=.9f) else Color.Transparent)
+                Box(Modifier.size(navItemSize).graphicsLayer { scaleX = pop.value; scaleY = pop.value }.pressScale(interaction, TouchFeedback.COMPACT_SCALE).clip(CircleShape).background(if(active) Color.Black.copy(alpha=if(dark) .12f else .085f) else Color.Transparent)
                     .semantics { contentDescription=if(id==0 && count>0) "$label ($count)" else label; selected=active; role=Role.Tab }
                     .clickable(interactionSource = interaction, indication = null) { if(id==4) Store.openSettings() else { if(id==0) Store.selectedListId=null; Store.tab=id } },contentAlignment=Alignment.Center) {
-                    Icon(icon,null,tint=if(active) Color.White else subtleAccentIconColor(),modifier=Modifier.size(19.dp))
+                    Icon(icon,null,tint=Color.Black,modifier=Modifier.size(19.dp))
                     // A dot replaces the cramped circular count badge; stays inside the tab's bounds.
                     if(id==0 && count>0) Box(Modifier.align(Alignment.TopEnd).padding(top=9.dp,end=9.dp).size(7.dp).background(O2Colors.Accent,CircleShape))
                 }
