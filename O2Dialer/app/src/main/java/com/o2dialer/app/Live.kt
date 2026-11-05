@@ -154,16 +154,13 @@ private fun UpNext(list: CallList, remaining: Int) {
     if (next.isEmpty()) return
 
     val cs = MaterialTheme.colorScheme
-    val container = RoundedCornerShape(22.dp)
 
-    Column(
-        Modifier.fillMaxWidth()
-            .clip(container)
-            .background(cs.surface)
-            .border(1.dp, cs.outlineVariant.copy(alpha = .68f), container)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(13.dp)
-    ) {
+    // Reuse the shared panel surface and its subtle border in both themes.
+    Panel(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(13.dp)
+        ) {
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -283,6 +280,7 @@ private fun UpNext(list: CallList, remaining: Int) {
                 }
             }
         }
+    }
     }
 
     removing?.let { entry ->
