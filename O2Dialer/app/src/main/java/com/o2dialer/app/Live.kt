@@ -176,19 +176,12 @@ private fun UpNext(list: CallList, remaining: Int) {
                 ),
                 color = cs.onSurface
             )
-            Box(
-                Modifier.clip(CircleShape)
-                    .background(cs.surfaceVariant.copy(alpha = .42f))
-                    .padding(horizontal = 11.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    L(R.string.ui_left_f72bcd83, remaining),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                    color = cs.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
+            Text(
+                L(R.string.ui_left_f72bcd83, remaining),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                color = cs.onSurfaceVariant,
+                maxLines = 1
+            )
         }
 
         Column(
