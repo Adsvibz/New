@@ -1,6 +1,7 @@
 package com.o2dialer.app
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -21,6 +22,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.CallLog
 import android.telecom.TelecomManager
+import android.telephony.PhoneNumberUtils
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
@@ -75,6 +77,8 @@ class DialerService : Service() {
     private var modernCb: Any? = null
     private var legacyCb: PhoneStateListener? = null
     private var wake: PowerManager.WakeLock? = null
+    private var previousSpeaker: Boolean? = null
+    private var previousMute: Boolean? = null
 
     private val nextRunnable = Runnable { next() }
     private val noCallRunnable = Runnable { onNoCall() }
@@ -98,7 +102,7 @@ class DialerService : Service() {
             } else stopSelf()
             ACT_PAUSE -> pause()
             ACT_RESUME -> resume()
-            ACT_SKIP -> hangup()
+            ACT_SKIP -> if (running && curId != null) hangup()
             ACT_STAGE_DONE -> if (running) stageDone() else stopSelf()
             ACT_STAGE_HOLD -> if (running) stageHold()
             else -> stopSelf()
@@ -120,6 +124,9 @@ class DialerService : Service() {
         acquireWake()
         try { register() } catch (e: SecurityException) {
             finish(T("Phone-state permission is missing", "صلاحية حالة الهاتف غير ممنوحة"), false, true); return
+        }
+        if (phoneIsBusy()) {
+            finish(T("End the current phone call before starting", "أنهِ المكالمة الحالية قبل البدء"), false, true); return
         }
         val n = buildQueue(list)
         if (n == 0) { finish(T("Nothing left to call", "لا توجد أرقام متبقية للاتصال"), false); return }
@@ -151,7 +158,8 @@ class DialerService : Service() {
     }
 
     private fun next() {
-        if (!running || paused) return
+        if (!running || paused || busy) return
+        handler.removeCallbacks(nextRunnable)
         if (awaiting) { awaiting = false; Store.stageTarget = null }
         if (queue.isEmpty()) {
             if (loop < S.loops) {
@@ -169,11 +177,19 @@ class DialerService : Service() {
             handler.postDelayed(nextRunnable, 30_000)
             return
         }
+        if (phoneIsBusy()) {
+            upd(Store.camp.copy(status = CS.WAITING, currentName = "", currentNumber = "", nextAt = 0,
+                message = T("Waiting for the phone to become available", "بانتظار انتهاء المكالمة على الهاتف")))
+            handler.postDelayed(nextRunnable, 3000)
+            return
+        }
         place(queue.removeFirst())
     }
 
-    private fun simHandle(slot: Int) =
-        if (slot < 0) null else telecom.callCapablePhoneAccounts.getOrNull(slot)
+    @SuppressLint("MissingPermission")
+    private fun simHandle(slot: Int) = if (
+        slot < 0 || !has(Manifest.permission.READ_PHONE_STATE)
+    ) null else runCatching { telecom.callCapablePhoneAccounts.getOrNull(slot) }.getOrNull()
 
     private fun place(id: String) {
         val list = Store.lists.find { it.id == listId }
@@ -183,7 +199,7 @@ class DialerService : Service() {
         busy = true; curId = id; sawOffhook = false; callStart = System.currentTimeMillis()
         Store.updateEntry(listId, id) { it.copy(status = St.CALLING, attempts = it.attempts + 1) }
         upd(Store.camp.copy(status = CS.RUNNING, currentName = e.name, currentNumber = e.number,
-            message = T("Calling…", "جارٍ الاتصال…"), nextAt = 0, awaitingStage = false))
+            message = T("Calling…", "جارٍ الاتصال…"), nextAt = 0, awaitingStage = false, evaluating = false))
         try {
             val extras = Bundle()
             runCatching {
@@ -193,6 +209,10 @@ class DialerService : Service() {
             handler.postDelayed(noCallRunnable, 25_000)
         } catch (ex: SecurityException) {
             finish(T("Call permission is missing", "صلاحية الاتصال غير ممنوحة"), false, true)
+        } catch (ex: RuntimeException) {
+            curId = null
+            handler.removeCallbacks(noCallRunnable)
+            record(id, St.FAILED, 0)
         }
     }
 
@@ -214,9 +234,11 @@ class DialerService : Service() {
             sawOffhook = false
             handler.removeCallbacks(hangupRunnable)
             handler.removeCallbacks(audioRunnable)
-            if (S.autoSpeaker) applyAudio(false)
+            applyAudio(false)
             val id = curId!!
             curId = null
+            upd(Store.camp.copy(currentName = "", currentNumber = "", evaluating = true,
+                message = T("Checking call result", "جارٍ التحقق من نتيجة المكالمة")))
             val dur = ((System.currentTimeMillis() - offhookAt) / 1000).toInt()
             val since = callStart
             handler.postDelayed({ evaluate(id, since, dur, 0) }, 1500)
@@ -226,6 +248,12 @@ class DialerService : Service() {
     private fun onNoCall() {
         val id = curId ?: return
         if (sawOffhook) return
+        if (phoneIsBusy()) {
+            // Never advance into a second call when a device has not delivered OFFHOOK.
+            upd(Store.camp.copy(message = T("Waiting for phone call status", "بانتظار حالة المكالمة من الهاتف")))
+            handler.postDelayed(noCallRunnable, 3000)
+            return
+        }
         curId = null
         record(id, St.FAILED, 0)
     }
@@ -233,27 +261,37 @@ class DialerService : Service() {
     private fun evaluate(id: String, since: Long, dur: Int, tries: Int) {
         if (!running) return
         if (S.useCallLog && has(Manifest.permission.READ_CALL_LOG)) {
-            val d = queryLog(since)
+            val number = Store.lists.find { it.id == listId }?.entries?.find { it.id == id }?.number.orEmpty()
+            val d = queryLog(since, number)
             if (d == null && tries < 2) {
                 handler.postDelayed({ evaluate(id, since, dur, tries + 1) }, 1500)
                 return
             }
             if (d != null) { record(id, if (d > 0) St.ANSWERED else St.NO_ANSWER, d); return }
         }
-        record(id, St.DONE, dur)
+        record(id, St.DONE, 0, offerUnverifiedStage = dur >= 8) // OFFHOOK includes ringing; it is not connected talk time.
     }
 
-    private fun queryLog(since: Long): Int? = try {
+    private fun queryLog(since: Long, number: String): Int? = try {
         contentResolver.query(
-            CallLog.Calls.CONTENT_URI, arrayOf(CallLog.Calls.DURATION),
+            CallLog.Calls.CONTENT_URI, arrayOf(CallLog.Calls.DURATION, CallLog.Calls.NUMBER),
             "${CallLog.Calls.DATE} >= ? AND ${CallLog.Calls.TYPE} = ?",
             arrayOf(since.toString(), CallLog.Calls.OUTGOING_TYPE.toString()),
             "${CallLog.Calls.DATE} ASC"
-        )?.use { c -> if (c.moveToFirst()) c.getInt(0) else null }
+         )?.use { c ->
+            var duration: Int? = null
+            while (c.moveToNext()) {
+                if (number.isNotBlank() && PhoneNumberUtils.compare(c.getString(1), number)) {
+                    duration = c.getInt(0).coerceAtLeast(0); break
+                }
+            }
+            duration
+        }
     } catch (e: Exception) { null }
 
-    private fun record(id: String, status: Int, dur: Int) {
+    private fun record(id: String, status: Int, dur: Int, offerUnverifiedStage: Boolean = false) {
         busy = false
+        upd(Store.camp.copy(currentName = "", currentNumber = "", evaluating = false))
         val list = Store.lists.find { it.id == listId }
         if (list == null) { scheduleNext(); return }
         val e = list.entries.find { it.id == id }
@@ -262,7 +300,7 @@ class DialerService : Service() {
         if (e != null) Store.addLog(LogItem(System.currentTimeMillis(), list.name, e.name, e.number, status, dur, e.attempts))
 
         // Ask for the call result (stage) after answered calls only.
-        if (e != null && S.askStage && St.isAnswered(status) && !(status == St.DONE && dur < 8)) {
+        if (e != null && S.askStage && (St.isConfirmedAnswered(status) || (status == St.DONE && offerUnverifiedStage))) {
             Store.stageTarget = listId to id
             if (S.stageWaitSec > 0) awaiting = true
         }
@@ -328,22 +366,40 @@ class DialerService : Service() {
         if (!running || !paused) return
         paused = false
         upd(Store.camp.copy(status = CS.RUNNING, message = T("Resuming…", "استئناف…")))
-        if (!busy) handler.postDelayed(nextRunnable, 1000)
+        if (!busy) scheduleNext()
     }
 
     @Suppress("DEPRECATION")
+    @SuppressLint("MissingPermission")
     private fun hangup() {
-        try {
-            if (Build.VERSION.SDK_INT >= 28 && has(Manifest.permission.ANSWER_PHONE_CALLS)) telecom.endCall()
-        } catch (e: Exception) {}
+        if (curId == null && !sawOffhook) return
+        val ended = runCatching {
+            Build.VERSION.SDK_INT >= 28 && has(Manifest.permission.ANSWER_PHONE_CALLS) && telecom.endCall()
+        }.getOrDefault(false)
+        if (!ended) Store.notify(Tk.WARN, T("End this call in your phone app; this device did not allow automatic hang-up",
+            "أنهِ المكالمة من تطبيق الهاتف؛ الجهاز لم يسمح بإنهائها تلقائيًا"))
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun phoneIsBusy(): Boolean {
+        if (!has(Manifest.permission.READ_PHONE_STATE)) return true
+        return try { telecom.isInCall } catch (_: SecurityException) { true }
     }
 
     @Suppress("DEPRECATION")
     private fun applyAudio(on: Boolean) {
         try {
             val am = getSystemService(AudioManager::class.java)
-            am.isSpeakerphoneOn = on
-            am.isMicrophoneMute = on
+            if (on) {
+                if (previousSpeaker == null) previousSpeaker = am.isSpeakerphoneOn
+                if (previousMute == null) previousMute = am.isMicrophoneMute
+                am.isSpeakerphoneOn = true
+                am.isMicrophoneMute = true
+            } else {
+                previousSpeaker?.let { am.isSpeakerphoneOn = it }
+                previousMute?.let { am.isMicrophoneMute = it }
+                previousSpeaker = null; previousMute = null
+            }
         } catch (e: Exception) {}
     }
 
@@ -352,7 +408,7 @@ class DialerService : Service() {
         if (::telecom.isInitialized && (curId != null || sawOffhook)) hangup()
         running = false; paused = false; busy = false; curId = null; sawOffhook = false; awaiting = false
         handler.removeCallbacksAndMessages(null)
-        if (S.autoSpeaker) applyAudio(false)
+        applyAudio(false)
         unregister(); releaseWake()
         if (listId.isNotEmpty()) {
             Store.updateList(listId) { l ->
@@ -360,7 +416,9 @@ class DialerService : Service() {
             }
         }
         Store.camp = Store.camp.copy(status = CS.FINISHED, message = msg, currentName = "", currentNumber = "",
-            nextAt = 0, awaitingStage = false, error = error)
+            nextAt = 0, awaitingStage = false, error = error, completed = completed, queuedIds = emptyList(), evaluating = false)
+        Store.stageTarget = null
+        Store.flush()
         if (completed) {
             Store.resultsListId = listId
             Store.pendingResultsNav = true
@@ -423,7 +481,7 @@ class DialerService : Service() {
     }
 
     private fun upd(c: CampState) {
-        Store.camp = c
+        Store.camp = c.copy(queuedIds = queue.toList())
         if (running) getSystemService(NotificationManager::class.java).notify(1, notif())
     }
 
@@ -444,7 +502,7 @@ class DialerService : Service() {
         val stats = if (p != null) "${p.called}/${p.total} • ${p.pct}%" else ""
         val b = NotificationCompat.Builder(this, "dialer")
             .setSmallIcon(R.drawable.ic_stat_blend)
-            .setColor(0xFF6C47FF.toInt())
+            .setColor(0xFF2457E7.toInt())
             .setContentTitle(if (who.isNotEmpty()) T("Calling $who", "جارٍ الاتصال بـ $who") else r.listName)
             .setContentText(if (who.isNotEmpty()) "${r.listName} • $stats" else "${r.message} • $stats")
             .setOngoing(true).setOnlyAlertOnce(true)
@@ -470,7 +528,7 @@ class DialerService : Service() {
             .setContentTitle(T("Campaign finished ✓", "اكتملت الحملة ✓") + (l?.let { " · ${it.name}" } ?: ""))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-            .setColor(0xFF6C47FF.toInt())
+            .setColor(0xFF2457E7.toInt())
             .setAutoCancel(true)
             .setContentIntent(openAppIntent())
             .build())
@@ -486,9 +544,14 @@ class DialerService : Service() {
     override fun onDestroy() {
         if (running) {
             running = false
-            Store.camp = Store.camp.copy(status = CS.FINISHED, message = T("Service stopped", "توقفت الخدمة"))
+            Store.updateList(listId) { l -> l.copy(entries = l.entries.map { if (it.status == St.CALLING) it.copy(status = St.PENDING) else it }) }
+            Store.camp = Store.camp.copy(status = CS.FINISHED, message = T("Service stopped — resume when ready", "توقفت الخدمة — استأنف عندما تكون جاهزًا"),
+                currentName = "", currentNumber = "", nextAt = 0, awaitingStage = false, completed = false, queuedIds = emptyList(), evaluating = false)
+            Store.stageTarget = null
         }
         handler.removeCallbacksAndMessages(null)
+        applyAudio(false)
+        Store.flush()
         unregister(); releaseWake()
         super.onDestroy()
     }

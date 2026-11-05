@@ -12,6 +12,13 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.*
+import androidx.compose.ui.platform.LocalDensity
+import com.o2dialer.app.ui.components.ReferenceEase
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -34,6 +41,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.*
@@ -55,6 +63,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.haze
 
 class MainActivity : ComponentActivity() {
 
@@ -106,9 +117,12 @@ class MainActivity : ComponentActivity() {
         License.gate { gate, msg ->
             when (gate) {
                 License.Gate.ALLOWED -> requestCallPermissions {
-                    Store.runListId = listId
-                    Store.tab = 1
-                    DialerService.send(this, DialerService.ACT_START, listId, restart)
+                    if (!Store.campActive()) {
+                        Store.runListId = listId
+                        Store.tab = 1
+                        runCatching { DialerService.send(this, DialerService.ACT_START, listId, restart) }
+                            .onFailure { Store.notify(Tk.ERROR, T("Could not start calling. Reopen the app and check permissions.", "تعذّر بدء الاتصال. افتح التطبيق وتحقق من الصلاحيات.")) }
+                    }
                 }
                 License.Gate.NEED_ACTIVATION -> {
                     License.pendingStart = listId to restart
@@ -127,6 +141,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Store.permTick = Store.permTick + 1
+        if (Store.welcomed) AppUpdates.check(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,134 +150,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             val dir = if (Store.cfg.lang == 1) LayoutDirection.Rtl else LayoutDirection.Ltr
             CompositionLocalProvider(LocalLayoutDirection provides dir) {
-                AppTheme { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() }
+                AppTheme { MotionPreferences { LanguageTransitionHost { if (Store.welcomed) Root(this@MainActivity) else WelcomeScreen() } } }
             }
         }
     }
 }
 
-// ====================================================================== navigation dock
 @Composable
-private fun NavItem(
-    label: String, filled: ImageVector, outline: ImageVector, selected: Boolean,
-    modifier: Modifier, onClick: () -> Unit
-) {
-    val cs = MaterialTheme.colorScheme
-    val fg by animateColorAsState(if (selected) cs.primary else cs.onSurfaceVariant, tween(220), label = "navFg")
-    val scale by animateFloatAsState(if (selected) 1.06f else 1f, Motion.press(), label = "navScale")
-    Column(
-        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            if (selected) filled else outline, null, tint = fg,
-            modifier = Modifier.size(22.dp).then(Modifier.graphicsLayer { scaleX = scale; scaleY = scale })
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 9.5.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                letterSpacing = 0.1.sp
-            ),
-            color = fg, maxLines = 1
-        )
-    }
-}
-
-/** The live dialer sits at the centre of the dock as the app's primary action. */
-@Composable
-private fun LiveNavItem(selected: Boolean, active: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    val tint by animateColorAsState(if (active) Sem.success else cs.primary, tween(300), label = "liveTint")
-    val scale by animateFloatAsState(if (selected) 1f else 0.96f, Motion.gentle(), label = "liveScale")
-    Column(
-        modifier.heightIn(min = 58.dp).clip(RoundedCornerShape(18.dp))
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            Modifier.size(36.dp).graphicsLayer { scaleX = scale; scaleY = scale }
-                .shadow(10.dp, CircleShape, ambientColor = tint.copy(alpha = 0.45f), spotColor = tint.copy(alpha = 0.35f))
-                .clip(CircleShape)
-                .background(Brush.linearGradient(listOf(tint, lerp(tint, Brass, 0.30f))))
-                .border(1.dp, Color.White.copy(alpha = 0.20f), CircleShape),
-            Alignment.Center
-        ) { Icon(Icons.Rounded.Call, null, tint = if (active) Color.White else cs.onPrimary, modifier = Modifier.size(19.dp)) }
-        Spacer(Modifier.height(3.dp))
-        Text(
-            T("Live", "مباشر"),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 9.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.1.sp
-            ),
-            color = if (selected || active) readable(tint) else cs.onSurfaceVariant, maxLines = 1
-        )
-    }
-}
-
-@Composable
-private fun AppNavBar() {
-    val cs = MaterialTheme.colorScheme
-    val dark = isDarkTheme()
-    val shape = RoundedCornerShape(30.dp)
-    val slot = when (Store.tab) { 0 -> 0; 2 -> 1; 1 -> 2; 3 -> 3; else -> 4 }
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val pos by animateFloatAsState(slot.toFloat(), Motion.gentle(), label = "dock")
-
-    Box(
-        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = Sp.l).padding(bottom = Sp.s),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        BoxWithConstraints(
-            Modifier.widthIn(max = 560.dp).fillMaxWidth().height(76.dp)
-                .shadow(
-                    22.dp, shape,
-                    ambientColor = Color.Black.copy(alpha = if (dark) 0.5f else 0.16f),
-                    spotColor = Color.Black.copy(alpha = 0.12f)
-                )
-                .clip(shape)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            cs.surface.copy(alpha = if (dark) 0.98f else 1f),
-                            cs.surfaceVariant.copy(alpha = if (dark) 0.55f else 0.45f)
-                        )
-                    )
-                )
-                .border(1.dp, cs.onSurface.copy(alpha = 0.07f), shape)
-                .padding(6.dp)
-        ) {
-            val w = maxWidth / 5
-            val x = if (rtl) maxWidth - w * (pos + 1f) else w * pos
-            Box(
-                Modifier.offset(x = x).width(w).fillMaxHeight()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(cs.primary.copy(alpha = 0.09f))
-                    .border(1.dp, cs.primary.copy(alpha = 0.10f), RoundedCornerShape(24.dp))
-            )
-            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                NavItem(T("Campaigns", "الحملات"), Icons.Rounded.Campaign, Icons.Outlined.Campaign, Store.tab == 0, Modifier.weight(1f)) {
-                    Store.selectedListId = null; Store.tab = 0
-                }
-                NavItem(T("Results", "النتائج"), Icons.Rounded.BarChart, Icons.Outlined.BarChart, Store.tab == 2, Modifier.weight(1f)) {
-                    Store.tab = 2
-                }
-                LiveNavItem(Store.tab == 1, Store.campActive(), Modifier.weight(1f)) { Store.tab = 1 }
-                NavItem(T("Log", "السجل"), Icons.Rounded.History, Icons.Outlined.History, Store.tab == 3, Modifier.weight(1f)) {
-                    Store.tab = 3
-                }
-                NavItem(T("Settings", "الإعدادات"), Icons.Rounded.Settings, Icons.Outlined.Settings, Store.tab == 4, Modifier.weight(1f)) {
-                    Store.openSettings()
-                }
-            }
-        }
-    }
-}
+private fun AppNavBar(hazeState: HazeState) { com.o2dialer.app.ui.components.O2BottomNavBar(hazeState) }
 
 @Composable
 fun Root(act: MainActivity) {
     val activity = LocalContext.current as Activity
+    LaunchedEffect(Unit) { AppUpdates.check(act) }
 
     val keep = Store.cfg.keepScreenOn && (Store.camp.status == CS.RUNNING || Store.camp.status == CS.WAITING)
     LaunchedEffect(keep) {
@@ -283,45 +183,83 @@ fun Root(act: MainActivity) {
     }
 
     val screenKey = if (Store.tab == 0 && Store.selectedListId != null) 10 else Store.tab
-    // The floating dock belongs to the five main destinations; the campaign detail page is full-screen.
-    val showNav = screenKey in 0..4
+    val reducedMotion = LocalReducedMotion.current
+    // Shared background capture for the floating frosted-glass dock.
+    val navHazeState = remember { HazeState() }
+    // The reference keeps its floating navigation visible on campaign details too.
+    val showNav = true
+    var dockHidden by remember(screenKey) { mutableStateOf(false) }
+    val density = LocalDensity.current.density
+    val scrollConnection = remember(screenKey, density) {
+        object : NestedScrollConnection {
+            var scrollTop = 0f
+            var directional = 0f
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                val delta = -consumed.y / density
+                scrollTop = (scrollTop + delta).coerceAtLeast(0f)
+                if (scrollTop <= 20f || (consumed.y == 0f && available.y > 0f)) {
+                    directional = 0f
+                    dockHidden = false
+                } else {
+                    if ((delta > 0f && directional < 0f) || (delta < 0f && directional > 0f)) directional = 0f
+                    directional += delta
+                    if (directional > 16f && scrollTop > 28f) { dockHidden = true; directional = 0f }
+                    else if (directional < -10f) { dockHidden = false; directional = 0f }
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-        bottomBar = { if (showNav) AppNavBar() }
+        bottomBar = {}
     ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad)) {
-            Responsive {
-                AnimatedContent(
-                    targetState = screenKey,
+        Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).nestedScroll(scrollConnection)) {
+            Box(
+                Modifier.fillMaxSize().haze(
+                    state = navHazeState,
+                    style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
+                )
+            ) {
+                Responsive {
+                    AnimatedContent(
+                    targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
-                        val forward = targetState >= initialState
-                        val dir = if (forward) 1 else -1
-                        (fadeIn(tween(260)) +
-                            slideInHorizontally(tween(360, easing = Motion.easeOut)) { it / 10 * dir } +
-                            scaleIn(tween(360, easing = Motion.easeOut), initialScale = 0.985f)) togetherWith
-                            (fadeOut(tween(140)) +
-                                slideOutHorizontally(tween(220)) { -it / 16 * dir } +
-                                scaleOut(tween(220), targetScale = 0.992f))
+                        if (reducedMotion) {
+                            androidx.compose.animation.EnterTransition.None togetherWith androidx.compose.animation.ExitTransition.None
+                        } else {
+                        (fadeIn(tween(340, easing = ReferenceEase)) +
+                            slideInVertically(tween(340, easing = ReferenceEase)) { (10 * density).toInt() }) togetherWith
+                            fadeOut(tween(0))
+                        }
                     },
                     label = "screen"
                 ) { k ->
-                    when (k) {
+                    when (k.first) {
                         0 -> ListsScreen()
-                        10 -> Store.selectedListId?.let { ListDetail(it, act) }
+                        10 -> k.second?.let { ListDetail(it, act) }
                         1 -> LiveScreen(act)
-                        2 -> ResultsScreen()
+                        2 -> ResultsScreen(act)
                         3 -> LogScreen()
                         else -> SettingsScreen()
                     }
                 }
+                }
             }
+            AnimatedVisibility(
+                visible = showNav && !dockHidden,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = fadeIn(tween(if (reducedMotion) 0 else 300)) + slideInVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() },
+                exit = fadeOut(tween(if (reducedMotion) 0 else 300)) + slideOutVertically(tween(if (reducedMotion) 0 else 300)) { (20 * density).toInt() }
+            ) { AppNavBar(navHazeState) }
             ToastHost(
                 Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = Sp.m, start = Sp.l, end = Sp.l)
             )
             Store.stageTarget?.let { (lid, eid) -> StageSheet(lid, eid) }
             if (License.showActivation) ActivationDialog(act)
+            UpdateHost(act)
         }
     }
 }

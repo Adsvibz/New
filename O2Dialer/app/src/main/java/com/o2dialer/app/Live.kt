@@ -2,6 +2,10 @@
 
 package com.o2dialer.app
 
+import com.o2dialer.app.ui.components.*
+import com.o2dialer.app.ui.theme.*
+
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -22,6 +26,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -49,295 +54,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-
-// ====================================================================== atoms
-@Composable
-private fun Waveform(color: Color, bars: Int = 5, height: Dp = 22.dp) {
-    val t = rememberInfiniteTransition(label = "waveform")
-    Row(
-        Modifier.height(height), horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        repeat(bars) { i ->
-            val v by t.animateFloat(
-                0.22f + (i % 3) * 0.14f, 1f,
-                infiniteRepeatable(tween(480 + i * 90, easing = LinearEasing), RepeatMode.Reverse),
-                label = "bar$i"
-            )
-            Box(
-                Modifier.width(3.dp).fillMaxHeight(v)
-                    .graphicsLayer { transformOrigin = TransformOrigin(0.5f, 1f) }
-                    .clip(CircleShape).background(color)
-            )
-        }
-    }
-}
-
-/** Concentric rings that expand and fade while a call is live. */
-@Composable
-private fun CallOrb(initials: String?, live: Boolean, size: Dp = 86.dp) {
-    val mint = Color(0xFFA5DDC2)
-    val t = rememberInfiniteTransition(label = "callOrb")
-    val p1 by t.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(2600, easing = LinearEasing)),
-        label = "ring1"
-    )
-    val p2 by t.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(2600, easing = LinearEasing), initialStartOffset = StartOffset(1300)),
-        label = "ring2"
-    )
-    Box(Modifier.size(size), Alignment.Center) {
-        if (live) {
-            Canvas(Modifier.fillMaxSize()) {
-                val r = this.size.minDimension / 2f
-                listOf(p1, p2).forEach { p ->
-                    drawCircle(
-                        color = mint.copy(alpha = (1f - p) * 0.35f),
-                        radius = r * (0.56f + 0.44f * p),
-                        style = Stroke(1.2.dp.toPx())
-                    )
-                }
-            }
-        }
-        Box(
-            Modifier.size(size * 0.68f)
-                .shadow(if (live) 20.dp else 8.dp, CircleShape, ambientColor = mint.copy(alpha = 0.35f))
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        listOf(
-                            if (live) mint else Color(0xFF24483C),
-                            if (live) lerpColor(mint, Brass, 0.45f) else Color(0xFF163026)
-                        )
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.20f), CircleShape),
-            Alignment.Center
-        ) {
-            val fg = if (live) Color(0xFF07130E) else Cream
-            if (initials != null) Text(
-                initials, color = fg,
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 23.sp)
-            )
-            else Icon(Icons.Rounded.Call, null, tint = fg, modifier = Modifier.size(25.dp))
-        }
-    }
-}
-
-private fun lerpColor(a: Color, b: Color, t: Float) = androidx.compose.ui.graphics.lerp(a, b, t)
-
-// ====================================================================== hero
-@Composable
-private fun CallHero(c: CampState, list: CallList, p: Prog, now: Long, compact: Boolean) {
-    val cs = MaterialTheme.colorScheme
-    val finished = c.status == CS.FINISHED
-    val calling = c.status == CS.RUNNING && c.currentNumber.isNotEmpty()
-    val paused = c.status == CS.PAUSED
-    val secs = if (c.nextAt > now) (c.nextAt - now + 999) / 1000 else 0L
-    val label = when {
-        finished -> if (c.error) T("Stopped", "توقفت") else T("Finished", "انتهت")
-        paused -> T("Paused", "متوقفة مؤقتًا")
-        c.status == CS.WAITING -> T("Waiting", "في الانتظار")
-        calling -> T("Calling now", "جارٍ الاتصال")
-        c.awaitingStage -> T("Your input", "دورك")
-        else -> T("Next call", "المكالمة التالية")
-    }
-    val statusTint = when {
-        finished && c.error -> Sem.danger
-        finished -> Sem.success
-        paused -> Brass
-        calling -> Sem.success
-        else -> Color(0xFFA5DDC2)
-    }
-    val next = list.entries.firstOrNull { it.status == St.PENDING }
-    val who: Pair<String, String>? = when {
-        calling -> c.currentName to c.currentNumber
-        !finished && next != null -> next.name to next.number
-        else -> null
-    }
-    val caption = when {
-        c.awaitingStage -> T("Continuing in", "المتابعة بعد")
-        else -> T("until the next call", "حتى المكالمة التالية")
-    }
-    val note = when {
-        finished -> T("${p.answered} answered · ${p.noAnswer} no answer · ${p.failed} failed",
-            "${p.answered} ردّوا · ${p.noAnswer} لم يردّوا · ${p.failed} فشل")
-        paused -> T("Your queue is waiting", "طابورك في الانتظار")
-        c.status == CS.WAITING -> c.message
-        c.awaitingStage && secs == 0L -> c.message
-        else -> ""
-    }
-    val shape = RoundedCornerShape(Rd.xl)
-
-    Box(
-        Modifier.fillMaxWidth().clip(shape).background(inkSurface())
-    ) {
-        Aurora(
-            Modifier.matchParentSize(),
-            colors = listOf(
-                if (calling) Color(0xFF2F8A6A) else Color(0xFF3C6B5B),
-                Brass,
-                Color(0xFF356A60)
-            ),
-            alpha = 0.34f
-        )
-        Box(
-            Modifier.matchParentSize().background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.12f), Color.Black.copy(alpha = 0.36f)))
-            )
-        )
-        Column(
-            Modifier.padding(Sp.xl),
-            verticalArrangement = Arrangement.spacedBy(Sp.l)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(
-                    Modifier.clip(RoundedCornerShape(50)).background(statusTint.copy(alpha = 0.13f))
-                        .border(1.dp, statusTint.copy(alpha = 0.22f), RoundedCornerShape(50))
-                        .padding(horizontal = 9.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (calling) PulseDot(Sem.success, 6.dp)
-                    else Dot(statusTint, 6.dp)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        label.uppercase(),
-                        color = Cream.copy(alpha = 0.85f),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold, letterSpacing = 1.sp, fontSize = 9.5.sp
-                        )
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                Text(
-                    c.listName, color = Cream.copy(alpha = 0.52f),
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 150.dp)
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CallOrb(
-                    initials = who?.first?.takeIf { it.isNotBlank() }?.let { initialsOf(it) },
-                    live = calling,
-                    size = if (compact) 74.dp else 84.dp
-                )
-                Spacer(Modifier.width(Sp.l))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    if (who != null) {
-                        Text(
-                            who.first.ifBlank { who.second },
-                            color = Cream,
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontSize = if (compact) 23.sp else 26.sp
-                            ),
-                            maxLines = 2, overflow = TextOverflow.Ellipsis
-                        )
-                        if (who.first.isNotBlank()) NumText(
-                            who.second, style = MaterialTheme.typography.bodySmall, color = Cream.copy(alpha = 0.55f)
-                        )
-                    } else {
-                        Text(
-                            c.message.ifBlank { label }, color = Cream,
-                            style = MaterialTheme.typography.headlineSmall,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column {
-                    if (secs > 0) {
-                        AnimatedContent(
-                            targetState = secs,
-                            transitionSpec = {
-                                (fadeIn(tween(230)) + slideInVertically(tween(280, easing = Motion.easeOut)) { -it / 3 }) togetherWith
-                                    fadeOut(tween(110))
-                            },
-                            label = "countdown"
-                        ) { s ->
-                            Text(
-                                "$s", color = Cream,
-                                style = MaterialTheme.typography.displayLarge.copy(
-                                    fontSize = if (compact) 58.sp else 66.sp, lineHeight = if (compact) 58.sp else 66.sp
-                                )
-                            )
-                        }
-                        Text(
-                            caption, style = MaterialTheme.typography.labelSmall,
-                            color = Cream.copy(alpha = 0.52f), maxLines = 1
-                        )
-                    } else if (calling) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Waveform(Sem.success)
-                            Text(
-                                T("On call", "في مكالمة"),
-                                color = Cream.copy(alpha = 0.7f), style = MaterialTheme.typography.titleSmall
-                            )
-                        }
-                        Text(
-                            c.currentNumber, style = MaterialTheme.typography.labelSmall,
-                            color = Cream.copy(alpha = 0.52f)
-                        )
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Icon(
-                                when {
-                                    finished && c.error -> Icons.Rounded.ErrorOutline
-                                    finished -> Icons.Rounded.CheckCircle
-                                    paused -> Icons.Rounded.PauseCircle
-                                    else -> Icons.Rounded.HourglassEmpty
-                                },
-                                null, tint = statusTint, modifier = Modifier.size(24.dp)
-                            )
-                            Text(
-                                label, color = Cream,
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                        }
-                        if (note.isNotEmpty()) Text(
-                            note, color = Cream.copy(alpha = 0.52f),
-                            style = MaterialTheme.typography.labelSmall, maxLines = 2
-                        )
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                if (secs > 0) {
-                    Text(
-                        "${p.pct}%", color = Cream.copy(alpha = 0.42f),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp)
-                    )
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        T("${p.called} of ${p.total} called", "${p.called} من ${p.total} تم الاتصال"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelSmall
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        T("${p.remaining} left", "${p.remaining} متبقي"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelSmall
-                    )
-                }
-                BProgress(
-                    p.pct / 100f, height = 4.dp,
-                    color = if (finished && !c.error) Sem.success else Color(0xFFA5DDC2),
-                    track = Color.White.copy(alpha = 0.12f)
-                )
-            }
-        }
-    }
-}
 
 // ====================================================================== outcomes
 @Composable
@@ -355,72 +76,72 @@ private fun Outcome(value: Int, label: String, color: Color, modifier: Modifier)
 }
 
 @Composable
-private fun OutcomesPanel(p: Prog, remaining: Int) {
-    val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.l), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    SectionLabel(T("Outcomes", "النتائج"))
-                    Text(
-                        T("${p.called} calls placed", "${p.called} مكالمة تم إجراؤها"),
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
-                Pill(T("$remaining left", "$remaining متبقي"), cs.primary)
-            }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Outcome(p.answered, T("answered", "ردّوا"), Sem.success, Modifier.weight(1f))
-                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
-                Outcome(p.noAnswer, T("no answer", "لم يردّوا"), Sem.warning, Modifier.weight(1f))
-                Box(Modifier.width(1.dp).height(34.dp).background(cs.outline.copy(alpha = 0.7f)))
-                Outcome(p.failed, T("failed", "فشل"), Sem.danger, Modifier.weight(1f))
-            }
-        }
-    }
-}
+private fun OutcomesPanel(p: Prog, remaining: Int) { V7ResultsHeader(p) }
 
 // ====================================================================== controls
 @Composable
 private fun CallControls(paused: Boolean) {
+    var confirmStop by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = Sp.s),
-        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
-    ) {
-        CircleAction(
-            if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
-            if (paused) T("Resume", "استئناف") else T("Pause", "إيقاف مؤقت"),
-            { DialerService.send(ctx, if (paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },
-            container = cs.primary, content = cs.onPrimary, outlined = false
-        )
-        CircleAction(
-            Icons.Rounded.CallEnd, T("End call", "إنهاء"),
-            { DialerService.send(ctx, DialerService.ACT_SKIP) }
-        )
-        CircleAction(
-            Icons.Rounded.Stop, T("Stop", "إيقاف"),
-            { DialerService.send(ctx, DialerService.ACT_STOP) },
-            container = cs.error.copy(alpha = 0.10f), content = readable(cs.error), outlined = false
-        )
+    Column {
+        HorizontalDivider(color = cs.onSurface.copy(alpha = .06f))
+        Row(Modifier.fillMaxWidth().padding(top = 14.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+            BButton(L(R.string.ui_skip_1b19bc56),{ DialerService.send(ctx,DialerService.ACT_SKIP) },Modifier.weight(1f),kind=BtnKind.Tonal,icon=O2Icons.Skip,compact=true,
+                enabled=Store.camp.currentNumber.isNotBlank() && !Store.camp.evaluating)
+            BButton(if(paused) L(R.string.ui_resume_1c6804ad) else L(R.string.ui_pause_f0d3c022),{ DialerService.send(ctx,if(paused) DialerService.ACT_RESUME else DialerService.ACT_PAUSE) },Modifier.weight(1f),icon=if(paused) O2Icons.Play else O2Icons.Pause,compact=true)
+            BButton(L(R.string.ui_stop_8cf806ad),{ confirmStop=true },Modifier.weight(1f),kind=BtnKind.Danger,icon=O2Icons.Stop,compact=true)
+        }
+    }
+    if (confirmStop) ConfirmDialog(L(R.string.ui_stop_this_session_your_progress_will_b_77af49ab), { confirmStop = false }) {
+        DialerService.send(ctx, DialerService.ACT_STOP); confirmStop = false
     }
 }
 
 // ====================================================================== run setup + queue
+/** Compact visual summary of attempts, delay and maximum call duration. */
 @Composable
-private fun SetupItem(icon: ImageVector, value: String, caption: String, modifier: Modifier) {
+private fun SetupInlineFact(
+    icon: ImageVector,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
     Column(
-        modifier, horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(3.dp)
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
-            Text(value, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Icon(
+                icon, contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = Brand
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 16.sp,
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = Color(0xFF17191D),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
         Text(
-            caption, style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1,
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                lineHeight = 11.sp,
+                fontWeight = FontWeight.Medium
+            ),
+            color = Color(0xFF858B94),
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
@@ -428,140 +149,204 @@ private fun SetupItem(icon: ImageVector, value: String, caption: String, modifie
 
 @Composable
 private fun RunSetupPanel() {
-    val s = Store.cfg
-    val gap = if (s.randomDelay) "${s.delaySec}–${s.delayMaxSec}s" else "${s.delaySec}s"
-    Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = Sp.s, vertical = Sp.m),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SetupItem(Icons.Rounded.Timer, gap, T("between calls", "بين المكالمات"), Modifier.weight(1f))
-            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            SetupItem(
-                Icons.Rounded.Replay, "${s.retries}",
-                if (s.retries == 0) T("no retries", "بدون إعادة") else T("retries", "إعادة"),
-                Modifier.weight(1f)
+    val settings = Store.cfg
+    val interaction = remember { MutableInteractionSource() }
+    val delay = if (settings.randomDelay) {
+        "${settings.delaySec}–${maxOf(settings.delaySec, settings.delayMaxSec)}s"
+    } else "${settings.delaySec}s"
+    val duration = if (settings.maxCallSec == 0) "∞" else "${settings.maxCallSec}s"
+
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .heightIn(min = 52.dp)
+            .pressScale(interaction)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .border(1.dp, Color(0xFFE9EBEF), RoundedCornerShape(14.dp))
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                role = Role.Button,
+                onClick = { Store.openSettings() }
             )
-            Box(Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)))
-            SetupItem(
-                if (s.autoSpeaker) Icons.Rounded.MicOff else Icons.Rounded.Mic,
-                if (s.autoSpeaker) T("Muted", "مكتوم") else T("Live", "يعمل"),
-                T("microphone", "المايك"), Modifier.weight(1f)
-            )
-        }
+            .padding(horizontal = 8.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SetupInlineFact(
+            O2Icons.Refresh, "${settings.retries + 1}",
+            T("Attempts", "محاولات"), Modifier.weight(1f)
+        )
+        SetupInlineFact(
+            O2Icons.Timer, delay,
+            T("Delay", "الفاصل"), Modifier.weight(1f)
+        )
+        SetupInlineFact(
+            O2Icons.Clock, duration,
+            T("Duration", "المدة"), Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
 private fun UpNext(list: CallList, remaining: Int) {
-    val next = list.entries.filter { it.status == St.PENDING }.take(3)
+    val next = remember(Store.camp.queuedIds, Store.camp.status, list.entries) {
+        (if (Store.campActive() && Store.camp.listId == list.id)
+            queuedEntries(Store.camp, list)
+        else list.entries.filter { it.status == St.PENDING }).take(3)
+    }
+    var removing by remember { mutableStateOf<Entry?>(null) }
     if (next.isEmpty()) return
+
     val cs = MaterialTheme.colorScheme
+
+    // Reuse the shared panel surface and its subtle border in both themes.
     Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(start = Sp.l, end = Sp.s, top = Sp.l, bottom = Sp.xs)) {
-            Row(Modifier.padding(end = Sp.s), verticalAlignment = Alignment.CenterVertically) {
-                Text(T("Up next", "التالي"), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.weight(1f))
-                Text(
-                    T("$remaining left", "$remaining متبقي"),
-                    style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant
-                )
-            }
-            Spacer(Modifier.height(Sp.s))
-            next.forEachIndexed { i, e ->
-                if (i > 0) Hairline()
-                Row(
-                    Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        Modifier.size(30.dp).clip(CircleShape)
-                            .background(cs.secondary.copy(alpha = 0.10f))
-                            .border(1.dp, cs.secondary.copy(alpha = 0.15f), CircleShape),
-                        Alignment.Center
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(13.dp)
+        ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                L(R.string.ui_up_next_d350fa10),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = (-.2).sp
+                ),
+                color = cs.onSurface
+            )
+            Text(
+                L(R.string.ui_left_f72bcd83, remaining),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                color = cs.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+
+        Column(
+            Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            next.forEachIndexed { i, entry ->
+                key(entry.id) {
+                    val first = i == 0
+                    val removeTouch = remember { MutableInteractionSource() }
+                    val rowShape = RoundedCornerShape(15.dp)
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .clip(rowShape)
+                            .background(
+                                if (first) cs.primary.copy(alpha = .055f)
+                                else Color.Transparent
+                            )
+                            .padding(start = 10.dp, end = 5.dp, top = 11.dp, bottom = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(11.dp)
                     ) {
-                        Text(
-                            "0${i + 1}", style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold, fontSize = 9.sp
-                            ),
-                            color = cs.secondary
-                        )
-                    }
-                    Spacer(Modifier.width(Sp.m))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            e.name.ifBlank { e.number }, style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                        if (e.name.isNotBlank()) NumText(
-                            e.number, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            Store.deleteEntry(list.id, e.id)
-                            Store.notify(Tk.INFO, T("Removed from the queue", "تم الحذف من القائمة"))
-                        },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.Rounded.Close, T("Remove from the queue", "حذف من القائمة"),
-                            tint = cs.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(16.dp)
-                        )
+                        Box(
+                            Modifier.size(32.dp)
+                                .clip(RoundedCornerShape(11.dp))
+                                .background(
+                                    Brand.copy(alpha = if (first) .095f else .055f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "0${i + 1}",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = Brand
+                            )
+                        }
+
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                entry.name.ifBlank { entry.number },
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 12.5.sp,
+                                    lineHeight = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = cs.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (entry.name.isNotBlank()) {
+                                Text(
+                                    entry.number,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontSize = 11.5.sp,
+                                        lineHeight = 16.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        textDirection = TextDirection.Ltr
+                                    ),
+                                    color = cs.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = { removing = entry },
+                            modifier = Modifier.size(38.dp).pressScale(removeTouch),
+                            interactionSource = removeTouch
+                        ) {
+                            Icon(
+                                O2Icons.Close,
+                                contentDescription = L(R.string.ui_remove_from_the_queue_6ec0b8d7),
+                                tint = cs.onSurfaceVariant.copy(alpha = .67f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+    }
+
+    removing?.let { entry ->
+        ConfirmDialog(
+            L(R.string.ui_remove_from_this_campaign_465db9c6, entry.name.ifBlank { entry.number }),
+            { removing = null }
+        ) {
+            Store.deleteEntry(list.id, entry.id)
+            removing = null
         }
     }
 }
 
 // ====================================================================== idle launcher
 @Composable
-private fun ReadyHero(selected: CallList?, p: Prog?) {
-    val shape = RoundedCornerShape(Rd.xl)
-    Box(Modifier.fillMaxWidth().clip(shape).background(inkSurface())) {
-        Aurora(
-            Modifier.matchParentSize(),
-            colors = listOf(Color(0xFF2F8A6A), Brass, Color(0xFF3F6F62)),
-            alpha = 0.30f
-        )
-        Box(
-            Modifier.matchParentSize().background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.10f), Color.Black.copy(alpha = 0.32f)))
-            )
-        )
-        Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(16.dp).height(1.dp).background(Brass))
+private fun ReadyHero(selected: CallList?, p: Prog?, act: MainActivity) {
+    val cs = MaterialTheme.colorScheme
+    O2Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(L(R.string.ui_ready_to_call_61a4b92c), fontSize = 12.sp, color = cs.onSurfaceVariant)
+            Text(selected?.name ?: L(R.string.ref_no_campaign_selected), Modifier.padding(top = 4.dp), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (p == null) L(R.string.ref_pick_campaign_hint) else if(p.total == 0) L(R.string.ref_empty_campaign_hint) else L(R.string.ref_ready_remaining, p.remaining, p.total) + " · " + (if(selected?.simSlot == -1) L(R.string.ui_default_sim_bf6ca60e) else "SIM " + ((selected?.simSlot ?: 0) + 1)),
+                Modifier.padding(top = 4.dp, bottom = 16.dp), fontSize = 12.sp, color = cs.onSurfaceVariant, textAlign = TextAlign.Center)
+            val startTouch = remember { MutableInteractionSource() }
+            if (selected != null && p != null) Button({
+                if (p.total == 0) { Store.selectedListId = selected.id; Store.tab = 0 }
+                else act.startCampaign(selected.id, p.called > 0 && p.remaining == 0)
+            }, Modifier.heightIn(min = 46.dp).pressScale(startTouch), shape = CircleShape,
+                interactionSource = startTouch, colors = ButtonDefaults.buttonColors(containerColor = O2Colors.Ink, contentColor = Color.White), contentPadding = PaddingValues(horizontal = 24.dp)) {
+                Icon(if(p.total == 0) O2Icons.PersonAdd else O2Icons.Phone, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    T("READY WHEN YOU ARE", "جاهز عندما تكون"),
-                    color = Brass,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold, letterSpacing = 1.8.sp, fontSize = 9.sp
-                    )
-                )
-            }
-            Text(
-                T("Pick a list.\nLet the dialer work.", "اختر قائمة.\nواترك المتصل يعمل."),
-                color = Cream,
-                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 32.sp)
-            )
-            Text(
-                T("One call at a time, at the pace you set.", "مكالمة واحدة في كل مرة، بالإيقاع الذي تحدده."),
-                color = Cream.copy(alpha = 0.58f), style = MaterialTheme.typography.bodySmall
-            )
-            if (selected != null && p != null) {
-                Spacer(Modifier.height(Sp.xs))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Dot(Color(0xFFA5DDC2), 6.dp)
-                    Spacer(Modifier.width(7.dp))
-                    Text(
-                        T("${p.total} contacts · ${p.remaining} remaining", "${p.total} جهة · ${p.remaining} متبقي"),
-                        color = Cream.copy(alpha = 0.65f), style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(L(if(p.total == 0) R.string.ref_add_contacts else if(p.remaining == 0) R.string.ui_restart_campaign_062996bf else if(p.called > 0) R.string.ui_resume_1c6804ad else R.string.ui_start_campaign_28d1c94b), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -570,52 +355,146 @@ private fun ReadyHero(selected: CallList?, p: Prog?) {
 @Composable
 private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
     val cs = MaterialTheme.colorScheme
-    Panel(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Sp.m), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                T("Choose a campaign", "اختر الحملة"),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = Sp.s, vertical = Sp.s)
-            )
-            Store.lists.forEach { l ->
-                val lp = Store.prog(l)
-                val on = l.id == selected
-                val bg by androidx.compose.animation.animateColorAsState(
-                    if (on) cs.primary.copy(alpha = 0.09f) else Color.Transparent, tween(220), label = "pickBg"
+    val campaigns = Store.lists
+
+    // The sheet owns the heading. One clean surface and a single set of selection rows.
+    Column(
+        Modifier.fillMaxWidth().padding(bottom = Sp.s),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (campaigns.isEmpty()) {
+            Column(
+                Modifier.fillMaxWidth().padding(vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    O2Icons.FolderOpen,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = subtleAccentIconColor()
                 )
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(Rd.s)).background(bg)
-                        .selectable(selected = on, role = Role.RadioButton) { onSelect(l.id) }
-                        .heightIn(min = 58.dp).padding(horizontal = Sp.m),
-                    verticalAlignment = Alignment.CenterVertically
+                Text(
+                    T("No campaigns yet", "لا توجد حملات بعد"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = cs.onSurfaceVariant
+                )
+            }
+        }
+
+        campaigns.forEach { campaign ->
+            key(campaign.id) {
+                val progress = Store.prog(campaign)
+                val isSelected = campaign.id == selected
+                val interaction = remember { MutableInteractionSource() }
+                val shape = RoundedCornerShape(18.dp)
+                val rowColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) cs.primary.copy(alpha = .065f)
+                                  else cs.surfaceVariant.copy(alpha = .28f),
+                    animationSpec = tween(if (LocalReducedMotion.current) 0 else 180),
+                    label = "campaignPickerSurface"
+                )
+                val outlineColor by androidx.compose.animation.animateColorAsState(
+                    targetValue = if (isSelected) cs.primary.copy(alpha = .42f)
+                                  else cs.outlineVariant,
+                    animationSpec = tween(if (LocalReducedMotion.current) 0 else 180),
+                    label = "campaignPickerBorder"
+                )
+
+                Column(
+                    Modifier.fillMaxWidth()
+                        .pressScale(interaction, TouchFeedback.BUTTON_SCALE)
+                        .clip(shape)
+                        .background(rowColor)
+                        .border(1.dp, outlineColor, shape)
+                        .selectable(
+                            selected = isSelected,
+                            interactionSource = interaction,
+                            indication = null,
+                            role = Role.RadioButton,
+                            onClick = { onSelect(campaign.id) }
+                        )
+                        .padding(horizontal = 15.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Box(
-                        Modifier.size(20.dp).clip(CircleShape)
-                            .border(1.5.dp, if (on) cs.primary else cs.outline, CircleShape),
-                        Alignment.Center
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val dot by androidx.compose.animation.core.animateFloatAsState(
-                            if (on) 1f else 0f, Motion.gentle(), label = "dot"
-                        )
-                        if (dot > 0.01f) Box(
-                            Modifier.size(10.dp).graphicsLayer { scaleX = dot; scaleY = dot }
-                                .clip(CircleShape).background(cs.primary)
-                        )
+                        Box(
+                            Modifier.size(42.dp)
+                                .clip(RoundedCornerShape(13.dp))
+                                .background(
+                                    if (isSelected) Brand.copy(alpha = .10f)
+                                    else Brand.copy(alpha = .06f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                O2Icons.FolderOpen,
+                                contentDescription = null,
+                                modifier = Modifier.size(19.dp),
+                                tint = subtleAccentIconColor()
+                            )
+                        }
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                campaign.name,
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = cs.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                L(R.string.ui_contacts_left_6c292586, progress.total, progress.remaining),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = cs.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            if (isSelected) {
+                                Box(
+                                    Modifier.size(23.dp).clip(CircleShape)
+                                        .background(cs.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        O2Icons.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = cs.onPrimary
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    "${progress.pct}%",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                    color = cs.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
-                    Spacer(Modifier.width(Sp.m))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            l.name, style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            T("${lp.total} contacts · ${lp.remaining} left", "${lp.total} جهة · ${lp.remaining} متبقي"),
-                            style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
-                        )
-                    }
-                    Text(
-                        "${lp.pct}%", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = if (on) cs.primary else cs.onSurfaceVariant
+                    LinearProgressIndicator(
+                        progress = progress.pct / 100f,
+                        modifier = Modifier.fillMaxWidth().height(3.dp)
+                            .clip(CircleShape),
+                        color = if (isSelected) cs.primary
+                                else cs.onSurfaceVariant.copy(alpha = .43f),
+                        trackColor = cs.onSurface.copy(alpha = .055f)
                     )
                 }
             }
@@ -623,130 +502,122 @@ private fun CampaignPicker(selected: String?, onSelect: (String) -> Unit) {
     }
 }
 
-@Composable
-private fun Launcher(act: MainActivity) {
-    val sel = Store.runListId?.takeIf { id -> Store.lists.any { it.id == id } } ?: Store.lists.firstOrNull()?.id
-    val selList = Store.lists.find { it.id == sel }
-    val p = selList?.let { Store.prog(it) }
-
-    if (Store.lists.isEmpty()) {
-        Panel(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(Sp.xxl), verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                IconTile(Icons.Rounded.Campaign, MaterialTheme.colorScheme.primary, 48.dp)
-                Text(T("Nothing to call yet", "لا يوجد ما يتم الاتصال به بعد"), style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    T("Create a campaign and add a few numbers first.", "أنشئ حملة وأضف بعض الأرقام أولاً."),
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                BButton(T("Go to campaigns", "الذهاب إلى الحملات"), { Store.tab = 0 }, kind = BtnKind.Tonal, compact = true)
-            }
-        }
-        return
-    }
-
-    ReadyHero(selList, p)
-    Spacer(Modifier.height(Sp.m))
-    CampaignPicker(sel) { Store.runListId = it }
-
-    if (sel != null && p != null && p.total > 0) {
-        val resumable = p.called > 0 && p.remaining > 0
-        Spacer(Modifier.height(Sp.m))
-        BButton(
-            when {
-                resumable -> T("Resume · ${p.remaining} left", "استئناف · ${p.remaining} متبقي")
-                p.called > 0 -> T("Restart campaign", "إعادة تشغيل الحملة")
-                else -> T("Start campaign", "ابدأ الحملة")
-            },
-            { act.startCampaign(sel, p.called > 0 && p.remaining == 0) }, Modifier.fillMaxWidth(), icon = Icons.Rounded.PlayArrow
-        )
-        if (resumable) {
-            Spacer(Modifier.height(Sp.s))
-            BButton(
-                T("Restart from the beginning", "ابدأ من الأول"), { act.startCampaign(sel, true) },
-                Modifier.fillMaxWidth(), kind = BtnKind.Ghost, icon = Icons.Rounded.Refresh
-            )
-        }
-    } else if (selList != null) {
-        Spacer(Modifier.height(Sp.m))
-        Banner(
-            Tk.WARN, T("This campaign is empty", "هذه الحملة فارغة"),
-            T("Add numbers before starting.", "أضف أرقامًا قبل البدء."),
-            actionText = T("Open", "فتح")
-        ) { Store.selectedListId = selList.id; Store.tab = 0 }
-    }
-    Spacer(Modifier.height(Sp.m))
-    RunSetupPanel()
-}
-
 // ====================================================================== screen
 @Composable
 fun LiveScreen(act: MainActivity) {
     val c = Store.camp
     val active = Store.campActive()
-    val compact = isCompact()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(active) { while (active) { now = System.currentTimeMillis(); delay(500) } }
     val heroList = Store.lists.find { it.id == c.listId }
     val showHero = (active || c.status == CS.FINISHED) && heroList != null
-
-    val subtitle = when {
-        c.status == CS.PAUSED -> T("Paused — your queue is waiting", "متوقفة مؤقتًا — الطابور في الانتظار")
-        active -> T("Running automatically, one call at a time", "تعمل تلقائيًا، مكالمة واحدة في كل مرة")
-        c.status == CS.FINISHED && heroList != null -> T("Campaign finished", "انتهت الحملة")
-        else -> T("Pick a campaign and let it run", "اختر حملة واتركها تعمل")
-    }
+    val selected = if(showHero) heroList else Store.lists.find { it.id == Store.runListId } ?: Store.lists.firstOrNull()
+    var picking by remember { mutableStateOf(false) }
+    var operational by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { BlendBar(T("Live dialer", "التشغيل المباشر"), subtitle = subtitle) },
+        topBar = {},
         containerColor = Color.Transparent
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(horizontal = Sp.xl, vertical = Sp.s),
+                .padding(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
-            LicenseBanner()
-            PermissionBanner(act)
-            AnimatedContent(
-                targetState = showHero,
-                transitionSpec = {
-                    (fadeIn(tween(360)) + scaleIn(tween(420, easing = Motion.easeOut), initialScale = 0.98f)) togetherWith
-                        (fadeOut(tween(160)) + scaleOut(tween(220), targetScale = 0.99f))
-                },
-                label = "liveState"
-            ) { hero ->
-                Column(verticalArrangement = Arrangement.spacedBy(Sp.m)) {
-                    if (hero && heroList != null) {
-                        val p = Store.prog(heroList)
-                        Enter(0) { CallHero(c, heroList, p, now, compact) }
-                        if (c.status == CS.FINISHED) {
-                            Enter(1) { Banner(if (c.error) Tk.ERROR else Tk.SUCCESS, c.message) }
-                            Enter(2) { OutcomesPanel(p, p.remaining) }
-                            if (!c.error) Enter(3) {
-                                BButton(
-                                    T("View campaign results", "عرض نتائج الحملة"),
-                                    { Store.resultsListId = c.listId; Store.tab = 2 }, Modifier.fillMaxWidth(),
-                                    kind = BtnKind.Tonal, icon = Icons.Rounded.BarChart
-                                )
-                            }
-                            Enter(4) { RunSetupPanel() }
-                        } else {
-                            Enter(1) { OutcomesPanel(p, p.remaining) }
-                            if (active) Enter(2) { CallControls(c.status == CS.PAUSED) }
-                            if (active) Enter(3) { RunSetupPanel() }
-                            if (active && !Store.cfg.shuffle) Enter(4) { UpNext(heroList, p.remaining) }
-                        }
-                    } else {
-                        Launcher(act)
-                    }
+            ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })
+            if (showHero && heroList != null) {
+                V7LiveHero(c, heroList, Store.prog(heroList), now) { if(active) CallControls(c.status == CS.PAUSED) }
+                if(c.status == CS.FINISHED) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    BButton(L(R.string.ui_view_campaign_results_4e1585fe), { Store.resultsListId = c.listId; Store.tab = 2 }, Modifier.weight(1f), kind = BtnKind.Tonal, compact = true)
+                    BButton(L(R.string.ui_choose_a_campaign_18062c29), { picking = true }, Modifier.weight(1f), compact = true)
                 }
+            } else ReadyHero(selected, selected?.let { Store.prog(it) }, act)
+            selected?.let { list ->
+                val progress = Store.prog(list)
+                O2MetricGrid(listOf(
+                    { m -> O2StatWidget(L(R.string.ui_called_c764210c), progress.called.toString(), modifier=m, hero=true, progress=progress.pct/100f) },
+                    { m -> O2StatWidget(L(R.string.ui_remaining_8cbe3646), progress.remaining.toString(), L(R.string.ref_total_contacts, progress.total), m) },
+                    { m -> O2StatWidget(L(R.string.ref_answered), progress.answered.toString(), L(R.string.ref_connected_calls), m) },
+                    { m -> O2StatWidget(L(R.string.ref_no_answer)+" / "+L(R.string.ref_failed), (progress.noAnswer+progress.failed).toString(), L(R.string.ref_missed_failed, progress.noAnswer, progress.failed), m) }
+                ))
+                UpNext(list, progress.remaining)
             }
+            RunSetupPanel()
             Spacer(Modifier.height(Sp.l))
         }
     }
+    if(picking) BSheet(L(R.string.ui_choose_a_campaign_eb7e0334), { picking = false }) {
+        CampaignPicker(selected?.id) { id ->
+            if (Store.campActive() && id != Store.camp.listId) Store.notify(Tk.INFO, L(R.string.ref_stop_before_switch))
+            else { Store.runListId = id; if(!Store.campActive()) Store.camp = CampState(); picking = false }
+        }
+    }
+    if(operational) BSheet(L(R.string.ref_operational_status), { operational = false }) {
+        LicenseBanner(); PermissionBanner(act)
+        Text(c.message.ifBlank { sessionLabel(c) }, fontSize = 13.sp)
+    }
+
 }
 
-private fun initialsOf(name: String): String {
-    val parts = name.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-    return parts.take(2).joinToString("") { it.first().uppercase() }.ifEmpty { "#" }
+@Composable
+private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicker: () -> Unit, onOperational: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(L(R.string.ui_dialer_bd42b0f9), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                // Place campaign selection alongside the title; ellipsize long names.
+                Row(
+                    Modifier.weight(1f).clickable(onClick = onPicker),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        selected?.name ?: L(R.string.ref_select_campaign),
+                        Modifier.weight(1f, fill = false),
+                        fontSize = 12.sp,
+                        color = cs.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Icon(O2Icons.Chevron, null, Modifier.size(14.dp), tint = subtleAccentIconColor())
+                }
+            }
+            // The colored campaign state now sits directly underneath Dialer.
+            Box(Modifier.clickable(role = Role.Button, onClick = onOperational)) {
+                O2StatusBadge(
+                    text = if (state.status == CS.IDLE && selected != null)
+                        L(R.string.ui_ready_0c93aede) else sessionLabel(state),
+                    color = when {
+                        state.error -> cs.error
+                        state.status == CS.PAUSED -> Sem.warning
+                        else -> O2Colors.Accent
+                    }
+                )
+            }
+        }
+        DialerHeaderAction(O2Icons.Globe, L(R.string.ui_change_language_1c32e0d1)) { LanguageTransition.toggle() }
+    }
+}
+
+/** Bounded, accessible actions that remain distinct from the pale dialer canvas. */
+@Composable
+private fun DialerHeaderAction(icon: ImageVector, description: String, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val shape = CircleShape
+    Box(
+        Modifier.size(44.dp)
+            .shadow(4.dp, shape, ambientColor = Color.Black.copy(alpha = .05f), spotColor = Color.Black.copy(alpha = .12f))
+            .clip(shape)
+            .background(cs.surface)
+            .border(1.dp, cs.outline.copy(alpha = .36f), shape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, description, Modifier.size(18.dp), tint = subtleAccentIconColor())
+    }
 }

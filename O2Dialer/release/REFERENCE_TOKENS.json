@@ -1,0 +1,432 @@
+{
+  "rgba(${themeColor.rgb}, 0.24)": [
+    "src/App.tsx"
+  ],
+  "rgba(${themeColor.rgb}, 0.06)": [
+    "src/App.tsx"
+  ],
+  "rgba(${themeColor.rgb}, 0.11)": [
+    "src/App.tsx"
+  ],
+  "#F5F6F8": [
+    "src/App.tsx"
+  ],
+  "#111827": [
+    "src/App.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx",
+    "src/components/dialer/StopConfirmModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "rgba(17,19,24,0.06)": [
+    "src/App.tsx",
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignCard.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/CampaignOverview.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/dialer/DialerHeader.tsx",
+    "src/components/dialer/DialerProgress.tsx",
+    "src/components/dialer/SessionControls.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/ScreenHeader.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#111318": [
+    "src/App.tsx",
+    "src/components/AndroidNavBar.tsx",
+    "src/components/AndroidStatusBar.tsx",
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignCard.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/CampaignOverview.tsx",
+    "src/components/DeviceFrameWrapper.tsx",
+    "src/components/dialer/ActiveCallingHero.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/dialer/DialerHeader.tsx",
+    "src/components/dialer/DialerProgress.tsx",
+    "src/components/dialer/SessionConfigStrip.tsx",
+    "src/components/dialer/SessionControls.tsx",
+    "src/components/FloatingBottomNav.tsx",
+    "src/components/MultiSelectToolbar.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/ScreenHeader.tsx",
+    "src/components/SearchAndFilterBar.tsx",
+    "src/components/SettingsScreen.tsx",
+    "src/index.css"
+  ],
+  "#8A909E": [
+    "src/App.tsx",
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignCard.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/CampaignOverview.tsx",
+    "src/components/dialer/ActiveCallingHero.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/dialer/DialerHeader.tsx",
+    "src/components/dialer/DialerProgress.tsx",
+    "src/components/dialer/SessionConfigStrip.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/ScreenHeader.tsx",
+    "src/components/SearchAndFilterBar.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#1e222b": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/dialer/ActiveCallingHero.tsx",
+    "src/components/dialer/SessionControls.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/ScreenHeader.tsx"
+  ],
+  "rgba(17,19,24,0.28)": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/dialer/ActiveCallingHero.tsx",
+    "src/components/dialer/SessionControls.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/components/ScreenHeader.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#E2532B": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignCard.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/CampaignOverview.tsx",
+    "src/components/dialer/ActiveCallingHero.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/dialer/DialerHeader.tsx",
+    "src/components/dialer/DialerProgress.tsx",
+    "src/components/dialer/SessionControls.tsx",
+    "src/components/FloatingBottomNav.tsx",
+    "src/components/MultiSelectToolbar.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/SettingsScreen.tsx",
+    "src/index.css"
+  ],
+  "rgba(226,83,43,0.38)": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignOverview.tsx",
+    "src/components/dialer/DialerProgress.tsx"
+  ],
+  "rgba(17,19,24,0.05)": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/dialer/SessionConfigStrip.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/SearchAndFilterBar.tsx"
+  ],
+  "rgba(17,19,24,0.25)": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/SearchAndFilterBar.tsx"
+  ],
+  "#4B5563": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#6B7280": [
+    "src/components/CallLogsScreen.tsx",
+    "src/components/CampaignCard.tsx",
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/dialer/CallingQueue.tsx",
+    "src/components/dialer/DialerHeader.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx",
+    "src/components/dialer/StopConfirmModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ResultsScreen.tsx",
+    "src/components/SearchAndFilterBar.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "rgba(17,19,24,0.12)": [
+    "src/components/CampaignCard.tsx",
+    "src/components/DeviceFrameWrapper.tsx"
+  ],
+  "rgba(17,19,24,0.18)": [
+    "src/components/CampaignCard.tsx"
+  ],
+  "#2563EB": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/RenameModal.tsx"
+  ],
+  "#047857": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/SettingsScreen.tsx",
+    "src/components/ShareCampaignModal.tsx"
+  ],
+  "#B45309": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#B42318": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/MultiSelectToolbar.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/SettingsScreen.tsx"
+  ],
+  "#8E95A2": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "rgba(17,19,24,0.16)": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/SearchAndFilterBar.tsx"
+  ],
+  "rgba(226,83,43,0.42)": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/components/ResultsScreen.tsx"
+  ],
+  "#E5E7EB": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "#F0F2F5": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx",
+    "src/components/dialer/StopConfirmModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "#F7F8FA": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/DeleteConfirmDialog.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/EmptyCampaignState.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/RenameModal.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "#17191D": [
+    "src/components/CampaignDetailsScreen.tsx",
+    "src/components/DeleteConfirmDialog.tsx",
+    "src/components/DuplicateContactsModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/EmptyCampaignState.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/RenameModal.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "#D1D5DB": [
+    "src/components/CampaignDetailsScreen.tsx"
+  ],
+  "#E9EBEF": [
+    "src/components/DeleteConfirmDialog.tsx",
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx",
+    "src/components/dialer/StopConfirmModal.tsx",
+    "src/components/DuplicateContactsModal.tsx",
+    "src/components/EmptyCampaignState.tsx",
+    "src/components/RenameModal.tsx"
+  ],
+  "#777E89": [
+    "src/components/DeleteConfirmDialog.tsx",
+    "src/components/DuplicateContactsModal.tsx",
+    "src/components/EmptyCampaignState.tsx",
+    "src/components/RenameModal.tsx"
+  ],
+  "rgba(17,19,24,0.07)": [
+    "src/components/dialer/ActiveCallingHero.tsx"
+  ],
+  "#FAFAFA": [
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/DialerSettingsModal.tsx"
+  ],
+  "#F4F5F7": [
+    "src/components/dialer/CampaignPickerSheet.tsx",
+    "src/components/dialer/StopConfirmModal.tsx",
+    "src/components/EditCampaignSheet.tsx",
+    "src/components/HandoffSpecModal.tsx",
+    "src/components/NewCampaignSheet.tsx",
+    "src/components/ShareCampaignModal.tsx",
+    "src/components/StageClassificationSheet.tsx"
+  ],
+  "#EBECEF": [
+    "src/components/dialer/DialerSettingsModal.tsx"
+  ],
+  "rgba(17,19,24,0.34)": [
+    "src/components/FloatingBottomNav.tsx"
+  ],
+  "rgba(255,255,255,0.22)": [
+    "src/components/FloatingBottomNav.tsx"
+  ],
+  "#6E7582": [
+    "src/components/FloatingBottomNav.tsx",
+    "src/components/MultiSelectToolbar.tsx",
+    "src/components/OnboardingModal.tsx",
+    "src/index.css"
+  ],
+  "#FFFFFF": [
+    "src/components/HandoffSpecModal.tsx"
+  ],
+  "rgba(17,19,24,0.08)": [
+    "src/components/OnboardingModal.tsx"
+  ],
+  "rgba(17,19,24,0.22)": [
+    "src/components/ResultsScreen.tsx"
+  ],
+  "rgba(226, 83, 43, 0.24)": [
+    "src/index.css"
+  ],
+  "rgba(226, 83, 43, 0.06)": [
+    "src/index.css"
+  ],
+  "rgba(226, 83, 43, 0.11)": [
+    "src/index.css"
+  ],
+  "#E5E2DC": [
+    "src/index.css"
+  ],
+  "#F7F6F2": [
+    "src/index.css"
+  ],
+  "#F1EFEA": [
+    "src/index.css"
+  ],
+  "#EAE7E1": [
+    "src/index.css"
+  ],
+  "#0B0C0E": [
+    "src/index.css"
+  ],
+  "#131519": [
+    "src/index.css"
+  ],
+  "#171A20": [
+    "src/index.css"
+  ],
+  "#111317": [
+    "src/index.css"
+  ],
+  "#181A1F": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.72)": [
+    "src/index.css"
+  ],
+  "rgba(214, 211, 204, 0.35)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.78)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.88)": [
+    "src/index.css"
+  ],
+  "rgba(24, 24, 27, 0.045)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.82)": [
+    "src/index.css"
+  ],
+  "rgba(250, 249, 246, 0.74)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.98)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.55)": [
+    "src/index.css"
+  ],
+  "rgba(17, 19, 24, 0.12)": [
+    "src/index.css"
+  ],
+  "rgba(17, 19, 24, 0.05)": [
+    "src/index.css"
+  ],
+  "rgba(17, 19, 24, 0.03)": [
+    "src/index.css"
+  ],
+  "#ffffff": [
+    "src/index.css"
+  ],
+  "#18181b": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.26)": [
+    "src/index.css"
+  ],
+  "rgba(28, 31, 38, 0.72)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.07)": [
+    "src/index.css"
+  ],
+  "rgba(0, 0, 0, 0.45)": [
+    "src/index.css"
+  ],
+  "rgba(32, 36, 44, 0.62)": [
+    "src/index.css"
+  ],
+  "rgba(24, 27, 34, 0.46)": [
+    "src/index.css"
+  ],
+  "rgba(32, 36, 44, 0.58)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.14)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.16)": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.05)": [
+    "src/index.css"
+  ],
+  "rgba(0, 0, 0, 0.55)": [
+    "src/index.css"
+  ],
+  "rgba(34, 38, 46, 0.94)": [
+    "src/index.css"
+  ],
+  "#F2F4F8": [
+    "src/index.css"
+  ],
+  "rgba(22, 25, 31, 0.85)": [
+    "src/index.css"
+  ],
+  "#F3F4F6": [
+    "src/index.css"
+  ],
+  "#9CA3AF": [
+    "src/index.css"
+  ],
+  "rgba(255, 255, 255, 0.08)": [
+    "src/index.css"
+  ]
+}
