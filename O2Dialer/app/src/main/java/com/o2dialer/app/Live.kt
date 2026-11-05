@@ -102,7 +102,7 @@ private fun CallControls(paused: Boolean) {
 /** A thin, borderless footer for the three live call preferences. */
 @Composable
 private fun SetupInlineFact(value: String, label: String, modifier: Modifier = Modifier) {
-    val cs = MaterialTheme.colorScheme
+    // White card uses a fixed, high-contrast ink palette in both app themes.
     Row(
         modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -113,7 +113,7 @@ private fun SetupInlineFact(value: String, label: String, modifier: Modifier = M
             style = MaterialTheme.typography.labelMedium.copy(
                 fontSize = 12.sp, fontWeight = FontWeight.SemiBold
             ),
-            color = cs.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis
+            color = Color(0xFF17191D), maxLines = 1, overflow = TextOverflow.Ellipsis
         )
         Text(
             label,
@@ -121,7 +121,7 @@ private fun SetupInlineFact(value: String, label: String, modifier: Modifier = M
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.5.sp, fontWeight = FontWeight.Medium
             ),
-            color = cs.onSurfaceVariant,
+            color = Color(0xFF767D88),
             maxLines = 1, overflow = TextOverflow.Ellipsis
         )
     }
@@ -145,7 +145,15 @@ private fun RunSetupPanel() {
             .padding(horizontal = 8.dp, vertical = 2.dp)
             .heightIn(min = 48.dp)
             .pressScale(interaction)
-            .clip(RoundedCornerShape(12.dp))
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(14.dp),
+                ambientColor = Color.Black.copy(alpha = .035f),
+                spotColor = Color.Black.copy(alpha = .05f)
+            )
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .border(1.dp, Color(0xFFE8EBEF), RoundedCornerShape(14.dp))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
@@ -160,8 +168,8 @@ private fun RunSetupPanel() {
         SetupInlineFact("${settings.retries}", T("retries", "إعادة"), Modifier.weight(.82f))
         SetupInlineFact(audio, T("audio", "صوت"), Modifier.weight(1.18f))
         Icon(
-            O2Icons.ChevronRight, null, Modifier.size(14.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f)
+            O2Icons.Settings, null, Modifier.size(15.dp),
+            tint = Brand
         )
     }
 }
