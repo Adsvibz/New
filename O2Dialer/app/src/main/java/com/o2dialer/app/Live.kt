@@ -99,30 +99,50 @@ private fun CallControls(paused: Boolean) {
 }
 
 // ====================================================================== run setup + queue
-/** A thin, borderless footer for the three live call preferences. */
+/** Compact visual summary of attempts, delay and maximum call duration. */
 @Composable
-private fun SetupInlineFact(value: String, label: String, modifier: Modifier = Modifier) {
-    // White card uses a fixed, high-contrast ink palette in both app themes.
-    Row(
+private fun SetupInlineFact(
+    icon: ImageVector,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
         modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(
-            value,
-            style = MaterialTheme.typography.labelMedium.copy(
-                fontSize = 12.sp, fontWeight = FontWeight.SemiBold
-            ),
-            color = Color(0xFF17191D), maxLines = 1, overflow = TextOverflow.Ellipsis
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                icon, contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = Brand
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 18.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = Color(0xFF17191D),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
         Text(
             label,
-            Modifier.weight(1f),
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.5.sp, fontWeight = FontWeight.Medium
+                fontSize = 10.5.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.Medium
             ),
-            color = Color(0xFF767D88),
-            maxLines = 1, overflow = TextOverflow.Ellipsis
+            color = Color(0xFF858B94),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -131,45 +151,39 @@ private fun SetupInlineFact(value: String, label: String, modifier: Modifier = M
 private fun RunSetupPanel() {
     val settings = Store.cfg
     val interaction = remember { MutableInteractionSource() }
-    val gap = if (settings.randomDelay) {
-        "${settings.delaySec}–${maxOf(settings.delaySec, settings.delayMaxSec)}" + L(R.string.ui_s_5cc34057)
-    } else {
-        "${settings.delaySec}" + L(R.string.ui_s_5cc34057)
-    }
-    val audio = if (settings.autoSpeaker)
-        L(R.string.ui_auto_mute_ea78d27f)
-    else L(R.string.ui_phone_657e04de)
+    val delay = if (settings.randomDelay) {
+        "${settings.delaySec}–${maxOf(settings.delaySec, settings.delayMaxSec)}s"
+    } else "${settings.delaySec}s"
+    val duration = if (settings.maxCallSec == 0) "∞" else "${settings.maxCallSec}s"
 
     Row(
         Modifier.fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 2.dp)
-            .heightIn(min = 48.dp)
+            .heightIn(min = 58.dp)
             .pressScale(interaction)
-            .shadow(
-                elevation = 2.dp,
-                shape = RoundedCornerShape(14.dp),
-                ambientColor = Color.Black.copy(alpha = .035f),
-                spotColor = Color.Black.copy(alpha = .05f)
-            )
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .border(1.dp, Color(0xFFE8EBEF), RoundedCornerShape(14.dp))
+            .border(1.dp, Color(0xFFE9EBEF), RoundedCornerShape(16.dp))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 role = Role.Button,
                 onClick = { Store.openSettings() }
             )
-            .padding(horizontal = 6.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(9.dp)
+            .padding(horizontal = 10.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        SetupInlineFact(gap, T("gap", "فاصل"), Modifier.weight(1.05f))
-        SetupInlineFact("${settings.retries}", T("retries", "إعادة"), Modifier.weight(.82f))
-        SetupInlineFact(audio, T("audio", "صوت"), Modifier.weight(1.18f))
-        Icon(
-            O2Icons.Settings, null, Modifier.size(15.dp),
-            tint = Brand
+        SetupInlineFact(
+            Icons.Rounded.Repeat, "${settings.retries + 1}",
+            T("Attempts", "محاولات"), Modifier.weight(1f)
+        )
+        SetupInlineFact(
+            Icons.Rounded.Timer, delay,
+            T("Delay", "الفاصل"), Modifier.weight(1f)
+        )
+        SetupInlineFact(
+            Icons.Rounded.AccessTime, duration,
+            T("Duration", "المدة"), Modifier.weight(1f)
         )
     }
 }
