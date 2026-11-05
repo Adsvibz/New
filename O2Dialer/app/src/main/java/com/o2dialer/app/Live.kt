@@ -178,8 +178,7 @@ private fun UpNext(list: CallList, remaining: Int) {
             )
             Box(
                 Modifier.clip(CircleShape)
-                    .background(cs.onSurface.copy(alpha = .045f))
-                    .border(1.dp, cs.outlineVariant.copy(alpha = .65f), CircleShape)
+                    .background(cs.surfaceVariant.copy(alpha = .42f))
                     .padding(horizontal = 11.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
