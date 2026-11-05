@@ -99,39 +99,30 @@ private fun CallControls(paused: Boolean) {
 }
 
 // ====================================================================== run setup + queue
-/** A compact, typography-first setting in the Dialer summary strip. */
+/** A thin, borderless footer for the three live call preferences. */
 @Composable
-private fun SetupSummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
-    val colors = MaterialTheme.colorScheme
-    Column(
+private fun SetupInlineFact(value: String, label: String, modifier: Modifier = Modifier) {
+    val cs = MaterialTheme.colorScheme
+    Row(
         modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp,
-                lineHeight = 15.sp,
-                fontWeight = FontWeight.Medium
+            value,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontSize = 12.sp, fontWeight = FontWeight.SemiBold
             ),
-            color = colors.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            minLines = 2,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            color = cs.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis
         )
         Text(
-            value,
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold
+            label,
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.5.sp, fontWeight = FontWeight.Medium
             ),
-            color = colors.onSurface,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            color = cs.onSurfaceVariant,
+            maxLines = 1, overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -139,33 +130,39 @@ private fun SetupSummaryItem(label: String, value: String, modifier: Modifier = 
 @Composable
 private fun RunSetupPanel() {
     val settings = Store.cfg
+    val interaction = remember { MutableInteractionSource() }
     val gap = if (settings.randomDelay) {
         "${settings.delaySec}–${maxOf(settings.delaySec, settings.delayMaxSec)}" + L(R.string.ui_s_5cc34057)
     } else {
         "${settings.delaySec}" + L(R.string.ui_s_5cc34057)
     }
-    // Reuse the same restrained, tappable panel surface as the other Dialer cards.
-    Panel(Modifier.fillMaxWidth(), onClick = { Store.openSettings() }) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 15.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SetupSummaryItem(
-                L(R.string.ui_between_calls_7801b436), gap, Modifier.weight(1f)
+    val audio = if (settings.autoSpeaker)
+        L(R.string.ui_auto_mute_ea78d27f)
+    else L(R.string.ui_phone_657e04de)
+
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .heightIn(min = 48.dp)
+            .pressScale(interaction)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                role = Role.Button,
+                onClick = { Store.openSettings() }
             )
-            SetupSummaryItem(
-                if (settings.retries == 0) L(R.string.ui_no_retries_52c2a155)
-                else L(R.string.ui_retries_19789c94),
-                "${settings.retries}", Modifier.weight(1f)
-            )
-            SetupSummaryItem(
-                L(R.string.ui_audio_preference_9f693631),
-                if (settings.autoSpeaker) L(R.string.ui_auto_mute_ea78d27f)
-                else L(R.string.ui_phone_657e04de),
-                Modifier.weight(1f)
-            )
-        }
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(9.dp)
+    ) {
+        SetupInlineFact(gap, T("gap", "فاصل"), Modifier.weight(1.05f))
+        SetupInlineFact("${settings.retries}", T("retries", "إعادة"), Modifier.weight(.82f))
+        SetupInlineFact(audio, T("audio", "صوت"), Modifier.weight(1.18f))
+        Icon(
+            O2Icons.ChevronRight, null, Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f)
+        )
     }
 }
 
