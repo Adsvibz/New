@@ -110,22 +110,22 @@ private fun SetupInlineFact(
     Column(
         modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Icon(
                 icon, contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
                 tint = Brand
             )
             Text(
                 value,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 18.sp,
-                    lineHeight = 22.sp,
+                    fontSize = 16.sp,
+                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 ),
                 color = Color(0xFF17191D),
@@ -136,8 +136,8 @@ private fun SetupInlineFact(
         Text(
             label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.5.sp,
-                lineHeight = 14.sp,
+                fontSize = 9.sp,
+                lineHeight = 11.sp,
                 fontWeight = FontWeight.Medium
             ),
             color = Color(0xFF858B94),
@@ -159,18 +159,18 @@ private fun RunSetupPanel() {
     Row(
         Modifier.fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 2.dp)
-            .heightIn(min = 58.dp)
+            .heightIn(min = 52.dp)
             .pressScale(interaction)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
-            .border(1.dp, Color(0xFFE9EBEF), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0xFFE9EBEF), RoundedCornerShape(14.dp))
             .clickable(
                 interactionSource = interaction,
                 indication = null,
                 role = Role.Button,
                 onClick = { Store.openSettings() }
             )
-            .padding(horizontal = 10.dp, vertical = 9.dp),
+            .padding(horizontal = 8.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         SetupInlineFact(
