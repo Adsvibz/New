@@ -694,23 +694,34 @@ fun O2FrostedTopBar(content: @Composable RowScope.() -> Unit) {
     val fill = if (glassSupported) Color.White.copy(alpha = if (dark) .14f else .09f)
                else Color.White.copy(alpha = if (dark) .89f else .91f)
     val border = if (dark) Color.White.copy(alpha = .25f) else Color.White.copy(alpha = .85f)
-    Row(
+    // Blur ONLY the decorative background. Keeping hazeChild on a Row also
+    // captures its children, softening labels, icons and interactive controls.
+    // Draw the glass as a separate, non-interactive sibling below the content.
+    Box(
         Modifier.fillMaxWidth().statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(16.dp, shape,
-                ambientColor = Color.Black.copy(alpha = .11f),
-                spotColor = Color.Black.copy(alpha = .17f))
-            .then(if (glassSupported && hazeState != null)
-                Modifier.hazeChild(hazeState, shape = shape, style = hazeStyle)
-                else Modifier)
-            .clip(shape).background(fill)
-            .border(1.dp, border, shape)
-            .heightIn(min = 62.dp)
-            .padding(horizontal = 13.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        content = content
-    )
+    ) {
+        Box(
+            Modifier.matchParentSize()
+                .shadow(16.dp, shape,
+                    ambientColor = Color.Black.copy(alpha = .11f),
+                    spotColor = Color.Black.copy(alpha = .17f))
+                .then(if (glassSupported && hazeState != null)
+                    Modifier.hazeChild(hazeState, shape = shape, style = hazeStyle)
+                    else Modifier)
+                .clip(shape)
+                .background(fill)
+                .border(1.dp, border, shape)
+        )
+        Row(
+            Modifier.fillMaxWidth()
+                .heightIn(min = 62.dp)
+                .padding(horizontal = 13.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            content = content
+        )
+    }
 }
 
 @Composable
