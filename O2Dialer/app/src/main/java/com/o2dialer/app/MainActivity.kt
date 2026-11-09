@@ -4,6 +4,7 @@ package com.o2dialer.app
 
 import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -75,7 +76,10 @@ class MainActivity : ComponentActivity() {
     private val permLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             Store.permTick = Store.permTick + 1
-            if (has(Manifest.permission.CALL_PHONE) && has(Manifest.permission.READ_PHONE_STATE)) afterPerms?.invoke()
+            if (has(Manifest.permission.CALL_PHONE) && has(Manifest.permission.READ_PHONE_STATE)) {
+                reportCallLimitations()
+                afterPerms?.invoke()
+            }
             else Store.notify(Tk.ERROR, T("Calling and phone-state permissions are required", "صلاحيات الاتصال وحالة الهاتف مطلوبة"))
             afterPerms = null
         }
@@ -92,15 +96,52 @@ class MainActivity : ComponentActivity() {
         else { afterContacts = after; contactsLauncher.launch(Manifest.permission.READ_CONTACTS) }
     }
 
+    /** Optional permissions must not be confused with guaranteed phone features on every OS/OEM. */
+    private fun reportCallLimitations() {
+        val limits = AndroidCompatibility.callLimitations(
+            sdk = Build.VERSION.SDK_INT,
+            wantsCallLog = Store.cfg.useCallLog,
+            callLogAllowed = has(Manifest.permission.READ_CALL_LOG),
+            maxCallSeconds = Store.cfg.maxCallSec,
+            endCallAllowed = has(Manifest.permission.ANSWER_PHONE_CALLS),
+            notificationsAllowed = Build.VERSION.SDK_INT < 33 || has(Manifest.permission.POST_NOTIFICATIONS)
+        )
+        if (limits.isEmpty()) return
+        val messages = limits.map { limit ->
+            when (limit) {
+                CallLimitation.UNVERIFIED_RESULTS -> T(
+                    "Call results may be unverified without call-log access",
+                    "قد تكون نتائج المكالمات غير مؤكدة بدون سجل المكالمات"
+                )
+                CallLimitation.MANUAL_HANGUP -> T(
+                    "This Android version or device may require manual hang-up",
+                    "قد يحتاج هذا الجهاز أو إصدار أندرويد إلى إنهاء المكالمة يدويًا"
+                )
+                CallLimitation.HIDDEN_NOTIFICATIONS -> T(
+                    "Enable notifications to see campaign progress outside the app",
+                    "فعّل الإشعارات لمتابعة الحملة خارج التطبيق"
+                )
+            }
+        }
+        Store.notify(Tk.WARN, messages.joinToString(" • "))
+    }
+
     /** Asks for everything a campaign needs, then runs [after] once calling is allowed. */
     fun requestCallPermissions(after: (() -> Unit)? = null) {
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+            Store.notify(Tk.ERROR, T(
+                "This device does not support phone calls",
+                "هذا الجهاز لا يدعم إجراء المكالمات الهاتفية"
+            ))
+            return
+        }
         val need = mutableListOf(
             Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_CALL_LOG, Manifest.permission.ANSWER_PHONE_CALLS
         )
-        if (Build.VERSION.SDK_INT >= 33) need.add(Manifest.permission.POST_NOTIFICATIONS)
+        if (AndroidCompatibility.requiresNotificationPermission(Build.VERSION.SDK_INT)) need.add(Manifest.permission.POST_NOTIFICATIONS)
         val missing = need.filter { !has(it) }
-        if (missing.isEmpty()) { after?.invoke(); return }
+        if (missing.isEmpty()) { reportCallLimitations(); after?.invoke(); return }
         afterPerms = after
         permLauncher.launch(missing.toTypedArray())
     }

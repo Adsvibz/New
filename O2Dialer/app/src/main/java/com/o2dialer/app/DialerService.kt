@@ -48,7 +48,23 @@ class DialerService : Service() {
             val i = Intent(ctx, DialerService::class.java).setAction(action)
             if (listId != null) i.putExtra("list", listId)
             i.putExtra("restart", restart)
-            if (action == ACT_START) ContextCompat.startForegroundService(ctx, i) else ctx.startService(i)
+            try {
+                if (action == ACT_START) ContextCompat.startForegroundService(ctx, i)
+                else ctx.startService(i)
+            } catch (e: IllegalStateException) {
+                // Android 12+ can reject background starts; do not crash on Pause/Stop actions.
+                if (action == ACT_START) throw e
+                Store.notify(Tk.WARN, T(
+                    "Android blocked this action. Reopen O2Dialer to manage your session.",
+                    "منع أندرويد هذا الإجراء. افتح O2Dialer للتحكم في الجلسة."
+                ))
+            } catch (e: SecurityException) {
+                if (action == ACT_START) throw e
+                Store.notify(Tk.ERROR, T(
+                    "Android denied this action. Check app permissions.",
+                    "رفض أندرويد هذا الإجراء. راجع صلاحيات التطبيق."
+                ))
+            }
         }
 
         /** Stops the running campaign and shows [reason] (used when the license server deactivates the device). */
@@ -90,7 +106,22 @@ class DialerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACT_START -> {
-                startFg()
+                try {
+                    startFg()
+                } catch (e: RuntimeException) {
+                    // Never place calls if Android rejected the foreground service.
+                    val message = T(
+                        "Android blocked the calling service. Reopen the app and check permissions.",
+                        "منع أندرويد تشغيل خدمة المكالمات. افتح التطبيق وراجع الصلاحيات."
+                    )
+                    Store.notify(Tk.ERROR, message)
+                    Store.camp = Store.camp.copy(
+                        status = CS.FINISHED, error = true, completed = false,
+                        message = message, nextAt = 0, currentName = "", currentNumber = ""
+                    )
+                    stopSelf(startId)
+                    return START_NOT_STICKY
+                }
                 if (!running) startCampaign(
                     intent?.getStringExtra("list") ?: "",
                     intent?.getBooleanExtra("restart", false) ?: false
@@ -374,7 +405,7 @@ class DialerService : Service() {
     private fun hangup() {
         if (curId == null && !sawOffhook) return
         val ended = runCatching {
-            Build.VERSION.SDK_INT >= 28 && has(Manifest.permission.ANSWER_PHONE_CALLS) && telecom.endCall()
+            AndroidCompatibility.canAutomaticallyHangUp(Build.VERSION.SDK_INT, has(Manifest.permission.ANSWER_PHONE_CALLS)) && telecom.endCall()
         }.getOrDefault(false)
         if (!ended) Store.notify(Tk.WARN, T("End this call in your phone app; this device did not allow automatic hang-up",
             "أنهِ المكالمة من تطبيق الهاتف؛ الجهاز لم يسمح بإنهائها تلقائيًا"))
@@ -422,7 +453,7 @@ class DialerService : Service() {
         if (completed) {
             Store.resultsListId = listId
             Store.pendingResultsNav = true
-            notifyDone()
+            runCatching { notifyDone() } // Notifications can be disabled/restricted independently of calling.
             if (S.vibrateOnFinish) buzz()
         }
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -438,7 +469,7 @@ class DialerService : Service() {
     @Suppress("DEPRECATION")
     private fun register() {
         unregister()
-        if (Build.VERSION.SDK_INT >= 31) {
+        if (AndroidCompatibility.usesModernCallStateListener(Build.VERSION.SDK_INT)) {
             val cb = Cb()
             modernCb = cb
             tm.registerTelephonyCallback(mainExecutor, cb)
@@ -482,7 +513,7 @@ class DialerService : Service() {
 
     private fun upd(c: CampState) {
         Store.camp = c.copy(queuedIds = queue.toList())
-        if (running) getSystemService(NotificationManager::class.java).notify(1, notif())
+        if (running) runCatching { getSystemService(NotificationManager::class.java).notify(1, notif()) }
     }
 
     private fun pi(action: String, req: Int) = PendingIntent.getService(
