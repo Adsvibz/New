@@ -1,6 +1,7 @@
 package com.o2dialer.app
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -67,13 +68,33 @@ fun smartNumber(raw: String, defCc: String): String {
     return digits
 }
 
-private val numRegex = Regex("\\+?[0-9٠-٩][0-9٠-٩ \\-()]{5,}")
+/** Handles quoted CSV names and escaped quotes while retaining TXT/TSV separators. */
+private fun splitImportFields(line: String): List<String> {
+    val fields = mutableListOf<String>()
+    val field = StringBuilder()
+    var quoted = false
+    var i = 0
+    while (i < line.length) {
+        val c = line[i]
+        when {
+            c == '"' && quoted && i + 1 < line.length && line[i + 1] == '"' -> { field.append('"'); i++ }
+            c == '"' -> quoted = !quoted
+            !quoted && c in ",;\t|" -> { fields.add(field.toString()); field.clear() }
+            else -> field.append(c)
+        }
+        i++
+    }
+    fields.add(field.toString())
+    return fields
+}
+
+private val numRegex = Regex("\\+?[\\p{Nd}][\\p{Nd} \\-()]{5,}")
 
 fun parseLines(text: String): List<Pair<String, String>> = text.lines().mapNotNull { line ->
     var num: String? = null
     val names = mutableListOf<String>()
-    for (raw in line.split(',', ';', '\t', '|')) {
-        val p = raw.trim()
+    for (raw in splitImportFields(line)) {
+        val p = raw.trim().removePrefix("\uFEFF")
         if (p.isEmpty()) continue
         val digits = cleanNumber(p)
         val numeric = p.all { it.isDigit() || it in "+-() *#." }
@@ -91,7 +112,7 @@ fun parseLines(text: String): List<Pair<String, String>> = text.lines().mapNotNu
     num?.let { names.joinToString(" ") to it }
 }
 
-fun fmtTime(ms: Long): String = SimpleDateFormat("dd MMM, HH:mm", Locale.US).format(Date(ms))
+fun fmtTime(ms: Long): String = SimpleDateFormat("dd MMM, HH:mm", if (Store.cfg.lang == 1) Locale("ar") else Locale.US).format(Date(ms))
 
 fun fmtDur(s: Int): String =
     if (s >= 3600) "%d:%02d:%02d".format(s / 3600, (s % 3600) / 60, s % 60)
@@ -100,7 +121,8 @@ fun fmtDur(s: Int): String =
 fun shareText(ctx: Context, text: String) {
     if (!License.canExport) { License.denyExport(); return }
     val i = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-    ctx.startActivity(Intent.createChooser(i, "Share"))
+    runCatching { ctx.startActivity(Intent.createChooser(i, T("Share", "مشاركة"))) }
+        .onFailure { Store.notify(Tk.ERROR, T("No sharing app is available", "لا يوجد تطبيق متاح للمشاركة")) }
 }
 
 fun openWhatsApp(ctx: Context, number: String) {
@@ -129,16 +151,17 @@ fun loadContacts(ctx: Context): List<Pair<String, String>> {
 }
 
 /** "SIM 1 · Carrier" labels when the phone lets us read them. */
+@SuppressLint("MissingPermission")
 fun simLabels(ctx: Context): List<String> {
     val base = mutableListOf("SIM 1", "SIM 2")
     if (ctx.has(Manifest.permission.READ_PHONE_STATE)) {
-        runCatching {
+        try {
             val sm = ctx.getSystemService(SubscriptionManager::class.java)
             sm.activeSubscriptionInfoList?.forEach { i ->
                 val s = i.simSlotIndex
                 if (s in 0..1) base[s] = "SIM ${s + 1} · ${i.carrierName}"
             }
-        }
+        } catch (_: SecurityException) { /* Permission can be revoked between check and query. */ }
     }
     return base
 }

@@ -6,14 +6,21 @@ import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,89 +54,49 @@ import kotlin.math.roundToInt
 // ============================================================ SIM picker
 @Composable
 fun SimPicker(selected: Int, onSelect: (Int) -> Unit) {
-    val ctx = LocalContext.current
-    val labels = remember { simLabels(ctx) }
-    val names = listOf(T("Default SIM", "الشريحة الافتراضية")) + labels
-    Column(verticalArrangement = Arrangement.spacedBy(Sp.s)) {
-        names.forEachIndexed { i, label ->
-            val on = selected == i - 1
-            val cs = MaterialTheme.colorScheme
-            Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(Rd.m))
-                    .background(if (on) cs.primary.copy(alpha = 0.07f) else cs.surfaceVariant)
-                    .border(1.dp, if (on) cs.primary.copy(alpha = 0.45f) else cs.outline, RoundedCornerShape(Rd.m))
-                    .clickable { onSelect(i - 1) }.heightIn(min = 52.dp)
-                    .padding(horizontal = Sp.l),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Rounded.SimCard, null, tint = if (on) cs.primary else cs.onSurfaceVariant, modifier = Modifier.size(19.dp))
-                Spacer(Modifier.width(Sp.m))
-                Text(
-                    label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                if (on) Icon(Icons.Rounded.CheckCircle, null, tint = cs.primary, modifier = Modifier.size(19.dp))
-            }
-        }
-    }
+    com.o2dialer.app.ui.components.ReferenceSimPicker(selected, onSelect)
 }
 
 // ============================================================ forms (bottom sheets)
 @Composable
-fun CampaignDialog(initial: CallList?, onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
-    var name by remember { mutableStateOf(initial?.name ?: "") }
-    var sim by remember { mutableIntStateOf(initial?.simSlot ?: -1) }
-    BSheet(
-        title = if (initial == null) T("New campaign", "حملة جديدة") else T("Campaign settings", "إعدادات الحملة"),
-        subtitle = T("Give it a name and choose which SIM places the calls.", "اختر اسمًا وشريحة الاتصال."),
-        onDismiss = onDismiss
-    ) {
-        BTextField(name, { name = it }, label = T("Campaign name", "اسم الحملة"),
-            placeholder = T("e.g. Summer leads", "مثال: عملاء الصيف"))
-        Spacer(Modifier.height(2.dp))
-        SectionLabel(T("SIM card", "الشريحة"))
-        SimPicker(sim) { sim = it }
-        Spacer(Modifier.height(4.dp))
-        BButton(T("Save campaign", "حفظ الحملة"), { onSave(name.trim(), sim) }, Modifier.fillMaxWidth(),
-            enabled = name.isNotBlank())
-    }
+fun CampaignDialog(initial: CallList?,onDismiss:()->Unit,onSave:(String,Int)->Unit) {
+    com.o2dialer.app.ui.components.ReferenceCampaignForm(initial, onDismiss, onSave)
 }
 
 @Composable
 fun EntryDialog(initial: Entry?, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
-    var n by remember { mutableStateOf(initial?.name ?: "") }
-    var p by remember { mutableStateOf(initial?.number ?: "") }
+    var n by rememberSaveable(initial?.id) { mutableStateOf(initial?.name ?: "") }
+    var p by rememberSaveable(initial?.id) { mutableStateOf(initial?.number ?: "") }
     BSheet(
-        title = if (initial == null) T("Add number", "إضافة رقم") else T("Edit contact", "تعديل جهة الاتصال"),
-        subtitle = T("Country code is added automatically.", "كود الدولة يضاف تلقائيًا."),
-        onDismiss = onDismiss
+        title = if (initial == null) L(R.string.ui_add_number_077dc68a) else L(R.string.ui_edit_contact_45dfbdc5),
+        subtitle = L(R.string.ui_country_code_is_added_automatically_9f763623),
+        onDismiss = onDismiss,
+        actions = {
+            BButton(L(R.string.ui_save_ab3669ed), { onSave(n, p) }, Modifier.fillMaxWidth(), enabled = cleanNumber(p).length >= 3)
+        }
     ) {
-        BTextField(n, { n = it }, label = T("Name (optional)", "الاسم (اختياري)"), leading = Icons.Rounded.Person)
-        BTextField(p, { p = it }, label = T("Phone number", "رقم الموبايل"), leading = Icons.Rounded.Phone,
+        BTextField(n, { n = it }, label = L(R.string.ui_name_optional_208ff3cc), leading = com.o2dialer.app.ui.components.O2Icons.Person)
+        BTextField(p, { p = it }, label = L(R.string.ui_phone_number_87ef05e2), leading = com.o2dialer.app.ui.components.O2Icons.Phone,
             keyboardType = KeyboardType.Phone)
-        Spacer(Modifier.height(4.dp))
-        BButton(T("Save", "حفظ"), { onSave(n, p) }, Modifier.fillMaxWidth(),
-            enabled = cleanNumber(p).length >= 3)
     }
 }
 
 @Composable
 fun BulkDialog(onDismiss: () -> Unit, onAdd: (String) -> Unit) {
-    var t by remember { mutableStateOf("") }
-    BSheet(title = T("Paste numbers", "لصق أرقام"), onDismiss = onDismiss,
-        subtitle = T("One per line, or Name,Number", "رقم في كل سطر، أو الاسم,الرقم")) {
+    var t by rememberSaveable { mutableStateOf("") }
+    BSheet(title = L(R.string.ui_paste_numbers_04f4cd8a), onDismiss = onDismiss,
+        subtitle = L(R.string.ui_one_number_per_line_names_are_optional_53288457),
+        actions = { BButton(L(R.string.ui_add_to_campaign_704a5fc1), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank()) }) {
         BTextField(
             t, { t = it }, singleLine = false, minLines = 5,
-            placeholder = T("Maya Nelson, +201001234567\n+201119876543", "مي نبيل, +201001234567\n+201119876543")
+            placeholder = L(R.string.ui_maya_nelson_201001234567_201119876543_0883e68e)
         )
-        BButton(T("Add to campaign", "إضافة للحملة"), { onAdd(t) }, Modifier.fillMaxWidth(), enabled = t.isNotBlank())
     }
 }
 
 @Composable
 fun ConfirmDialog(text: String, onDismiss: () -> Unit, destructive: Boolean = true, onOk: () -> Unit) {
-    BDialog(title = null, onDismiss = onDismiss, confirmText = T("Confirm", "تأكيد"), onConfirm = onOk, destructive = destructive) {
+    BDialog(title = L(R.string.ui_confirm_action_65bba871), onDismiss = onDismiss, confirmText = L(R.string.ui_confirm_61bbd2bb), onConfirm = onOk, destructive = destructive) {
         Text(text, style = MaterialTheme.typography.bodyLarge)
     }
 }
@@ -137,28 +107,32 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
     val loaded by produceState<List<Pair<String, String>>?>(initialValue = null) {
         value = withContext(Dispatchers.IO) { loadContacts(ctx) }
     }
-    var q by remember { mutableStateOf("") }
+    var q by rememberSaveable { mutableStateOf("") }
     val sel = remember { mutableStateListOf<String>() }
     val all = loaded
     val shown = all?.filter { q.isBlank() || it.first.contains(q, true) || it.second.contains(q) } ?: emptyList()
     BSheet(
-        title = T("Contacts", "جهات الاتصال") + if (sel.isNotEmpty()) " · ${sel.size}" else "",
+        title = L(R.string.ui_contacts_2fd3de50) + if (sel.isNotEmpty()) " · ${sel.size}" else "",
         onDismiss = onDismiss,
-        subtitle = T("Pick the people to call.", "اختر الأشخاص المطلوب الاتصال بهم."),
-        scrollable = false
+        subtitle = L(R.string.ui_pick_the_people_to_call_1ff09d30),
+        scrollable = false,
+        actions = {
+            BButton(if (sel.isEmpty()) L(R.string.ui_add_contacts_578816f9) else L(R.string.ui_add_contacts_90b0e76b, sel.size),
+                { onAdd((all ?: emptyList()).filter { it.second in sel }) }, Modifier.fillMaxWidth(), enabled = sel.isNotEmpty())
+        }
     ) {
-        BTextField(q, { q = it }, placeholder = T("Search", "بحث"), leading = Icons.Rounded.Search)
+        BTextField(q, { q = it }, placeholder = L(R.string.ui_search_67b32d1c), leading = com.o2dialer.app.ui.components.O2Icons.Search)
         if (all == null) {
             repeat(4) { Skeleton(Modifier.fillMaxWidth().height(44.dp)) }
         } else if (all.isEmpty()) {
-            Text(T("No contacts found", "لا توجد جهات اتصال"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(L(R.string.ui_no_contacts_found_f9e393b9), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
                 TextButton(onClick = { sel.clear(); sel.addAll(shown.map { it.second }) }) {
-                    Text(T("Select all", "تحديد الكل"), style = MaterialTheme.typography.labelLarge)
+                    Text(L(R.string.ui_select_all_e5bcdab4), style = MaterialTheme.typography.labelLarge)
                 }
                 TextButton(onClick = { sel.clear() }) {
-                    Text(T("Clear", "مسح"), style = MaterialTheme.typography.labelLarge)
+                    Text(L(R.string.ui_clear_aeaec2c6), style = MaterialTheme.typography.labelLarge)
                 }
             }
             LazyColumn(Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
@@ -179,11 +153,6 @@ fun ContactsDialog(onDismiss: () -> Unit, onAdd: (List<Pair<String, String>>) ->
                 }
             }
         }
-        BButton(
-            if (sel.isEmpty()) T("Add contacts", "إضافة جهات الاتصال") else T("Add ${sel.size} contacts", "إضافة ${sel.size}"),
-            { onAdd((all ?: emptyList()).filter { it.second in sel }) },
-            Modifier.fillMaxWidth(), enabled = sel.isNotEmpty()
-        )
     }
 }
 
@@ -196,9 +165,9 @@ fun PermissionBanner(act: MainActivity) {
     }
     if (!ok) {
         Banner(
-            Tk.WARN, T("Permissions needed", "صلاحيات مطلوبة"),
-            T("$APP_NAME needs calling and phone-state access to run campaigns.", "$APP_NAME يحتاج صلاحية الاتصال وحالة الهاتف لتشغيل الحملات."),
-            actionText = T("Grant", "منح")
+            Tk.WARN, L(R.string.ui_permissions_needed_6584b9d4),
+            L(R.string.ui_needs_calling_and_phone_state_access_t_7339d8d3, APP_NAME),
+            actionText = L(R.string.ui_grant_55c1f9be)
         ) { act.requestCallPermissions() }
     }
 }
@@ -210,15 +179,7 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
     val shape = RoundedCornerShape(Rd.m)
     Row(
         modifier.clip(shape)
-            .background(
-                if (selected) Brush.linearGradient(listOf(c.copy(alpha = 0.20f), c.copy(alpha = 0.10f)))
-                else Brush.linearGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f)
-                    )
-                )
-            )
+            .background(if (selected) c.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
             .border(if (selected) 1.5.dp else 1.dp, c.copy(alpha = if (selected) 0.75f else 0.14f), shape)
             .clickable { onClick() }.heightIn(min = 60.dp).padding(horizontal = Sp.m),
         verticalAlignment = Alignment.CenterVertically
@@ -235,113 +196,101 @@ fun StageTile(s: Int, selected: Boolean, modifier: Modifier, onClick: () -> Unit
 }
 
 @Composable
-fun StageSheet(listId: String, entryId: String) {
-    val ctx = LocalContext.current
-    val entry = Store.lists.find { it.id == listId }?.entries?.find { it.id == entryId }
-    if (entry == null) { LaunchedEffect(Unit) { Store.stageTarget = null }; return }
-    var selected by remember(entryId) { mutableIntStateOf(entry.stage) }
-    var fb by remember(entryId) { mutableStateOf(entry.feedback) }
-    val release: () -> Unit = { if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_DONE) }
-    // Dismissing the sheet keeps whatever comment was typed, then lets the campaign continue.
-    val close: () -> Unit = {
-        if (Stg.needsFeedback(selected)) Store.setStage(listId, entryId, selected, fb.trim())
-        release(); Store.stageTarget = null
-    }
+fun StageSheet(listId: String, entryId: String) { ReferenceStageSheet(listId, entryId) }
 
-    BSheet(
-        title = T("How did the call go?", "إزاي كانت المكالمة؟"),
-        onDismiss = close,
-        subtitle = T("Tag the outcome so follow-ups stay organised.", "صنّف النتيجة لتبقى المتابعات منظمة.")
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Avatar(entry.name.ifBlank { entry.number })
-            Spacer(Modifier.width(Sp.m))
-            Column {
-                Text(
-                    entry.name.ifBlank { entry.number }, style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    NumText(entry.number, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (entry.duration > 0) Text(
-                        "  ·  ${fmtDur(entry.duration)}", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        Stg.all.chunked(2).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.s)) {
-                row.forEach { s ->
-                    StageTile(s, selected == s, Modifier.weight(1f)) {
-                        selected = s
-                        Store.setStage(listId, entryId, s, fb)
-                        if (Stg.needsFeedback(s)) {
-                            // Hold the campaign until "Save feedback" so the next call does not start while typing.
-                            if (Store.campActive()) DialerService.send(ctx, DialerService.ACT_STAGE_HOLD)
-                        } else {
-                            release()
-                            Store.stageTarget = null
-                            Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
-                        }
-                    }
-                }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
-            }
-        }
-        if (Stg.needsFeedback(selected)) {
-            BTextField(
-                fb, { fb = it }, singleLine = false, minLines = 3, label = T("Feedback", "ملاحظات"),
-                placeholder = T("What did they say?", "قال إيه العميل؟")
-            )
-            BButton(T("Save feedback", "حفظ الملاحظات"), {
-                Store.setStage(listId, entryId, selected, fb.trim())
-                release()
-                Store.stageTarget = null
-                Store.notify(Tk.SUCCESS, T("Saved", "تم الحفظ"))
-            }, Modifier.fillMaxWidth())
-        } else {
-            BButton(T("Skip", "تخطي"), close, Modifier.fillMaxWidth(), kind = BtnKind.Ghost, compact = true)
-        }
+// ============================================================ settings accordion
+// A single-open accordion provides a clean all-collapsed entry state on every visit.
+private val LocalSettingsOpenSection = staticCompositionLocalOf<MutableState<String?>?> { null }
+
+@Composable
+fun SettingsAccordion(content: @Composable () -> Unit) {
+    val openSection = remember { mutableStateOf<String?>(null) }
+    CompositionLocalProvider(LocalSettingsOpenSection provides openSection) {
+        content()
     }
 }
 
-// ============================================================ settings widgets
 @Composable
 fun SettingsSection(
     icon: ImageVector, title: String, startOpen: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    var open by rememberSaveable(title) { mutableStateOf(startOpen) }
     val cs = MaterialTheme.colorScheme
-    val turn by animateFloatAsState(if (open) 180f else 0f, spring(dampingRatio = 0.8f, stiffness = 380f), label = "chevron")
-    Panel(Modifier.fillMaxWidth()) {
+    val reducedMotion = LocalReducedMotion.current
+    val controlled = LocalSettingsOpenSection.current
+    // Stable across translated section titles, so the opened group stays open.
+    val sectionKey = icon.name
+    var independentOpen by remember { mutableStateOf(startOpen) }
+    val expanded = if (controlled != null) controlled.value == sectionKey else independentOpen
+    val onToggle = {
+        if (controlled != null) controlled.value = if (expanded) null else sectionKey
+        else independentOpen = !independentOpen
+    }
+    val shape = RoundedCornerShape(22.dp)
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(if (reducedMotion) 0 else 240, easing = com.o2dialer.app.ui.components.ReferenceEase),
+        label = "settingsSectionChevron"
+    )
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = shape,
+        color = cs.surface,
+        contentColor = cs.onSurface,
+        tonalElevation = 0.dp,
+        shadowElevation = if (expanded) 2.dp else 0.dp,
+        border = BorderStroke(1.dp, if (expanded) cs.outline.copy(alpha = .42f) else cs.outlineVariant)
+    ) {
         Column {
             Row(
-                Modifier.fillMaxWidth().clickable { open = !open }.heightIn(min = 66.dp)
-                    .padding(horizontal = Sp.l),
+                Modifier.fillMaxWidth()
+                    .clip(shape)
+                    .semantics { stateDescription = if (expanded) T("Expanded", "مفتوح") else T("Collapsed", "مغلق") }
+                    .clickable(role = Role.Button, onClick = onToggle)
+                    .heightIn(min = 64.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconTile(icon, cs.primary, 36.dp)
-                Spacer(Modifier.width(Sp.m))
-                Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                Box(
+                    Modifier.size(38.dp).clip(RoundedCornerShape(13.dp))
+                        .background(Brand.copy(alpha = .075f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, null, Modifier.size(19.dp), tint = subtleAccentIconColor())
+                }
+                Text(
+                    title,
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-.2).sp
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Icon(
                     Icons.Rounded.KeyboardArrowDown,
-                    if (open) T("Collapse", "طيّ") else T("Expand", "توسيع"),
-                    tint = cs.onSurfaceVariant, modifier = Modifier.size(20.dp).rotate(turn)
+                    null,
+                    Modifier.size(21.dp).rotate(rotation),
+                    tint = cs.onSurfaceVariant
                 )
             }
             AnimatedVisibility(
-                visible = open,
-                enter = expandVertically(spring(dampingRatio = 0.9f, stiffness = 320f)) + fadeIn(),
-                exit = shrinkVertically(spring(dampingRatio = 0.9f, stiffness = 380f)) + fadeOut()
+                visible = expanded,
+                enter = expandVertically(animationSpec = tween(if (reducedMotion) 0 else 280, easing = com.o2dialer.app.ui.components.ReferenceEase)) +
+                    fadeIn(animationSpec = tween(if (reducedMotion) 0 else 190)),
+                exit = shrinkVertically(animationSpec = tween(if (reducedMotion) 0 else 220, easing = com.o2dialer.app.ui.components.ReferenceEase)) +
+                    fadeOut(animationSpec = tween(if (reducedMotion) 0 else 140))
             ) {
-                Column {
-                    Hairline(Modifier.padding(horizontal = Sp.l))
-                    Column(
-                        Modifier.padding(start = Sp.l, end = Sp.l, top = Sp.l, bottom = Sp.xl),
-                        verticalArrangement = Arrangement.spacedBy(Sp.l)
-                    ) { content() }
+                Column(
+                    Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, bottom = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    HorizontalDivider(color = cs.outlineVariant.copy(alpha = .7f))
+                    content()
                 }
             }
         }
