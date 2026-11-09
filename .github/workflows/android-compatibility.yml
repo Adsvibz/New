@@ -45,7 +45,9 @@ jobs:
           working-directory: O2Dialer
           disable-animations: true
           script: |
-            set -euo pipefail
+            # android-emulator-runner invokes /bin/sh (dash) by default.
+            # pipefail is a bash-only option and previously failed every emulator job.
+            set -eu
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell settings put system font_scale 1.0
             adb shell am start -W -n com.o2dialer.app/.MainActivity
