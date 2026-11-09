@@ -70,7 +70,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
         }
 
         LazyColumn(
-            Modifier.weight(1f).navigationBarsPadding(),
+            Modifier.weight(1f).navigationBarsPadding().o2BackdropSource(),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {

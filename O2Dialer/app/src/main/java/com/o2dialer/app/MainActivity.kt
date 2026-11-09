@@ -258,12 +258,9 @@ fun Root(act: MainActivity) {
         bottomBar = {}
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).nestedScroll(scrollConnection)) {
-            Box(
-                Modifier.fillMaxSize().haze(
-                    state = navHazeState,
-                    style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
-                )
-            ) {
+            // The haze SOURCE is attached to each scrollable screen BODY, never
+            // to a parent that also contains fixed headers or their sharp icons.
+            Box(Modifier.fillMaxSize()) {
                 CompositionLocalProvider(LocalO2HeaderBackdrop provides navHazeState) {
                     Responsive {
                     AnimatedContent(

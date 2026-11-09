@@ -149,7 +149,7 @@ private fun PrecisionCampaignContent(
             }
         }
         LazyColumn(
-            modifier = Modifier.weight(1f).navigationBarsPadding(),
+            modifier = Modifier.weight(1f).navigationBarsPadding().o2BackdropSource(),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {

@@ -99,7 +99,7 @@ fun SettingsScreen() {
         containerColor = Color.Transparent
     ) { pad ->
         Column(
-            Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
+            Modifier.padding(pad).fillMaxSize().o2BackdropSource().verticalScroll(rememberScrollState())
                 .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

@@ -96,7 +96,7 @@ fun MembershipScreen() {
         }
     ) { inner ->
         Column(
-            Modifier.fillMaxSize().padding(inner)
+            Modifier.fillMaxSize().padding(inner).o2BackdropSource()
                 .verticalScroll(rememberScrollState())
                 .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -5,6 +5,8 @@ package com.o2dialer.app
 import android.os.Build
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -679,6 +681,22 @@ fun LogoMark(dp: Dp, color: Color = Cream) {
 // ====================================================================== top bar
 /** All destination headers sample the same frosted surface as the floating bottom dock. */
 val LocalO2HeaderBackdrop = staticCompositionLocalOf<HazeState?> { null }
+
+/**
+ * Capture scrolling screen CONTENT only. Never put Haze on a container that
+ * also draws the fixed header, or the frosted surface will sample the header
+ * title and icons and visually blur its own controls.
+ *
+ * Both the floating nav and the frosted top bar reuse this isolated source.
+ */
+@Composable
+fun Modifier.o2BackdropSource(): Modifier {
+    val state = LocalO2HeaderBackdrop.current ?: return this
+    return this.haze(
+        state = state,
+        style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
+    )
+}
 
 /** Pinned, inset-aware frosted header, with Android 8–11 solid-glass fallback.
  * Never put this inside a scrollable container.
