@@ -66,6 +66,15 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 // ====================================================================== layout helpers
+/** Consistent top and bottom gutters for all main navigation destinations.
+ * Scaffolds provide the system-bar insets; custom full-screen lists apply them explicitly.
+ */
+object ScreenFrame {
+    val headerTop = 12.dp
+    val contentTop = 8.dp
+    val contentBottom = 112.dp
+}
+
 /** Native screens follow the available window, including landscape and split screen. */
 @Composable
 fun Responsive(content: @Composable () -> Unit) {
@@ -690,7 +699,7 @@ fun BlendBar(
 ) {
     Column(
         Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = Sp.xl, end = Sp.l, top = Sp.m, bottom = Sp.m)
+            .padding(start = Sp.xl, end = Sp.l, top = ScreenFrame.headerTop, bottom = ScreenFrame.headerTop)
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             if (onBack != null) {

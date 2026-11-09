@@ -98,7 +98,7 @@ fun MembershipScreen() {
         Column(
             Modifier.fillMaxSize().padding(inner)
                 .verticalScroll(rememberScrollState())
-                .padding(start = Sp.xl, end = Sp.xl, top = 4.dp, bottom = 116.dp),
+                .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // The billing system is not wired yet; never claim an actual active plan.

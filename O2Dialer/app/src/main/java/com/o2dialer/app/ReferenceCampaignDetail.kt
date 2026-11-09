@@ -32,7 +32,9 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
     } }
     val status = when { running -> L(R.string.ref_running); p.total > 0 && p.remaining == 0 -> L(R.string.ui_completed_8891e609)
         p.called > 0 -> L(R.string.ui_paused_f5813c1d); else -> L(R.string.ui_ready_0c93aede) }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 112.dp),
+    LazyColumn(
+        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.headerTop, bottom = ScreenFrame.contentBottom),
         verticalArrangement = Arrangement.spacedBy(0.dp)) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -143,8 +143,8 @@ private fun PrecisionCampaignContent(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 112.dp),
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 0.dp, bottom = ScreenFrame.contentBottom),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
 

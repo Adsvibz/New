@@ -521,7 +521,7 @@ fun LiveScreen(act: MainActivity) {
     ) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
-                .padding(start = Sp.xl, end = Sp.xl, top = Sp.s, bottom = 112.dp),
+                .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
             ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })

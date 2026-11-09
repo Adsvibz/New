@@ -117,10 +117,10 @@ import com.o2dialer.app.ui.theme.*
 }
 
 @Composable fun O2TopHeader(title:String,subtitle:String?=null,actions:@Composable RowScope.()->Unit={}) {
-    Row(Modifier.fillMaxWidth().padding(vertical=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+    Row(Modifier.fillMaxWidth().padding(vertical=ScreenFrame.headerTop),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
         Column(Modifier.weight(1f)) {
-            if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(title,style=MaterialTheme.typography.headlineLarge)
+            Text(title,style=MaterialTheme.typography.headlineLarge,maxLines=2,overflow=TextOverflow.Ellipsis)
+            if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)
         }
         SoftIconButton(O2Icons.Globe,L(R.string.ui_change_language_1c32e0d1),{ LanguageTransition.toggle() })
         actions()
