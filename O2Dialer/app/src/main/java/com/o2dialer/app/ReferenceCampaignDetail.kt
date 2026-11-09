@@ -32,35 +32,48 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
     } }
     val status = when { running -> L(R.string.ref_running); p.total > 0 && p.remaining == 0 -> L(R.string.ui_completed_8891e609)
         p.called > 0 -> L(R.string.ui_paused_f5813c1d); else -> L(R.string.ui_ready_0c93aede) }
-    LazyColumn(
-        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.headerTop, bottom = ScreenFrame.contentBottom),
-        verticalArrangement = Arrangement.spacedBy(0.dp)) {
-        item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ReferenceDetailPill(L(R.string.ui_campaigns_d8df9f8a), O2Icons.Back, { Store.selectedListId = null })
-                Spacer(Modifier.weight(1f))
-                ReferenceDetailPill(L(R.string.ui_edit_campaign_7f55beab), O2Icons.Edit, { action = "edit" }, !running)
-                Box {
-                    IconButton({ menu = true }, Modifier.size(44.dp).background(cs.surface.copy(alpha = .6f), CircleShape)) {
-                        Icon(O2Icons.More, L(R.string.ui_campaign_actions_19a76975), Modifier.size(16.dp), tint = subtleAccentIconColor())
+    Column(Modifier.fillMaxSize()) {
+        O2FrostedTopBar {
+            IconButton(onClick = { Store.selectedListId = null }, modifier = Modifier.size(40.dp)) {
+                Icon(O2Icons.Back, L(R.string.ui_campaigns_d8df9f8a), modifier = Modifier.size(18.dp), tint = cs.onSurface)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(list.name, fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(L(R.string.ui_contacts_a01f7e45, p.total) + " · " +
+                    (if (list.simSlot < 0) L(R.string.ui_default_sim_bf6ca60e) else "SIM ${list.simSlot + 1}") + " · " + status,
+                    fontSize = 10.5.sp, color = cs.onSurfaceVariant,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            IconButton(onClick = { action = "edit" }, enabled = !running, modifier = Modifier.size(40.dp)) {
+                Icon(O2Icons.Edit, L(R.string.ui_edit_campaign_7f55beab),
+                    modifier = Modifier.size(17.dp), tint = subtleAccentIconColor())
+            }
+            Box {
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) {
+                    Icon(O2Icons.More, L(R.string.ui_campaign_actions_19a76975),
+                        modifier = Modifier.size(17.dp), tint = subtleAccentIconColor())
+                }
+                DropdownMenu(menu, { menu = false }) {
+                    if (list.entries.distinctBy { it.number }.size < list.entries.size) {
+                        DropdownMenuItem({ Text(L(R.string.ui_remove_duplicates_f4f71e9f), fontSize = 12.5.sp) },
+                            { menu = false; action = "dedupe" }, enabled = !running)
                     }
-                    DropdownMenu(menu, { menu = false }) {
-                        if (list.entries.distinctBy { it.number }.size < list.entries.size) DropdownMenuItem({ Text(L(R.string.ui_remove_duplicates_f4f71e9f), fontSize = 12.5.sp) }, { menu = false; action = "dedupe" }, enabled = !running)
-                        listOf("rename" to R.string.ui_rename_f50d547f, "reset" to R.string.ui_reset_progress_f4360fc1,
-                            "share" to R.string.ui_share_report_28dd6cbd, "delete" to R.string.ui_delete_3ffdefc9).forEach { (key, title) ->
-                            DropdownMenuItem({ Text(L(title), fontSize = 12.5.sp) }, { menu = false; action = key }, enabled = !running || key == "share")
+                    listOf("rename" to R.string.ui_rename_f50d547f, "reset" to R.string.ui_reset_progress_f4360fc1,
+                        "share" to R.string.ui_share_report_28dd6cbd, "delete" to R.string.ui_delete_3ffdefc9)
+                        .forEach { (key, title) ->
+                            DropdownMenuItem({ Text(L(title), fontSize = 12.5.sp) },
+                                { menu = false; action = key }, enabled = !running || key == "share")
                         }
-                    }
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            Text(list.name, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(4.dp))
-            Text(L(R.string.ui_contacts_a01f7e45, p.total) + " · " + (if (list.simSlot < 0) L(R.string.ui_default_sim_bf6ca60e) else "SIM ${list.simSlot + 1}") + " · " + status,
-                fontSize = 12.sp, color = cs.onSurfaceVariant)
-            Spacer(Modifier.height(14.dp))
         }
+
+        LazyColumn(
+            Modifier.weight(1f).navigationBarsPadding(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
         item {
             Spacer(Modifier.height(2.dp))
             val label = when { list.entries.isEmpty() -> L(R.string.ref_add_contacts_start); running -> L(R.string.ui_return_to_live_session_404572f9)
@@ -139,6 +152,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
             }
         }
 
+        }
     }
     when (action) {
         "edit" -> CampaignDialog(list, { action = "" }) { name, sim -> Store.updateList(list.id) { it.copy(name = name, simSlot = sim) }; action = "" }

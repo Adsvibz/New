@@ -142,18 +142,18 @@ private fun PrecisionCampaignContent(
         if (id in selected) selected.remove(id) else selected.add(id)
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 0.dp, bottom = ScreenFrame.contentBottom),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-
-        item {
+    Column(Modifier.fillMaxSize()) {
+        O2FrostedTopBar {
             O2TopHeader(L(R.string.ui_campaigns_d8df9f8a),L(R.string.ui_campaigns_contacts_d7e52d96, lists.size, total)) {
                 O2PrimaryButton(L(R.string.ui_new_campaign_d690aa07),onCreate,icon=O2Icons.Plus)
             }
         }
-        item { Spacer(Modifier.height(8.dp)) }
+        LazyColumn(
+            modifier = Modifier.weight(1f).navigationBarsPadding(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+
         item {
             O2MetricGrid(listOf(
                 { mod -> O2StatWidget(L(R.string.ui_called_c764210c),displayNumber(called),L(R.string.ui_completed_ccff28ed, (completion*100).toInt()),mod,true,completion) },
@@ -341,8 +341,7 @@ private fun PrecisionCampaignContent(
             }
         }
     }
-
-
+    }
 
     if (confirmBulk) {
         val deletableIds = selected.filter { !Store.isRunningList(it) }

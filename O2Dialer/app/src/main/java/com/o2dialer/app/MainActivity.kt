@@ -264,7 +264,8 @@ fun Root(act: MainActivity) {
                     style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
                 )
             ) {
-                Responsive {
+                CompositionLocalProvider(LocalO2HeaderBackdrop provides navHazeState) {
+                    Responsive {
                     AnimatedContent(
                     targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
@@ -288,6 +289,7 @@ fun Root(act: MainActivity) {
                         else -> SettingsScreen()
                     }
                 }
+                    }
                 }
             }
             AnimatedVisibility(

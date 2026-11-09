@@ -516,7 +516,11 @@ fun LiveScreen(act: MainActivity) {
     var operational by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = {},
+        topBar = {
+            O2FrostedTopBar {
+                ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })
+            }
+        },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
@@ -524,7 +528,6 @@ fun LiveScreen(act: MainActivity) {
                 .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {
-            ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })
             if (showHero && heroList != null) {
                 V7LiveHero(c, heroList, Store.prog(heroList), now) { if(active) CallControls(c.status == CS.PAUSED) }
                 if(c.status == CS.FINISHED) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -561,7 +564,7 @@ fun LiveScreen(act: MainActivity) {
 @Composable
 private fun ReferenceDialerHeader(selected: CallList?, state: CampState, onPicker: () -> Unit, onOperational: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 Modifier.fillMaxWidth(),

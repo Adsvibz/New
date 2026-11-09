@@ -117,7 +117,7 @@ import com.o2dialer.app.ui.theme.*
 }
 
 @Composable fun O2TopHeader(title:String,subtitle:String?=null,actions:@Composable RowScope.()->Unit={}) {
-    Row(Modifier.fillMaxWidth().padding(vertical=ScreenFrame.headerTop),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
         Column(Modifier.weight(1f)) {
             Text(title,style=MaterialTheme.typography.headlineLarge,maxLines=2,overflow=TextOverflow.Ellipsis)
             if(subtitle!=null) Text(subtitle,style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)

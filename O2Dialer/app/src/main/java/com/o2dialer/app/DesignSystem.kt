@@ -2,6 +2,10 @@
 
 package com.o2dialer.app
 
+import android.os.Build
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.hazeChild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -673,6 +677,42 @@ fun LogoMark(dp: Dp, color: Color = Cream) {
 }
 
 // ====================================================================== top bar
+/** All destination headers sample the same frosted surface as the floating bottom dock. */
+val LocalO2HeaderBackdrop = staticCompositionLocalOf<HazeState?> { null }
+
+/** Pinned, inset-aware frosted header, with Android 8–11 solid-glass fallback.
+ * Never put this inside a scrollable container.
+ */
+@Composable
+fun O2FrostedTopBar(content: @Composable RowScope.() -> Unit) {
+    val dark = isDarkTheme()
+    val glassSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val hazeState = LocalO2HeaderBackdrop.current
+    val shape = RoundedCornerShape(28.dp)
+    val tint = Color.White.copy(alpha = if (dark) .78f else .32f)
+    val hazeStyle = HazeStyle(tint = tint, blurRadius = 24.dp, noiseFactor = .09f)
+    val fill = if (glassSupported) Color.White.copy(alpha = if (dark) .14f else .09f)
+               else Color.White.copy(alpha = if (dark) .89f else .91f)
+    val border = if (dark) Color.White.copy(alpha = .25f) else Color.White.copy(alpha = .85f)
+    Row(
+        Modifier.fillMaxWidth().statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(16.dp, shape,
+                ambientColor = Color.Black.copy(alpha = .11f),
+                spotColor = Color.Black.copy(alpha = .17f))
+            .then(if (glassSupported && hazeState != null)
+                Modifier.hazeChild(hazeState, shape = shape, style = hazeStyle)
+                else Modifier)
+            .clip(shape).background(fill)
+            .border(1.dp, border, shape)
+            .heightIn(min = 62.dp)
+            .padding(horizontal = 13.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        content = content
+    )
+}
+
 @Composable
 private fun LivePill() {
     val pct = Store.lists.find { it.id == Store.camp.listId }?.let { Store.prog(it).pct } ?: 0
@@ -697,11 +737,7 @@ fun BlendBar(
     subtitle: String? = null, showLanguage: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    Column(
-        Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(start = Sp.xl, end = Sp.l, top = ScreenFrame.headerTop, bottom = ScreenFrame.headerTop)
-    ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    O2FrostedTopBar {
             if (onBack != null) {
                 SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Back, L(R.string.ui_back_794ab43a), onBack)
                 Spacer(Modifier.width(Sp.m))
@@ -722,7 +758,6 @@ fun BlendBar(
             if (showSettings) {
                 SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Settings, L(R.string.ui_settings_f3f3f790), { Store.openSettings() })
             }
-        }
     }
 }
 
