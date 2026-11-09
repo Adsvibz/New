@@ -543,7 +543,6 @@ fun LiveScreen(act: MainActivity) {
                 UpNext(list, progress.remaining)
             }
             RunSetupPanel()
-            Spacer(Modifier.height(Sp.l))
         }
     }
     if(picking) BSheet(L(R.string.ui_choose_a_campaign_eb7e0334), { picking = false }) {
