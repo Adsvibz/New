@@ -131,7 +131,7 @@ import com.o2dialer.app.ui.theme.*
     val cs=MaterialTheme.colorScheme
     val dark=isDarkTheme()
     val count=Store.lists.count { Store.isRunningList(it.id) }
-    val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
+    val tabs=listOf(Triple(1,O2Icons.Phone,L(R.string.ui_dialer_bd42b0f9)),Triple(2,O2Icons.Chart,L(R.string.ui_results_e87ed283)),Triple(0,O2Icons.Megaphone,L(R.string.ui_campaigns_d8df9f8a)),Triple(3,O2Icons.Clock,L(R.string.ui_history_1bdd62e7)),Triple(5,O2Icons.CreditCard,T("Plans", "الباقات")),Triple(4,O2Icons.Settings,L(R.string.ui_settings_f3f3f790)))
     val navShape=RoundedCornerShape(32.dp)
     // Actual backdrop blur, NOT a tinted gradient. Haze samples the Compose
     // content behind this dock; icons remain sharp because only the source is blurred.
@@ -153,9 +153,9 @@ import com.o2dialer.app.ui.theme.*
                     else Color.White.copy(alpha = .85f)
     BoxWithConstraints(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),contentAlignment=Alignment.Center) {
         val navItemSize=when {
-            maxWidth < 280.dp -> 40.dp
-            maxWidth < 310.dp -> 44.dp
-            else -> 48.dp
+            maxWidth < 285.dp -> 36.dp
+            maxWidth < 330.dp -> 42.dp
+            else -> 46.dp
         }
         Row(Modifier.widthIn(max=390.dp).fillMaxWidth()
             .shadow(16.dp,navShape,ambientColor=Color.Black.copy(alpha=.11f),spotColor=Color.Black.copy(alpha=.17f))

@@ -284,6 +284,7 @@ fun Root(act: MainActivity) {
                         1 -> LiveScreen(act)
                         2 -> ResultsScreen(act)
                         3 -> LogScreen()
+                        5 -> MembershipScreen()
                         else -> SettingsScreen()
                     }
                 }

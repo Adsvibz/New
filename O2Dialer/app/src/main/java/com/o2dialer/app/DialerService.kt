@@ -405,7 +405,7 @@ class DialerService : Service() {
     private fun hangup() {
         if (curId == null && !sawOffhook) return
         val ended = runCatching {
-            AndroidCompatibility.canAutomaticallyHangUp(Build.VERSION.SDK_INT, has(Manifest.permission.ANSWER_PHONE_CALLS)) && telecom.endCall()
+            Build.VERSION.SDK_INT >= 28 && has(Manifest.permission.ANSWER_PHONE_CALLS) && telecom.endCall()
         }.getOrDefault(false)
         if (!ended) Store.notify(Tk.WARN, T("End this call in your phone app; this device did not allow automatic hang-up",
             "أنهِ المكالمة من تطبيق الهاتف؛ الجهاز لم يسمح بإنهائها تلقائيًا"))
@@ -469,7 +469,7 @@ class DialerService : Service() {
     @Suppress("DEPRECATION")
     private fun register() {
         unregister()
-        if (AndroidCompatibility.usesModernCallStateListener(Build.VERSION.SDK_INT)) {
+        if (Build.VERSION.SDK_INT >= 31) {
             val cb = Cb()
             modernCb = cb
             tm.registerTelephonyCallback(mainExecutor, cb)

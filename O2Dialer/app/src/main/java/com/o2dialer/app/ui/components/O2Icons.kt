@@ -23,6 +23,11 @@ object O2Icons {
         addPath(PathParser().parsePathString("M12 6v6l4 2").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
         addPath(PathParser().parsePathString("M 2 12 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
     }.build() }
+    /** Stroke-only Lucide credit-card silhouette, matching all O2 navigation icons. */
+    val CreditCard: ImageVector by lazy { ImageVector.Builder("CreditCard",24.dp,24.dp,24f,24f).apply {
+        addPath(PathParser().parsePathString("M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+        addPath(PathParser().parsePathString("M2 10h20").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
+    }.build() }
     val Settings: ImageVector by lazy { ImageVector.Builder("Settings",24.dp,24.dp,24f,24f).apply {
         addPath(PathParser().parsePathString("M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
         addPath(PathParser().parsePathString("M 9 12 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0").toNodes(),fill=null,stroke=SolidColor(Color.Black),strokeLineWidth=1.75f,strokeLineCap=StrokeCap.Round,strokeLineJoin=StrokeJoin.Round)
