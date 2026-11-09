@@ -258,11 +258,15 @@ fun Root(act: MainActivity) {
         bottomBar = {}
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad).consumeWindowInsets(pad).nestedScroll(scrollConnection)) {
-            // The haze SOURCE is attached to each scrollable screen BODY, never
-            // to a parent that also contains fixed headers or their sharp icons.
-            Box(Modifier.fillMaxSize()) {
-                CompositionLocalProvider(LocalO2HeaderBackdrop provides navHazeState) {
-                    Responsive {
+            // The original Haze source powers the bottom navigation only.
+            // Pinned headers have no Haze child and remain fully crisp.
+            Box(
+                Modifier.fillMaxSize().haze(
+                    state = navHazeState,
+                    style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
+                )
+            ) {
+                Responsive {
                     AnimatedContent(
                     targetState = screenKey to Store.selectedListId,
                     transitionSpec = {
@@ -286,7 +290,6 @@ fun Root(act: MainActivity) {
                         else -> SettingsScreen()
                     }
                 }
-                    }
                 }
             }
             AnimatedVisibility(

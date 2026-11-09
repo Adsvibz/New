@@ -2,12 +2,6 @@
 
 package com.o2dialer.app
 
-import android.os.Build
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.HazeStyle
-import dev.chrisbanes.haze.HazeDefaults
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -679,67 +673,27 @@ fun LogoMark(dp: Dp, color: Color = Cream) {
 }
 
 // ====================================================================== top bar
-/** All destination headers sample the same frosted surface as the floating bottom dock. */
-val LocalO2HeaderBackdrop = staticCompositionLocalOf<HazeState?> { null }
-
 /**
- * Capture scrolling screen CONTENT only. Never put Haze on a container that
- * also draws the fixed header, or the frosted surface will sample the header
- * title and icons and visually blur its own controls.
- *
- * Both the floating nav and the frosted top bar reuse this isolated source.
+ * Shared clean pinned header. This deliberately contains NO glass, blur,
+ * background tint, overlay, border, or shadow: only the scrolling content moves.
+ * Same alignment and system-bar inset for every destination.
  */
 @Composable
-fun Modifier.o2BackdropSource(): Modifier {
-    val state = LocalO2HeaderBackdrop.current ?: return this
-    return this.haze(
-        state = state,
-        style = HazeDefaults.style(backgroundColor = MaterialTheme.colorScheme.background)
+fun O2PinnedTopBar(content: @Composable RowScope.() -> Unit) {
+    Row(
+        Modifier.fillMaxWidth()
+            .statusBarsPadding()
+            .padding(
+                start = Sp.xl,
+                end = Sp.l,
+                top = ScreenFrame.headerTop,
+                bottom = ScreenFrame.headerTop
+            )
+            .heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        content = content
     )
-}
-
-/** Pinned, inset-aware frosted header, with Android 8–11 solid-glass fallback.
- * Never put this inside a scrollable container.
- */
-@Composable
-fun O2FrostedTopBar(content: @Composable RowScope.() -> Unit) {
-    val dark = isDarkTheme()
-    val glassSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val hazeState = LocalO2HeaderBackdrop.current
-    val shape = RoundedCornerShape(28.dp)
-    val tint = Color.White.copy(alpha = if (dark) .78f else .32f)
-    val hazeStyle = HazeStyle(tint = tint, blurRadius = 24.dp, noiseFactor = .09f)
-    val fill = if (glassSupported) Color.White.copy(alpha = if (dark) .14f else .09f)
-               else Color.White.copy(alpha = if (dark) .89f else .91f)
-    val border = if (dark) Color.White.copy(alpha = .25f) else Color.White.copy(alpha = .85f)
-    // Blur ONLY the decorative background. Keeping hazeChild on a Row also
-    // captures its children, softening labels, icons and interactive controls.
-    // Draw the glass as a separate, non-interactive sibling below the content.
-    Box(
-        Modifier.fillMaxWidth().statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Box(
-            Modifier.matchParentSize()
-                .shadow(16.dp, shape,
-                    ambientColor = Color.Black.copy(alpha = .11f),
-                    spotColor = Color.Black.copy(alpha = .17f))
-                .then(if (glassSupported && hazeState != null)
-                    Modifier.hazeChild(hazeState, shape = shape, style = hazeStyle)
-                    else Modifier)
-                .clip(shape)
-                .background(fill)
-                .border(1.dp, border, shape)
-        )
-        Row(
-            Modifier.fillMaxWidth()
-                .heightIn(min = 62.dp)
-                .padding(horizontal = 13.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            content = content
-        )
-    }
 }
 
 @Composable
@@ -766,7 +720,7 @@ fun BlendBar(
     subtitle: String? = null, showLanguage: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    O2FrostedTopBar {
+    O2PinnedTopBar {
             if (onBack != null) {
                 SoftIconButton(com.o2dialer.app.ui.components.O2Icons.Back, L(R.string.ui_back_794ab43a), onBack)
                 Spacer(Modifier.width(Sp.m))

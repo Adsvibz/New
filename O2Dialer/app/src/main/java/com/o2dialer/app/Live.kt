@@ -517,14 +517,14 @@ fun LiveScreen(act: MainActivity) {
 
     Scaffold(
         topBar = {
-            O2FrostedTopBar {
+            O2PinnedTopBar {
                 ReferenceDialerHeader(selected, c, { picking = true }, { operational = true })
             }
         },
         containerColor = Color.Transparent
     ) { pad ->
         Column(
-            Modifier.padding(pad).fillMaxSize().o2BackdropSource().verticalScroll(rememberScrollState())
+            Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(start = Sp.xl, end = Sp.xl, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(Sp.m)
         ) {

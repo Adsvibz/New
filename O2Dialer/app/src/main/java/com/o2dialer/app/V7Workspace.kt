@@ -143,13 +143,13 @@ private fun PrecisionCampaignContent(
     }
 
     Column(Modifier.fillMaxSize()) {
-        O2FrostedTopBar {
+        O2PinnedTopBar {
             O2TopHeader(L(R.string.ui_campaigns_d8df9f8a),L(R.string.ui_campaigns_contacts_d7e52d96, lists.size, total)) {
                 O2PrimaryButton(L(R.string.ui_new_campaign_d690aa07),onCreate,icon=O2Icons.Plus)
             }
         }
         LazyColumn(
-            modifier = Modifier.weight(1f).navigationBarsPadding().o2BackdropSource(),
+            modifier = Modifier.weight(1f).navigationBarsPadding(),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {

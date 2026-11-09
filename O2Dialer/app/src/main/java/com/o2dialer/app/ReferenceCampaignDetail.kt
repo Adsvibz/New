@@ -33,7 +33,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
     val status = when { running -> L(R.string.ref_running); p.total > 0 && p.remaining == 0 -> L(R.string.ui_completed_8891e609)
         p.called > 0 -> L(R.string.ui_paused_f5813c1d); else -> L(R.string.ui_ready_0c93aede) }
     Column(Modifier.fillMaxSize()) {
-        O2FrostedTopBar {
+        O2PinnedTopBar {
             IconButton(onClick = { Store.selectedListId = null }, modifier = Modifier.size(40.dp)) {
                 Icon(O2Icons.Back, L(R.string.ui_campaigns_d8df9f8a), modifier = Modifier.size(18.dp), tint = cs.onSurface)
             }
@@ -70,7 +70,7 @@ fun ReferenceCampaignDetail(list: CallList, act: MainActivity, importing: Boolea
         }
 
         LazyColumn(
-            Modifier.weight(1f).navigationBarsPadding().o2BackdropSource(),
+            Modifier.weight(1f).navigationBarsPadding(),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = ScreenFrame.contentTop, bottom = ScreenFrame.contentBottom),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {

@@ -184,7 +184,7 @@ fun ResultsScreen(act: MainActivity) {
     }) },containerColor=Color.Transparent) { pad ->
         if(list==null) {
             EmptyState(com.o2dialer.app.ui.components.O2Icons.Chart,L(R.string.ui_no_results_yet_8f72d7a5),
-                L(R.string.ui_run_a_campaign_and_its_results_will_ap_9b2a4319),Modifier.padding(pad).o2BackdropSource(),
+                L(R.string.ui_run_a_campaign_and_its_results_will_ap_9b2a4319),Modifier.padding(pad),
                 actionText=L(R.string.ui_go_to_campaigns_ba3e39c8),onAction={Store.tab=0})
         } else {
             val p=Store.prog(list)
@@ -193,7 +193,7 @@ fun ResultsScreen(act: MainActivity) {
                 (outcome==-1 || it.status==outcome) && (stage==-1 || it.stage==stage) &&
                     (query.isBlank() || it.name.contains(query,true) || it.number.contains(query) || it.feedback.contains(query,true))
             }.sortedByDescending { it.calledAt }
-            LazyColumn(Modifier.padding(pad).o2BackdropSource(),contentPadding=PaddingValues(start=20.dp,end=20.dp,top=ScreenFrame.contentTop,bottom=ScreenFrame.contentBottom),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+            LazyColumn(Modifier.padding(pad),contentPadding=PaddingValues(start=20.dp,end=20.dp,top=ScreenFrame.contentTop,bottom=ScreenFrame.contentBottom),verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 item {
                     Box {
                         BButton(list.name,{picker=true},Modifier.fillMaxWidth(),kind=BtnKind.Tonal,icon=com.o2dialer.app.ui.components.O2Icons.Chevron,compact=true)
@@ -366,7 +366,7 @@ fun LogScreen() {
         },
         containerColor = Color.Transparent
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().o2BackdropSource()) {
+        Column(Modifier.padding(pad).fillMaxSize()) {
             Spacer(Modifier.height(ScreenFrame.contentTop))
             Box(Modifier.padding(horizontal = Sp.xl)) {
                 V7HistoryHeader(
